@@ -43,7 +43,8 @@ namespace BobClient
 
         internal void Validate() 
         {
-            if (!IPAddress.TryParse(Address, out _))
+            if (!Uri.TryCreate($"http://{Address}", UriKind.Absolute, out var url) ||
+               !IPAddress.TryParse(url.Host, out _))
             {
                 throw new ArgumentException($"cannot parse {Address} like ip address");
             }

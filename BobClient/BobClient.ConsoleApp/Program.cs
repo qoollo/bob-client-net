@@ -22,7 +22,6 @@ namespace BobClient.ConsoleApp
                 //Console.WriteLine(result);
 
                 Task.WaitAll(client.GetAsync(id++).ContinueWith(x => Console.WriteLine(x.Result)));
-
                 Thread.Sleep(2000);
             }
         }
