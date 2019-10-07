@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace BobClient.ConsoleApp
 {
@@ -14,8 +15,12 @@ namespace BobClient.ConsoleApp
 
             ulong id = 1;
             while  (true) {
-                var result = client.Put(id++, new byte[0], new System.Threading.CancellationToken());
-                Console.WriteLine(result);
+                //var result = client.Put(id++, new byte[0], new System.Threading.CancellationToken());
+                byte[] data;
+                //var result = client.GetAsync(id++);
+                //Console.WriteLine(result);
+
+                Task.WaitAll(client.GetAsync(id++).ContinueWith(x => Console.WriteLine(x.Result)));
 
                 Thread.Sleep(2000);
             }
