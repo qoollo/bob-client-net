@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.852
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29326.143
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BobClient", "BobClient\BobClient.csproj", "{AD663FFE-FA0E-4B73-9B0F-3CC0E5C656F5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BobClient.ConsoleApp", "BobClient.ConsoleApp\BobClient.ConsoleApp.csproj", "{D79BC696-EF80-4253-A6C6-56E23F8B5630}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BobClient.ConsoleApp", "BobClient.ConsoleApp\BobClient.ConsoleApp.csproj", "{002F9416-6282-459E-BFCB-D95CD8BBAE7B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{AD663FFE-FA0E-4B73-9B0F-3CC0E5C656F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AD663FFE-FA0E-4B73-9B0F-3CC0E5C656F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AD663FFE-FA0E-4B73-9B0F-3CC0E5C656F5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D79BC696-EF80-4253-A6C6-56E23F8B5630}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D79BC696-EF80-4253-A6C6-56E23F8B5630}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D79BC696-EF80-4253-A6C6-56E23F8B5630}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D79BC696-EF80-4253-A6C6-56E23F8B5630}.Release|Any CPU.Build.0 = Release|Any CPU
+		{002F9416-6282-459E-BFCB-D95CD8BBAE7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{002F9416-6282-459E-BFCB-D95CD8BBAE7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{002F9416-6282-459E-BFCB-D95CD8BBAE7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{002F9416-6282-459E-BFCB-D95CD8BBAE7B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

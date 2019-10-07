@@ -7,6 +7,24 @@ using BobStorage;
 using Google.Protobuf;
 using Grpc.Core;
 
+namespace BobStorage
+{
+    public sealed partial class PutRequest
+    {
+        public PutRequest(ulong key, byte[] data)
+        {
+            Key = new BlobKey
+            {
+                Key = key
+            };
+            Data = new Blob
+            {
+                Data = ByteString.CopyFrom(data),
+                Meta = new BlobMeta { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds() }
+            };
+        }
+    }
+}
 namespace BobClient
 {
     public class PutResult
@@ -47,58 +65,83 @@ namespace BobClient
 
     public interface IBobApi
     {
+        PutResult Put(ulong key, byte[] data);
         PutResult Put(ulong key, byte[] data, CancellationToken token);
-        //Task PutAsync(ulong key, byte[] data);
+
+        Task<PutResult> PutAsync(ulong key, byte[] data);
+        Task<PutResult> PutAsync(ulong key, byte[] data, CancellationToken token);
 
         //byte[] Get(ulong key);
         //Task<byte[]> GetAsync(ulong key);
     }
+
 
     internal class BobApi : IBobApi
     {
         private readonly List<BobStorage.BobApi.BobApiClient> _clients;
         private readonly Random _random;
 
-        private readonly TimeSpan _timeout;
+        private readonly TimeSpan? _timeout;
 
-        public BobApi(List<BobStorage.BobApi.BobApiClient> clients, TimeSpan timeout)
+        public BobApi(List<BobStorage.BobApi.BobApiClient> clients, TimeSpan? timeout)
         {
             _clients = clients;
             _timeout = timeout;
             _random = new Random(DateTime.Now.Millisecond);
         }
 
+        private DateTime? Deadline()
+        {
+            return _timeout is null ? DateTime.UtcNow + _timeout : null;
+        }
         private BobStorage.BobApi.BobApiClient GetClient()
         {
             var number = _random.Next(_clients.Count);
             return _clients[number];
         }
 
-        private static PutRequest CreatePutRequest(ulong key, byte[] data)
+        public PutResult Put(ulong key, byte[] data)
         {
-            return new PutRequest
-            {
-                Key = new BlobKey
-                {
-                    Key = key
-                },
-                Data = new Blob
-                {
-                    Data = ByteString.CopyFrom(data),
-                    Meta = new BlobMeta {Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds()}
-                }
-            };
+            return Put(key, data, new CancellationToken());
         }
 
         public PutResult Put(ulong key, byte[] data, CancellationToken token)
         {
             var client = GetClient();
-            var request = CreatePutRequest(key, data);
+            var request = new PutRequest(key, data);
 
             PutResult result;
             try
             {
-                var answer = client.Put(request, cancellationToken: token, deadline: DateTime.Now + _timeout);
+                var answer = client.Put(request, cancellationToken: token, deadline: Deadline());
+                result = PutResult.Create(answer);
+            }
+            catch (RpcException e)
+            {
+                result = new PutResult(e.Message, -1); //TODO
+            }
+            catch (OperationCanceledException e)
+            {
+                result = new PutResult(e.Message, -1); //TODO
+            }
+
+            return result;
+        }
+
+        public async Task<PutResult> PutAsync(ulong key, byte[] data)
+        {
+            return await PutAsync(key, data, new CancellationToken());
+        }
+
+        public async Task<PutResult> PutAsync(ulong key, byte[] data, CancellationToken token)
+        {
+            var client = GetClient();
+            var request = new PutRequest(key, data);
+
+            PutResult result;
+            try
+            {
+                var answer = await client.PutAsync(request, cancellationToken: token, deadline: Deadline());
                 result = PutResult.Create(answer);
             }
             catch (RpcException e)
