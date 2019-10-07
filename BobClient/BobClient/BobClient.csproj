@@ -2,6 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Company>Policesoft</Company>
+    <Authors>Nikita Menshov</Authors>
+    <Description>C# api to Bob storage</Description>
+    <PackageTags>Bob, storage</PackageTags>
+    <Copyright></Copyright>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
