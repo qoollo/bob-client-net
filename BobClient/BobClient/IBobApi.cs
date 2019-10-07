@@ -4,24 +4,75 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using BobStorage;
-using Google.Protobuf;
 using Grpc.Core;
 
 namespace BobClient
 {
+    /// <summary>
+    /// Bob api. It chooses random node for access
+    /// </summary>
     public interface IBobApi
     {
+        /// <summary>
+        /// Write data to Bob
+        /// </summary>
+        /// <param name="key">key</param>
+        /// <param name="data">binary data</param>
+        /// <returns>operation result</returns>
         BobResult Put(ulong key, byte[] data);
+        /// <summary>
+        /// Write data to Bob
+        /// </summary>
+        /// <param name="key">key</param>
+        /// <param name="data">binary data</param>
+        /// <param name="token">token</param>
+        /// <returns>operation result</returns>
         BobResult Put(ulong key, byte[] data, CancellationToken token);
 
+        /// <summary>
+        /// Write data to Bob asynchronously
+        /// </summary>
+        /// <param name="key">key</param>
+        /// <param name="data">binary data</param>
+        /// <returns>operation result</returns>
         Task<BobResult> PutAsync(ulong key, byte[] data);
+        /// <summary>
+        /// Write data to Bob asynchronously
+        /// </summary>
+        /// <param name="key">key</param>
+        /// <param name="data">binary data</param>
+        /// <param name="token">token</param>
+        /// <returns>operation result</returns>
         Task<BobResult> PutAsync(ulong key, byte[] data, CancellationToken token);
 
+        /// <summary>
+        /// Read data from Bob
+        /// </summary>
+        /// <param name="key">key</param>
+        /// <param name="data">binary data</param>
+        /// <returns>operation result</returns>
         BobResult Get(ulong key, out byte[] data);
+        /// <summary>
+        /// Read data from Bob
+        /// </summary>
+        /// <param name="key">key</param>
+        /// <param name="data">binary data</param>
+        /// <param name="token">token</param>
+        /// <returns>operation result</returns>
         BobResult Get(ulong key, out byte[] data, CancellationToken token);
 
-
+        /// <summary>
+        /// Read data from Bob asynchronously
+        /// </summary>
+        /// <param name="key">key</param>
+        /// <returns>operation result + binary data</returns>
         Task<(BobResult, byte[])> GetAsync(ulong key);
+        /// <summary>
+        /// Read data from Bob asynchronously
+        /// </summary>
+        /// <param name="key">key</param>
+        /// <param name="token">token</param>
+        /// <returns>operation result + binary data</returns>
         Task<(BobResult, byte[])> GetAsync(ulong key, CancellationToken token);
     }
 

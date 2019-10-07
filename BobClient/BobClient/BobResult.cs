@@ -1,16 +1,37 @@
 ﻿using BobStorage;
 namespace BobClient
 {
+    /// <summary>
+    /// Bob operations result codes
+    /// </summary>
     public enum BobCode
     {
+        /// <summary>
+        /// Operation ends with error
+        /// </summary>
         Error = -1,
+        /// <summary>
+        /// Operation ends normally
+        /// </summary>
         Ok = 0,
+        /// <summary>
+        /// Target key not found
+        /// </summary>
         KeyNotFound = 1,
     }
 
+    /// <summary>
+    /// Bob operations result
+    /// </summary>
     public class BobResult
     {
+        /// <summary>
+        /// Operation message
+        /// </summary>
         public string Message { get; }
+        /// <summary>
+        /// Operation result code
+        /// </summary>
         public BobCode Code { get; }
 
         internal BobResult(string message, BobCode code)
@@ -36,6 +57,10 @@ namespace BobClient
             return new BobResult(string.Empty, BobCode.Ok);
         }
 
+        /// <summary>
+        /// Check operation result status
+        /// </summary>
+        /// <returns></returns>
         public bool IsError() => Code == BobCode.Error;
 
         public override string ToString()
