@@ -7,80 +7,8 @@ using BobStorage;
 using Google.Protobuf;
 using Grpc.Core;
 
-namespace BobStorage
-{
-    public sealed partial class PutRequest
-    {
-        public PutRequest(ulong key, byte[] data)
-        {
-            Key = new BlobKey
-            {
-                Key = key
-            };
-            Data = new Blob
-            {
-                Data = ByteString.CopyFrom(data),
-                Meta = new BlobMeta { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds() }
-            };
-        }
-    }
-
-    public sealed partial class GetRequest
-    {
-        public GetRequest(ulong key)
-        {
-            Key = new BlobKey
-            {
-                Key = key
-            };
-        }
-    }
-}
 namespace BobClient
 {
-    public class BobResult
-    {
-        public string Message { get; }
-        public BobCode Code { get; }
-
-        internal BobResult(string message, BobCode code)
-        {
-            Message = message;
-            Code = code;
-        }
-
-        internal static BobResult Create(OpStatus status)
-        {
-            return status.Error is null ? BobResult.Ok() : new BobResult(status.Error.Desc, BobCode.Error);
-        }
-        internal static BobResult Error(string message)
-        {
-            return new BobResult(message, BobCode.Error);
-        }
-        internal static BobResult KeyNotFound()
-        {
-            return new BobResult(string.Empty, BobCode.KeyNotFound);
-        }
-        internal static BobResult Ok()
-        {
-            return new BobResult(string.Empty, BobCode.Ok);
-        }
-
-        public bool IsError() => Code == BobCode.Error;
-
-        public override string ToString()
-        {
-            return $"code: {Code}, message: {Message}";
-        }
-    }
-
-    public enum BobCode
-    {
-        Error = -1,
-        Ok = 0,
-        KeyNotFound = 1,
-    }
-
     public interface IBobApi
     {
         BobResult Put(ulong key, byte[] data);
@@ -141,7 +69,7 @@ namespace BobClient
             try
             {
                 var answer = client.Put(request, cancellationToken: token, deadline: Deadline());
-                result = BobResult.Create(answer);
+                result = BobResult.FromOp(answer);
             }
             catch (RpcException e)
             {
@@ -169,7 +97,7 @@ namespace BobClient
             try
             {
                 var answer = await client.PutAsync(request, cancellationToken: token, deadline: Deadline());
-                result = BobResult.Create(answer);
+                result = BobResult.FromOp(answer);
             }
             catch (RpcException e)
             {

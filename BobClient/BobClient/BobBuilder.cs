@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 
 namespace BobClient
 {
@@ -13,7 +14,7 @@ namespace BobClient
         public BobBuilder(List<Node> clients)
         {
             _clients = clients.Select(x => {
-                //TODO check address
+                x.Validate();
                 var channel = new Channel(x.Address, ChannelCredentials.Insecure);
                 return new BobStorage.BobApi.BobApiClient(channel);
             }).ToList();
@@ -38,6 +39,14 @@ namespace BobClient
         public Node(string address)
         {
             Address = address;
+        }
+
+        internal void Validate() 
+        {
+            if (!IPAddress.TryParse(Address, out _))
+            {
+                throw new ArgumentException($"cannot parse {Address} like ip address");
+            }
         }
     }
 }
