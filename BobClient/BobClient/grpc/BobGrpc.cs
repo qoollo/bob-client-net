@@ -11,7 +11,7 @@ namespace BobStorage {
   /// <summary>
   /// API
   /// </summary>
-  public static partial class BobApi
+  internal static partial class BobApi
   {
     static readonly string __ServiceName = "bob_storage.BobApi";
 

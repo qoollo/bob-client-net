@@ -11,8 +11,8 @@ using pbr = global::Google.Protobuf.Reflection;
 using scg = global::System.Collections.Generic;
 namespace BobStorage {
 
-  /// <summary>Holder for reflection information generated from proto/bob.proto</summary>
-  public static partial class BobReflection {
+    /// <summary>Holder for reflection information generated from proto/bob.proto</summary>
+    internal static partial class BobReflection {
 
     #region Descriptor
     /// <summary>File descriptor for proto/bob.proto</summary>
@@ -62,16 +62,16 @@ namespace BobStorage {
 
   }
   #region Enums
-  public enum GetSource {
+  internal enum GetSource {
     [pbr::OriginalName("ALL")] All = 0,
     [pbr::OriginalName("NORMAL")] Normal = 1,
     [pbr::OriginalName("ALIEN")] Alien = 2,
   }
 
-  #endregion
+    #endregion
 
-  #region Messages
-  public sealed partial class Null : pb::IMessage<Null> {
+    #region Messages
+    internal sealed partial class Null : pb::IMessage<Null> {
     private static readonly pb::MessageParser<Null> _parser = new pb::MessageParser<Null>(() => new Null());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -175,7 +175,7 @@ namespace BobStorage {
   /// <summary>
   /// Put operation parameters
   /// </summary>
-  public sealed partial class PutRequest : pb::IMessage<PutRequest> {
+  internal sealed partial class PutRequest : pb::IMessage<PutRequest> {
     private static readonly pb::MessageParser<PutRequest> _parser = new pb::MessageParser<PutRequest>(() => new PutRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -390,7 +390,7 @@ namespace BobStorage {
   /// <summary>
   /// Get operation parameters
   /// </summary>
-  public sealed partial class GetRequest : pb::IMessage<GetRequest> {
+  internal sealed partial class GetRequest : pb::IMessage<GetRequest> {
     private static readonly pb::MessageParser<GetRequest> _parser = new pb::MessageParser<GetRequest>(() => new GetRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -565,10 +565,10 @@ namespace BobStorage {
 
   }
 
-  /// <summary>
-  /// Blob id
-  /// </summary>
-  public sealed partial class BlobKey : pb::IMessage<BlobKey> {
+    /// <summary>
+    /// Blob id
+    /// </summary>
+    internal sealed partial class BlobKey : pb::IMessage<BlobKey> {
     private static readonly pb::MessageParser<BlobKey> _parser = new pb::MessageParser<BlobKey>(() => new BlobKey());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -700,10 +700,10 @@ namespace BobStorage {
 
   }
 
-  /// <summary>
-  /// Data blob
-  /// </summary>
-  public sealed partial class Blob : pb::IMessage<Blob> {
+    /// <summary>
+    /// Data blob
+    /// </summary>
+    internal sealed partial class Blob : pb::IMessage<Blob> {
     private static readonly pb::MessageParser<Blob> _parser = new pb::MessageParser<Blob>(() => new Blob());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -872,10 +872,10 @@ namespace BobStorage {
 
   }
 
-  /// <summary>
-  /// Blob metadata
-  /// </summary>
-  public sealed partial class BlobMeta : pb::IMessage<BlobMeta> {
+    /// <summary>
+    /// Blob metadata
+    /// </summary>
+    internal sealed partial class BlobMeta : pb::IMessage<BlobMeta> {
     private static readonly pb::MessageParser<BlobMeta> _parser = new pb::MessageParser<BlobMeta>(() => new BlobMeta());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1007,10 +1007,10 @@ namespace BobStorage {
 
   }
 
-  /// <summary>
-  /// Operation status
-  /// </summary>
-  public sealed partial class OpStatus : pb::IMessage<OpStatus> {
+    /// <summary>
+    /// Operation status
+    /// </summary>
+    internal sealed partial class OpStatus : pb::IMessage<OpStatus> {
     private static readonly pb::MessageParser<OpStatus> _parser = new pb::MessageParser<OpStatus>(() => new OpStatus());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1148,10 +1148,10 @@ namespace BobStorage {
 
   }
 
-  /// <summary>
-  /// Put operation options
-  /// </summary>
-  public sealed partial class PutOptions : pb::IMessage<PutOptions> {
+    /// <summary>
+    /// Put operation options
+    /// </summary>
+    internal sealed partial class PutOptions : pb::IMessage<PutOptions> {
     private static readonly pb::MessageParser<PutOptions> _parser = new pb::MessageParser<PutOptions>(() => new PutOptions());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1334,10 +1334,10 @@ namespace BobStorage {
 
   }
 
-  /// <summary>
-  /// Get operation options
-  /// </summary>
-  public sealed partial class GetOptions : pb::IMessage<GetOptions> {
+    /// <summary>
+    /// Get operation options
+    /// </summary>
+   internal sealed partial class GetOptions : pb::IMessage<GetOptions> {
     private static readonly pb::MessageParser<GetOptions> _parser = new pb::MessageParser<GetOptions>(() => new GetOptions());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1500,7 +1500,7 @@ namespace BobStorage {
 
   }
 
-  public sealed partial class BobError : pb::IMessage<BobError> {
+    internal sealed partial class BobError : pb::IMessage<BobError> {
     private static readonly pb::MessageParser<BobError> _parser = new pb::MessageParser<BobError>(() => new BobError());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
