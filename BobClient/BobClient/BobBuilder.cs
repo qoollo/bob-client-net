@@ -57,7 +57,7 @@ namespace BobClient
         /// <summary>
         /// Node constructor
         /// </summary>
-        /// <param name="address">Node address. Format like <host:port></param>
+        /// <param name="address">Node address. Format like host:port </param>
         public Node(string address)
         {
             Address = address;

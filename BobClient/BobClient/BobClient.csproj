@@ -8,13 +8,14 @@
     <PackageTags>Bob, storage</PackageTags>
     <Copyright></Copyright>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <AssemblyVersion>1.0.3.0</AssemblyVersion>
-    <Version>1.0.3</Version>
-    <FileVersion>1.0.3.0</FileVersion>
+    <AssemblyVersion>1.0.4.0</AssemblyVersion>
+    <Version>1.0.4</Version>
+    <FileVersion>1.0.4.0</FileVersion>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <!--<PlatformTarget>x64</PlatformTarget>-->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'"><!--<PlatformTarget>x64</PlatformTarget>-->
+  
+    <DocumentationFile>M:\last\bob-client-net\BobClient\BobClient\BobClient.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
