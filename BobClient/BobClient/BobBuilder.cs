@@ -21,7 +21,6 @@ namespace BobClient
         public BobBuilder(List<Node> clients)
         {
             _clients = clients.Select(x => {
-                x.Validate();
                 var channel = new Channel(x.Address, ChannelCredentials.Insecure);
                 return new BobStorage.BobApi.BobApiClient(channel);
             }).ToList();
@@ -62,6 +61,7 @@ namespace BobClient
         public Node(string address)
         {
             Address = address;
+            Validate();
         }
 
         internal void Validate() 
