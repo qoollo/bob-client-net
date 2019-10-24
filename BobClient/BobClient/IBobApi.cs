@@ -49,31 +49,29 @@ namespace BobClient
         /// Read data from Bob
         /// </summary>
         /// <param name="key">key</param>
-        /// <param name="data">binary data</param>
         /// <returns>operation result</returns>
-        BobResult Get(ulong key, out byte[] data);
+        BobGetResult Get(ulong key);
         /// <summary>
         /// Read data from Bob
         /// </summary>
         /// <param name="key">key</param>
-        /// <param name="data">binary data</param>
         /// <param name="token">token</param>
         /// <returns>operation result</returns>
-        BobResult Get(ulong key, out byte[] data, CancellationToken token);
+        BobGetResult Get(ulong key, CancellationToken token);
 
         /// <summary>
         /// Read data from Bob asynchronously
         /// </summary>
         /// <param name="key">key</param>
-        /// <returns>operation result + binary data</returns>
-        Task<(BobResult, byte[])> GetAsync(ulong key);
+        /// <returns>operation result with data</returns>
+        Task<BobGetResult> GetAsync(ulong key);
         /// <summary>
         /// Read data from Bob asynchronously
         /// </summary>
         /// <param name="key">key</param>
         /// <param name="token">token</param>
-        /// <returns>operation result + binary data</returns>
-        Task<(BobResult, byte[])> GetAsync(ulong key, CancellationToken token);
+        /// <returns>operation result with data</returns>
+        Task<BobGetResult> GetAsync(ulong key, CancellationToken token);
     }
 
 
@@ -95,6 +93,7 @@ namespace BobClient
         {
             return _timeout is null ? DateTime.UtcNow + _timeout : null;
         }
+
         private BobStorage.BobApi.BobApiClient GetClient()
         {
             var number = _random.Next(_clients.Count);
@@ -103,7 +102,8 @@ namespace BobClient
 
         private bool CanProcessRcpException(RpcException e)
         {
-            return e.StatusCode == StatusCode.Unknown && (e.Status.Detail == "KeyNotFound" || e.Message == "DuplicateKey");
+            return e.StatusCode == StatusCode.Unknown &&
+                   (e.Status.Detail == "KeyNotFound" || e.Message == "DuplicateKey");
         }
 
         public BobResult Put(ulong key, byte[] data)
@@ -162,63 +162,64 @@ namespace BobClient
             return result;
         }
 
-        public BobResult Get(ulong key, out byte[] data)
+        public BobGetResult Get(ulong key)
         {
-            return Get(key, out data, new CancellationToken());
+            return Get(key, new CancellationToken());
         }
-        public BobResult Get(ulong key, out byte[] data, CancellationToken token)
+
+        public BobGetResult Get(ulong key, CancellationToken token)
         {
             var client = GetClient();
             var request = new GetRequest(key);
 
-            BobResult result;
-            data = new byte[0];
+            BobGetResult result;
             try
             {
                 var answer = client.Get(request, cancellationToken: token, deadline: Deadline());
-
-                data = answer.Data.ToByteArray();
-                result = BobResult.Ok();
+                result = new BobGetResult(BobResult.Ok(), answer.Data.ToByteArray());
             }
             catch (RpcException e)
             {
-                result = CanProcessRcpException(e) ? BobResult.KeyNotFound() : BobResult.Error(e.Message);
+                result = new BobGetResult(CanProcessRcpException(e)
+                    ? BobResult.KeyNotFound()
+                    : BobResult.Error(e.Message));
             }
             catch (OperationCanceledException e)
             {
-                result = BobResult.Error(e.Message);
+                result = new BobGetResult(BobResult.Error(e.Message));
             }
+
             return result;
         }
 
-        public async Task<(BobResult, byte[])> GetAsync(ulong key)
+        public async Task<BobGetResult> GetAsync(ulong key)
         {
             return await GetAsync(key, new CancellationToken());
         }
 
-        public async Task<(BobResult, byte[])> GetAsync(ulong key, CancellationToken token)
+        public async Task<BobGetResult> GetAsync(ulong key, CancellationToken token)
         {
             var client = GetClient();
             var request = new GetRequest(key);
 
-            BobResult result;
-            var data = new byte[0];
+            BobGetResult result;
             try
             {
                 var answer = await client.GetAsync(request, cancellationToken: token, deadline: Deadline());
-
-                data = answer.Data.ToByteArray();
-                result = BobResult.Ok();
+                result = new BobGetResult(BobResult.Ok(), answer.Data.ToByteArray());
             }
             catch (RpcException e)
             {
-                result = CanProcessRcpException(e) ? BobResult.KeyNotFound() : BobResult.Error(e.Message);
+                result = new BobGetResult(CanProcessRcpException(e)
+                    ? BobResult.KeyNotFound()
+                    : BobResult.Error(e.Message));
             }
             catch (OperationCanceledException e)
             {
-                result = BobResult.Error(e.Message);
+                result = new BobGetResult(BobResult.Error(e.Message));
             }
-            return (result, data);
+
+            return result;
         }
     }
 }

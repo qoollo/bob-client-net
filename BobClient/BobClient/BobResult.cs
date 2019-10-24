@@ -63,9 +63,39 @@ namespace BobClient
         /// <returns></returns>
         public bool IsError() => Code == BobCode.Error;
 
+        /// <summary>
+        /// print result to string
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             return $"code: {Code}, message: {Message}";
+        }
+    }
+
+    /// <summary>
+    /// Bob get operation result
+    /// </summary>
+    public class BobGetResult
+    {
+        /// <summary>
+        /// Operation result message
+        /// </summary>
+        public BobResult Result { get; }
+
+        /// <summary>
+        /// Operation result data
+        /// </summary>
+        public byte[] Data { get; }
+
+        internal BobGetResult(BobResult result, byte[] data)
+        {
+            Result = result;
+            Data = data;
+        }
+
+        internal BobGetResult(BobResult result) : this(result, null)
+        {
         }
     }
 }
