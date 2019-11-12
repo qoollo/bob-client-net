@@ -23,11 +23,15 @@ namespace BobStorage
 
     internal sealed partial class GetRequest
     {
-        public GetRequest(ulong key)
+        public GetRequest(ulong key, bool fullGet = false)
         {
             Key = new BlobKey
             {
                 Key = key
+            };
+            Options = new GetOptions
+            {
+                FullGet = fullGet
             };
         }
     }

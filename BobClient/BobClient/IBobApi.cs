@@ -49,29 +49,34 @@ namespace BobClient
         /// Read data from Bob
         /// </summary>
         /// <param name="key">key</param>
+        /// /// <param name="fullGet">try read data from sup nodes</param>
         /// <returns>operation result</returns>
-        BobGetResult Get(ulong key);
+        BobGetResult Get(ulong key, bool fullGet = false);
         /// <summary>
         /// Read data from Bob
         /// </summary>
         /// <param name="key">key</param>
         /// <param name="token">token</param>
+        /// /// <param name="fullGet">try read data from sup nodes</param>
         /// <returns>operation result</returns>
-        BobGetResult Get(ulong key, CancellationToken token);
+        BobGetResult Get(ulong key, CancellationToken token, bool fullGet = false);
 
         /// <summary>
         /// Read data from Bob asynchronously
         /// </summary>
         /// <param name="key">key</param>
+        /// /// <param name="fullGet">try read data from sup nodes</param>
         /// <returns>operation result with data</returns>
-        Task<BobGetResult> GetAsync(ulong key);
+        Task<BobGetResult> GetAsync(ulong key, bool fullGet = false);
+
         /// <summary>
         /// Read data from Bob asynchronously
         /// </summary>
         /// <param name="key">key</param>
         /// <param name="token">token</param>
+        /// <param name="fullGet">try read data from sup nodes</param>
         /// <returns>operation result with data</returns>
-        Task<BobGetResult> GetAsync(ulong key, CancellationToken token);
+        Task<BobGetResult> GetAsync(ulong key, CancellationToken token, bool fullGet = false);
     }
 
 
@@ -162,16 +167,16 @@ namespace BobClient
             return result;
         }
 
-        public BobGetResult Get(ulong key)
+        public BobGetResult Get(ulong key, bool fullGet = false)
         {
-            return Get(key, new CancellationToken());
+            return Get(key, new CancellationToken(), fullGet);
         }
 
-        public BobGetResult Get(ulong key, CancellationToken token)
+        public BobGetResult Get(ulong key, CancellationToken token, bool fullGet = false)
         {
             var client = GetClient();
-            var request = new GetRequest(key);
-
+            var request = new GetRequest(key, fullGet);
+            
             BobGetResult result;
             try
             {
@@ -192,15 +197,15 @@ namespace BobClient
             return result;
         }
 
-        public async Task<BobGetResult> GetAsync(ulong key)
+        public async Task<BobGetResult> GetAsync(ulong key, bool fullGet = false)
         {
-            return await GetAsync(key, new CancellationToken());
+            return await GetAsync(key, new CancellationToken(), fullGet);
         }
 
-        public async Task<BobGetResult> GetAsync(ulong key, CancellationToken token)
+        public async Task<BobGetResult> GetAsync(ulong key, CancellationToken token, bool fullGet = false)
         {
             var client = GetClient();
-            var request = new GetRequest(key);
+            var request = new GetRequest(key, fullGet);
 
             BobGetResult result;
             try

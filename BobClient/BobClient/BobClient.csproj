@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <Folder Include="proto\" />
-    <!--<Protobuf Include="**/*.proto" OutputDir="%(RelativeDir)\..\grpc" />-->
+    <!--<Protobuf Include="**/*.proto" OutputDir="%(RelativeDir)\..\grpc_tmp" />-->
   </ItemGroup>
 
   <ItemGroup>
