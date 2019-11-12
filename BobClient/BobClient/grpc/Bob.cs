@@ -9,1661 +9,2222 @@ using pb = global::Google.Protobuf;
 using pbc = global::Google.Protobuf.Collections;
 using pbr = global::Google.Protobuf.Reflection;
 using scg = global::System.Collections.Generic;
-namespace BobStorage {
+
+namespace BobStorage
+{
 
     /// <summary>Holder for reflection information generated from proto/bob.proto</summary>
-    internal static partial class BobReflection {
+    internal static partial class BobReflection
+    {
 
-    #region Descriptor
-    /// <summary>File descriptor for proto/bob.proto</summary>
-    public static pbr::FileDescriptor Descriptor {
-      get { return descriptor; }
+        #region Descriptor
+
+        /// <summary>File descriptor for proto/bob.proto</summary>
+        public static pbr::FileDescriptor Descriptor
+        {
+            get { return descriptor; }
+        }
+
+        private static pbr::FileDescriptor descriptor;
+
+        static BobReflection()
+        {
+            byte[] descriptorData = global::System.Convert.FromBase64String(
+                string.Concat(
+                    "Cg9wcm90by9ib2IucHJvdG8SC2JvYl9zdG9yYWdlIgYKBE51bGwiegoKUHV0",
+                    "UmVxdWVzdBIhCgNrZXkYASABKAsyFC5ib2Jfc3RvcmFnZS5CbG9iS2V5Eh8K",
+                    "BGRhdGEYAiABKAsyES5ib2Jfc3RvcmFnZS5CbG9iEigKB29wdGlvbnMYAyAB",
+                    "KAsyFy5ib2Jfc3RvcmFnZS5QdXRPcHRpb25zIlkKCkdldFJlcXVlc3QSIQoD",
+                    "a2V5GAEgASgLMhQuYm9iX3N0b3JhZ2UuQmxvYktleRIoCgdvcHRpb25zGAIg",
+                    "ASgLMhcuYm9iX3N0b3JhZ2UuR2V0T3B0aW9ucyIWCgdCbG9iS2V5EgsKA2tl",
+                    "eRgBIAEoBCI5CgRCbG9iEgwKBGRhdGEYASABKAwSIwoEbWV0YRgCIAEoCzIV",
+                    "LmJvYl9zdG9yYWdlLkJsb2JNZXRhIh0KCEJsb2JNZXRhEhEKCXRpbWVzdGFt",
+                    "cBgBIAEoAyIwCghPcFN0YXR1cxIkCgVlcnJvchgBIAEoCzIVLmJvYl9zdG9y",
+                    "YWdlLkJvYkVycm9yIkkKClB1dE9wdGlvbnMSFAoMcmVtb3RlX25vZGVzGAEg",
+                    "AygJEhIKCmZvcmNlX25vZGUYAiABKAgSEQoJb3ZlcndyaXRlGAMgASgIIloK",
+                    "CkdldE9wdGlvbnMSEgoKZm9yY2Vfbm9kZRgBIAEoCBImCgZzb3VyY2UYAiAB",
+                    "KA4yFi5ib2Jfc3RvcmFnZS5HZXRTb3VyY2USEAoIZnVsbF9nZXQYAyABKAgi",
+                    "JgoIQm9iRXJyb3ISDAoEY29kZRgBIAEoBRIMCgRkZXNjGAIgASgJKisKCUdl",
+                    "dFNvdXJjZRIHCgNBTEwQABIKCgZOT1JNQUwQARIJCgVBTElFThACMqYBCgZC",
+                    "b2JBcGkSNwoDUHV0EhcuYm9iX3N0b3JhZ2UuUHV0UmVxdWVzdBoVLmJvYl9z",
+                    "dG9yYWdlLk9wU3RhdHVzIgASMwoDR2V0EhcuYm9iX3N0b3JhZ2UuR2V0UmVx",
+                    "dWVzdBoRLmJvYl9zdG9yYWdlLkJsb2IiABIuCgRQaW5nEhEuYm9iX3N0b3Jh",
+                    "Z2UuTnVsbBoRLmJvYl9zdG9yYWdlLk51bGwiAGIGcHJvdG8z"));
+            descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
+                new pbr::FileDescriptor[] { },
+                new pbr::GeneratedClrTypeInfo(new[] {typeof(global::BobStorage.GetSource),},
+                    new pbr::GeneratedClrTypeInfo[]
+                    {
+                        new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.Null), global::BobStorage.Null.Parser,
+                            null, null, null, null),
+                        new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.PutRequest),
+                            global::BobStorage.PutRequest.Parser, new[] {"Key", "Data", "Options"}, null, null, null),
+                        new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.GetRequest),
+                            global::BobStorage.GetRequest.Parser, new[] {"Key", "Options"}, null, null, null),
+                        new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.BlobKey),
+                            global::BobStorage.BlobKey.Parser, new[] {"Key"}, null, null, null),
+                        new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.Blob), global::BobStorage.Blob.Parser,
+                            new[] {"Data", "Meta"}, null, null, null),
+                        new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.BlobMeta),
+                            global::BobStorage.BlobMeta.Parser, new[] {"Timestamp"}, null, null, null),
+                        new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.OpStatus),
+                            global::BobStorage.OpStatus.Parser, new[] {"Error"}, null, null, null),
+                        new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.PutOptions),
+                            global::BobStorage.PutOptions.Parser, new[] {"RemoteNodes", "ForceNode", "Overwrite"}, null,
+                            null, null),
+                        new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.GetOptions),
+                            global::BobStorage.GetOptions.Parser, new[] {"ForceNode", "Source", "FullGet"}, null, null,
+                            null),
+                        new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.BobError),
+                            global::BobStorage.BobError.Parser, new[] {"Code", "Desc"}, null, null, null)
+                    }));
+        }
+
+        #endregion
+
     }
-    private static pbr::FileDescriptor descriptor;
 
-    static BobReflection() {
-      byte[] descriptorData = global::System.Convert.FromBase64String(
-          string.Concat(
-            "Cg9wcm90by9ib2IucHJvdG8SC2JvYl9zdG9yYWdlIgYKBE51bGwiegoKUHV0",
-            "UmVxdWVzdBIhCgNrZXkYASABKAsyFC5ib2Jfc3RvcmFnZS5CbG9iS2V5Eh8K",
-            "BGRhdGEYAiABKAsyES5ib2Jfc3RvcmFnZS5CbG9iEigKB29wdGlvbnMYAyAB",
-            "KAsyFy5ib2Jfc3RvcmFnZS5QdXRPcHRpb25zIlkKCkdldFJlcXVlc3QSIQoD",
-            "a2V5GAEgASgLMhQuYm9iX3N0b3JhZ2UuQmxvYktleRIoCgdvcHRpb25zGAIg",
-            "ASgLMhcuYm9iX3N0b3JhZ2UuR2V0T3B0aW9ucyIWCgdCbG9iS2V5EgsKA2tl",
-            "eRgBIAEoBCI5CgRCbG9iEgwKBGRhdGEYASABKAwSIwoEbWV0YRgCIAEoCzIV",
-            "LmJvYl9zdG9yYWdlLkJsb2JNZXRhIh0KCEJsb2JNZXRhEhEKCXRpbWVzdGFt",
-            "cBgBIAEoAyIwCghPcFN0YXR1cxIkCgVlcnJvchgBIAEoCzIVLmJvYl9zdG9y",
-            "YWdlLkJvYkVycm9yIkkKClB1dE9wdGlvbnMSFAoMcmVtb3RlX25vZGVzGAEg",
-            "AygJEhIKCmZvcmNlX25vZGUYAiABKAgSEQoJb3ZlcndyaXRlGAMgASgIIkgK",
-            "CkdldE9wdGlvbnMSEgoKZm9yY2Vfbm9kZRgBIAEoCBImCgZzb3VyY2UYAiAB",
-            "KA4yFi5ib2Jfc3RvcmFnZS5HZXRTb3VyY2UiJgoIQm9iRXJyb3ISDAoEY29k",
-            "ZRgBIAEoBRIMCgRkZXNjGAIgASgJKisKCUdldFNvdXJjZRIHCgNBTEwQABIK",
-            "CgZOT1JNQUwQARIJCgVBTElFThACMqYBCgZCb2JBcGkSNwoDUHV0EhcuYm9i",
-            "X3N0b3JhZ2UuUHV0UmVxdWVzdBoVLmJvYl9zdG9yYWdlLk9wU3RhdHVzIgAS",
-            "MwoDR2V0EhcuYm9iX3N0b3JhZ2UuR2V0UmVxdWVzdBoRLmJvYl9zdG9yYWdl",
-            "LkJsb2IiABIuCgRQaW5nEhEuYm9iX3N0b3JhZ2UuTnVsbBoRLmJvYl9zdG9y",
-            "YWdlLk51bGwiAGIGcHJvdG8z"));
-      descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::BobStorage.GetSource), }, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.Null), global::BobStorage.Null.Parser, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.PutRequest), global::BobStorage.PutRequest.Parser, new[]{ "Key", "Data", "Options" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.GetRequest), global::BobStorage.GetRequest.Parser, new[]{ "Key", "Options" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.BlobKey), global::BobStorage.BlobKey.Parser, new[]{ "Key" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.Blob), global::BobStorage.Blob.Parser, new[]{ "Data", "Meta" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.BlobMeta), global::BobStorage.BlobMeta.Parser, new[]{ "Timestamp" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.OpStatus), global::BobStorage.OpStatus.Parser, new[]{ "Error" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.PutOptions), global::BobStorage.PutOptions.Parser, new[]{ "RemoteNodes", "ForceNode", "Overwrite" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.GetOptions), global::BobStorage.GetOptions.Parser, new[]{ "ForceNode", "Source" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.BobError), global::BobStorage.BobError.Parser, new[]{ "Code", "Desc" }, null, null, null)
-          }));
+    #region Enums
+
+    internal enum GetSource
+    {
+        [pbr::OriginalName("ALL")] All = 0,
+        [pbr::OriginalName("NORMAL")] Normal = 1,
+        [pbr::OriginalName("ALIEN")] Alien = 2,
     }
-    #endregion
-
-  }
-  #region Enums
-  internal enum GetSource {
-    [pbr::OriginalName("ALL")] All = 0,
-    [pbr::OriginalName("NORMAL")] Normal = 1,
-    [pbr::OriginalName("ALIEN")] Alien = 2,
-  }
 
     #endregion
 
     #region Messages
-    internal sealed partial class Null : pb::IMessage<Null> {
-    private static readonly pb::MessageParser<Null> _parser = new pb::MessageParser<Null>(() => new Null());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<Null> Parser { get { return _parser; } }
 
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::BobStorage.BobReflection.Descriptor.MessageTypes[0]; }
-    }
+    internal sealed partial class Null : pb::IMessage<Null>
+    {
+        private static readonly pb::MessageParser<Null> _parser = new pb::MessageParser<Null>(() => new Null());
+        private pb::UnknownFieldSet _unknownFields;
 
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Null() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Null(Null other) : this() {
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Null Clone() {
-      return new Null(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as Null);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(Null other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(Null other) {
-      if (other == null) {
-        return;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public static pb::MessageParser<Null> Parser
+        {
+            get { return _parser; }
         }
-      }
-    }
 
-  }
-
-  /// <summary>
-  /// Put operation parameters
-  /// </summary>
-  internal sealed partial class PutRequest : pb::IMessage<PutRequest> {
-    private static readonly pb::MessageParser<PutRequest> _parser = new pb::MessageParser<PutRequest>(() => new PutRequest());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<PutRequest> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::BobStorage.BobReflection.Descriptor.MessageTypes[1]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public PutRequest() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public PutRequest(PutRequest other) : this() {
-      key_ = other.key_ != null ? other.key_.Clone() : null;
-      data_ = other.data_ != null ? other.data_.Clone() : null;
-      options_ = other.options_ != null ? other.options_.Clone() : null;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public PutRequest Clone() {
-      return new PutRequest(this);
-    }
-
-    /// <summary>Field number for the "key" field.</summary>
-    public const int KeyFieldNumber = 1;
-    private global::BobStorage.BlobKey key_;
-    /// <summary>
-    /// Blob's key
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::BobStorage.BlobKey Key {
-      get { return key_; }
-      set {
-        key_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "data" field.</summary>
-    public const int DataFieldNumber = 2;
-    private global::BobStorage.Blob data_;
-    /// <summary>
-    /// Data
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::BobStorage.Blob Data {
-      get { return data_; }
-      set {
-        data_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "options" field.</summary>
-    public const int OptionsFieldNumber = 3;
-    private global::BobStorage.PutOptions options_;
-    /// <summary>
-    /// options
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::BobStorage.PutOptions Options {
-      get { return options_; }
-      set {
-        options_ = value;
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as PutRequest);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(PutRequest other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (!object.Equals(Key, other.Key)) return false;
-      if (!object.Equals(Data, other.Data)) return false;
-      if (!object.Equals(Options, other.Options)) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (key_ != null) hash ^= Key.GetHashCode();
-      if (data_ != null) hash ^= Data.GetHashCode();
-      if (options_ != null) hash ^= Options.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (key_ != null) {
-        output.WriteRawTag(10);
-        output.WriteMessage(Key);
-      }
-      if (data_ != null) {
-        output.WriteRawTag(18);
-        output.WriteMessage(Data);
-      }
-      if (options_ != null) {
-        output.WriteRawTag(26);
-        output.WriteMessage(Options);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (key_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Key);
-      }
-      if (data_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Data);
-      }
-      if (options_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Options);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(PutRequest other) {
-      if (other == null) {
-        return;
-      }
-      if (other.key_ != null) {
-        if (key_ == null) {
-          Key = new global::BobStorage.BlobKey();
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public static pbr::MessageDescriptor Descriptor
+        {
+            get { return global::BobStorage.BobReflection.Descriptor.MessageTypes[0]; }
         }
-        Key.MergeFrom(other.Key);
-      }
-      if (other.data_ != null) {
-        if (data_ == null) {
-          Data = new global::BobStorage.Blob();
-        }
-        Data.MergeFrom(other.Data);
-      }
-      if (other.options_ != null) {
-        if (options_ == null) {
-          Options = new global::BobStorage.PutOptions();
-        }
-        Options.MergeFrom(other.Options);
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
 
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            if (key_ == null) {
-              Key = new global::BobStorage.BlobKey();
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        pbr::MessageDescriptor pb::IMessage.Descriptor
+        {
+            get { return Descriptor; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public Null()
+        {
+            OnConstruction();
+        }
+
+        partial void OnConstruction();
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public Null(Null other) : this()
+        {
+            _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public Null Clone()
+        {
+            return new Null(this);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override bool Equals(object other)
+        {
+            return Equals(other as Null);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public bool Equals(Null other)
+        {
+            if (ReferenceEquals(other, null))
+            {
+                return false;
             }
-            input.ReadMessage(Key);
-            break;
-          }
-          case 18: {
-            if (data_ == null) {
-              Data = new global::BobStorage.Blob();
+
+            if (ReferenceEquals(other, this))
+            {
+                return true;
             }
-            input.ReadMessage(Data);
-            break;
-          }
-          case 26: {
-            if (options_ == null) {
-              Options = new global::BobStorage.PutOptions();
-            }
-            input.ReadMessage(Options);
-            break;
-          }
+
+            return Equals(_unknownFields, other._unknownFields);
         }
-      }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override int GetHashCode()
+        {
+            int hash = 1;
+            if (_unknownFields != null)
+            {
+                hash ^= _unknownFields.GetHashCode();
+            }
+
+            return hash;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override string ToString()
+        {
+            return pb::JsonFormatter.ToDiagnosticString(this);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void WriteTo(pb::CodedOutputStream output)
+        {
+            if (_unknownFields != null)
+            {
+                _unknownFields.WriteTo(output);
+            }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public int CalculateSize()
+        {
+            int size = 0;
+            if (_unknownFields != null)
+            {
+                size += _unknownFields.CalculateSize();
+            }
+
+            return size;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void MergeFrom(Null other)
+        {
+            if (other == null)
+            {
+                return;
+            }
+
+            _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void MergeFrom(pb::CodedInputStream input)
+        {
+            uint tag;
+            while ((tag = input.ReadTag()) != 0)
+            {
+                switch (tag)
+                {
+                    default:
+                        _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+                        break;
+                }
+            }
+        }
+
     }
 
-  }
-
-  /// <summary>
-  /// Get operation parameters
-  /// </summary>
-  internal sealed partial class GetRequest : pb::IMessage<GetRequest> {
-    private static readonly pb::MessageParser<GetRequest> _parser = new pb::MessageParser<GetRequest>(() => new GetRequest());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<GetRequest> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::BobStorage.BobReflection.Descriptor.MessageTypes[2]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public GetRequest() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public GetRequest(GetRequest other) : this() {
-      key_ = other.key_ != null ? other.key_.Clone() : null;
-      options_ = other.options_ != null ? other.options_.Clone() : null;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public GetRequest Clone() {
-      return new GetRequest(this);
-    }
-
-    /// <summary>Field number for the "key" field.</summary>
-    public const int KeyFieldNumber = 1;
-    private global::BobStorage.BlobKey key_;
     /// <summary>
-    /// Blob's key
+    /// Put operation parameters
     /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::BobStorage.BlobKey Key {
-      get { return key_; }
-      set {
-        key_ = value;
-      }
+    internal sealed partial class PutRequest : pb::IMessage<PutRequest>
+    {
+        private static readonly pb::MessageParser<PutRequest> _parser =
+            new pb::MessageParser<PutRequest>(() => new PutRequest());
+
+        private pb::UnknownFieldSet _unknownFields;
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public static pb::MessageParser<PutRequest> Parser
+        {
+            get { return _parser; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public static pbr::MessageDescriptor Descriptor
+        {
+            get { return global::BobStorage.BobReflection.Descriptor.MessageTypes[1]; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        pbr::MessageDescriptor pb::IMessage.Descriptor
+        {
+            get { return Descriptor; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public PutRequest()
+        {
+            OnConstruction();
+        }
+
+        partial void OnConstruction();
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public PutRequest(PutRequest other) : this()
+        {
+            key_ = other.key_ != null ? other.key_.Clone() : null;
+            data_ = other.data_ != null ? other.data_.Clone() : null;
+            options_ = other.options_ != null ? other.options_.Clone() : null;
+            _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public PutRequest Clone()
+        {
+            return new PutRequest(this);
+        }
+
+        /// <summary>Field number for the "key" field.</summary>
+        public const int KeyFieldNumber = 1;
+
+        private global::BobStorage.BlobKey key_;
+
+        /// <summary>
+        /// Blob's key
+        /// </summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public global::BobStorage.BlobKey Key
+        {
+            get { return key_; }
+            set { key_ = value; }
+        }
+
+        /// <summary>Field number for the "data" field.</summary>
+        public const int DataFieldNumber = 2;
+
+        private global::BobStorage.Blob data_;
+
+        /// <summary>
+        /// Data
+        /// </summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public global::BobStorage.Blob Data
+        {
+            get { return data_; }
+            set { data_ = value; }
+        }
+
+        /// <summary>Field number for the "options" field.</summary>
+        public const int OptionsFieldNumber = 3;
+
+        private global::BobStorage.PutOptions options_;
+
+        /// <summary>
+        /// options
+        /// </summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public global::BobStorage.PutOptions Options
+        {
+            get { return options_; }
+            set { options_ = value; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override bool Equals(object other)
+        {
+            return Equals(other as PutRequest);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public bool Equals(PutRequest other)
+        {
+            if (ReferenceEquals(other, null))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(other, this))
+            {
+                return true;
+            }
+
+            if (!object.Equals(Key, other.Key)) return false;
+            if (!object.Equals(Data, other.Data)) return false;
+            if (!object.Equals(Options, other.Options)) return false;
+            return Equals(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override int GetHashCode()
+        {
+            int hash = 1;
+            if (key_ != null) hash ^= Key.GetHashCode();
+            if (data_ != null) hash ^= Data.GetHashCode();
+            if (options_ != null) hash ^= Options.GetHashCode();
+            if (_unknownFields != null)
+            {
+                hash ^= _unknownFields.GetHashCode();
+            }
+
+            return hash;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override string ToString()
+        {
+            return pb::JsonFormatter.ToDiagnosticString(this);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void WriteTo(pb::CodedOutputStream output)
+        {
+            if (key_ != null)
+            {
+                output.WriteRawTag(10);
+                output.WriteMessage(Key);
+            }
+
+            if (data_ != null)
+            {
+                output.WriteRawTag(18);
+                output.WriteMessage(Data);
+            }
+
+            if (options_ != null)
+            {
+                output.WriteRawTag(26);
+                output.WriteMessage(Options);
+            }
+
+            if (_unknownFields != null)
+            {
+                _unknownFields.WriteTo(output);
+            }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public int CalculateSize()
+        {
+            int size = 0;
+            if (key_ != null)
+            {
+                size += 1 + pb::CodedOutputStream.ComputeMessageSize(Key);
+            }
+
+            if (data_ != null)
+            {
+                size += 1 + pb::CodedOutputStream.ComputeMessageSize(Data);
+            }
+
+            if (options_ != null)
+            {
+                size += 1 + pb::CodedOutputStream.ComputeMessageSize(Options);
+            }
+
+            if (_unknownFields != null)
+            {
+                size += _unknownFields.CalculateSize();
+            }
+
+            return size;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void MergeFrom(PutRequest other)
+        {
+            if (other == null)
+            {
+                return;
+            }
+
+            if (other.key_ != null)
+            {
+                if (key_ == null)
+                {
+                    Key = new global::BobStorage.BlobKey();
+                }
+
+                Key.MergeFrom(other.Key);
+            }
+
+            if (other.data_ != null)
+            {
+                if (data_ == null)
+                {
+                    Data = new global::BobStorage.Blob();
+                }
+
+                Data.MergeFrom(other.Data);
+            }
+
+            if (other.options_ != null)
+            {
+                if (options_ == null)
+                {
+                    Options = new global::BobStorage.PutOptions();
+                }
+
+                Options.MergeFrom(other.Options);
+            }
+
+            _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void MergeFrom(pb::CodedInputStream input)
+        {
+            uint tag;
+            while ((tag = input.ReadTag()) != 0)
+            {
+                switch (tag)
+                {
+                    default:
+                        _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+                        break;
+                    case 10:
+                    {
+                        if (key_ == null)
+                        {
+                            Key = new global::BobStorage.BlobKey();
+                        }
+
+                        input.ReadMessage(Key);
+                        break;
+                    }
+
+                    case 18:
+                    {
+                        if (data_ == null)
+                        {
+                            Data = new global::BobStorage.Blob();
+                        }
+
+                        input.ReadMessage(Data);
+                        break;
+                    }
+
+                    case 26:
+                    {
+                        if (options_ == null)
+                        {
+                            Options = new global::BobStorage.PutOptions();
+                        }
+
+                        input.ReadMessage(Options);
+                        break;
+                    }
+                }
+            }
+        }
+
     }
 
-    /// <summary>Field number for the "options" field.</summary>
-    public const int OptionsFieldNumber = 2;
-    private global::BobStorage.GetOptions options_;
     /// <summary>
-    /// options
+    /// Get operation parameters
     /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::BobStorage.GetOptions Options {
-      get { return options_; }
-      set {
-        options_ = value;
-      }
-    }
+    internal sealed partial class GetRequest : pb::IMessage<GetRequest>
+    {
+        private static readonly pb::MessageParser<GetRequest> _parser =
+            new pb::MessageParser<GetRequest>(() => new GetRequest());
 
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as GetRequest);
-    }
+        private pb::UnknownFieldSet _unknownFields;
 
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(GetRequest other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (!object.Equals(Key, other.Key)) return false;
-      if (!object.Equals(Options, other.Options)) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (key_ != null) hash ^= Key.GetHashCode();
-      if (options_ != null) hash ^= Options.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (key_ != null) {
-        output.WriteRawTag(10);
-        output.WriteMessage(Key);
-      }
-      if (options_ != null) {
-        output.WriteRawTag(18);
-        output.WriteMessage(Options);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (key_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Key);
-      }
-      if (options_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Options);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(GetRequest other) {
-      if (other == null) {
-        return;
-      }
-      if (other.key_ != null) {
-        if (key_ == null) {
-          Key = new global::BobStorage.BlobKey();
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public static pb::MessageParser<GetRequest> Parser
+        {
+            get { return _parser; }
         }
-        Key.MergeFrom(other.Key);
-      }
-      if (other.options_ != null) {
-        if (options_ == null) {
-          Options = new global::BobStorage.GetOptions();
-        }
-        Options.MergeFrom(other.Options);
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
 
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            if (key_ == null) {
-              Key = new global::BobStorage.BlobKey();
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public static pbr::MessageDescriptor Descriptor
+        {
+            get { return global::BobStorage.BobReflection.Descriptor.MessageTypes[2]; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        pbr::MessageDescriptor pb::IMessage.Descriptor
+        {
+            get { return Descriptor; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public GetRequest()
+        {
+            OnConstruction();
+        }
+
+        partial void OnConstruction();
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public GetRequest(GetRequest other) : this()
+        {
+            key_ = other.key_ != null ? other.key_.Clone() : null;
+            options_ = other.options_ != null ? other.options_.Clone() : null;
+            _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public GetRequest Clone()
+        {
+            return new GetRequest(this);
+        }
+
+        /// <summary>Field number for the "key" field.</summary>
+        public const int KeyFieldNumber = 1;
+
+        private global::BobStorage.BlobKey key_;
+
+        /// <summary>
+        /// Blob's key
+        /// </summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public global::BobStorage.BlobKey Key
+        {
+            get { return key_; }
+            set { key_ = value; }
+        }
+
+        /// <summary>Field number for the "options" field.</summary>
+        public const int OptionsFieldNumber = 2;
+
+        private global::BobStorage.GetOptions options_;
+
+        /// <summary>
+        /// options
+        /// </summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public global::BobStorage.GetOptions Options
+        {
+            get { return options_; }
+            set { options_ = value; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override bool Equals(object other)
+        {
+            return Equals(other as GetRequest);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public bool Equals(GetRequest other)
+        {
+            if (ReferenceEquals(other, null))
+            {
+                return false;
             }
-            input.ReadMessage(Key);
-            break;
-          }
-          case 18: {
-            if (options_ == null) {
-              Options = new global::BobStorage.GetOptions();
-            }
-            input.ReadMessage(Options);
-            break;
-          }
-        }
-      }
-    }
 
-  }
+            if (ReferenceEquals(other, this))
+            {
+                return true;
+            }
+
+            if (!object.Equals(Key, other.Key)) return false;
+            if (!object.Equals(Options, other.Options)) return false;
+            return Equals(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override int GetHashCode()
+        {
+            int hash = 1;
+            if (key_ != null) hash ^= Key.GetHashCode();
+            if (options_ != null) hash ^= Options.GetHashCode();
+            if (_unknownFields != null)
+            {
+                hash ^= _unknownFields.GetHashCode();
+            }
+
+            return hash;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override string ToString()
+        {
+            return pb::JsonFormatter.ToDiagnosticString(this);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void WriteTo(pb::CodedOutputStream output)
+        {
+            if (key_ != null)
+            {
+                output.WriteRawTag(10);
+                output.WriteMessage(Key);
+            }
+
+            if (options_ != null)
+            {
+                output.WriteRawTag(18);
+                output.WriteMessage(Options);
+            }
+
+            if (_unknownFields != null)
+            {
+                _unknownFields.WriteTo(output);
+            }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public int CalculateSize()
+        {
+            int size = 0;
+            if (key_ != null)
+            {
+                size += 1 + pb::CodedOutputStream.ComputeMessageSize(Key);
+            }
+
+            if (options_ != null)
+            {
+                size += 1 + pb::CodedOutputStream.ComputeMessageSize(Options);
+            }
+
+            if (_unknownFields != null)
+            {
+                size += _unknownFields.CalculateSize();
+            }
+
+            return size;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void MergeFrom(GetRequest other)
+        {
+            if (other == null)
+            {
+                return;
+            }
+
+            if (other.key_ != null)
+            {
+                if (key_ == null)
+                {
+                    Key = new global::BobStorage.BlobKey();
+                }
+
+                Key.MergeFrom(other.Key);
+            }
+
+            if (other.options_ != null)
+            {
+                if (options_ == null)
+                {
+                    Options = new global::BobStorage.GetOptions();
+                }
+
+                Options.MergeFrom(other.Options);
+            }
+
+            _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void MergeFrom(pb::CodedInputStream input)
+        {
+            uint tag;
+            while ((tag = input.ReadTag()) != 0)
+            {
+                switch (tag)
+                {
+                    default:
+                        _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+                        break;
+                    case 10:
+                    {
+                        if (key_ == null)
+                        {
+                            Key = new global::BobStorage.BlobKey();
+                        }
+
+                        input.ReadMessage(Key);
+                        break;
+                    }
+
+                    case 18:
+                    {
+                        if (options_ == null)
+                        {
+                            Options = new global::BobStorage.GetOptions();
+                        }
+
+                        input.ReadMessage(Options);
+                        break;
+                    }
+                }
+            }
+        }
+
+    }
 
     /// <summary>
     /// Blob id
     /// </summary>
-    internal sealed partial class BlobKey : pb::IMessage<BlobKey> {
-    private static readonly pb::MessageParser<BlobKey> _parser = new pb::MessageParser<BlobKey>(() => new BlobKey());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<BlobKey> Parser { get { return _parser; } }
+    internal sealed partial class BlobKey : pb::IMessage<BlobKey>
+    {
+        private static readonly pb::MessageParser<BlobKey>
+            _parser = new pb::MessageParser<BlobKey>(() => new BlobKey());
 
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::BobStorage.BobReflection.Descriptor.MessageTypes[3]; }
-    }
+        private pb::UnknownFieldSet _unknownFields;
 
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public BlobKey() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public BlobKey(BlobKey other) : this() {
-      key_ = other.key_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public BlobKey Clone() {
-      return new BlobKey(this);
-    }
-
-    /// <summary>Field number for the "key" field.</summary>
-    public const int KeyFieldNumber = 1;
-    private ulong key_;
-    /// <summary>
-    ///Inner id representation
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public ulong Key {
-      get { return key_; }
-      set {
-        key_ = value;
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as BlobKey);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(BlobKey other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (Key != other.Key) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (Key != 0UL) hash ^= Key.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (Key != 0UL) {
-        output.WriteRawTag(8);
-        output.WriteUInt64(Key);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (Key != 0UL) {
-        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(Key);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(BlobKey other) {
-      if (other == null) {
-        return;
-      }
-      if (other.Key != 0UL) {
-        Key = other.Key;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 8: {
-            Key = input.ReadUInt64();
-            break;
-          }
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public static pb::MessageParser<BlobKey> Parser
+        {
+            get { return _parser; }
         }
-      }
-    }
 
-  }
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public static pbr::MessageDescriptor Descriptor
+        {
+            get { return global::BobStorage.BobReflection.Descriptor.MessageTypes[3]; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        pbr::MessageDescriptor pb::IMessage.Descriptor
+        {
+            get { return Descriptor; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public BlobKey()
+        {
+            OnConstruction();
+        }
+
+        partial void OnConstruction();
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public BlobKey(BlobKey other) : this()
+        {
+            key_ = other.key_;
+            _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public BlobKey Clone()
+        {
+            return new BlobKey(this);
+        }
+
+        /// <summary>Field number for the "key" field.</summary>
+        public const int KeyFieldNumber = 1;
+
+        private ulong key_;
+
+        /// <summary>
+        ///Inner id representation
+        /// </summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public ulong Key
+        {
+            get { return key_; }
+            set { key_ = value; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override bool Equals(object other)
+        {
+            return Equals(other as BlobKey);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public bool Equals(BlobKey other)
+        {
+            if (ReferenceEquals(other, null))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(other, this))
+            {
+                return true;
+            }
+
+            if (Key != other.Key) return false;
+            return Equals(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override int GetHashCode()
+        {
+            int hash = 1;
+            if (Key != 0UL) hash ^= Key.GetHashCode();
+            if (_unknownFields != null)
+            {
+                hash ^= _unknownFields.GetHashCode();
+            }
+
+            return hash;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override string ToString()
+        {
+            return pb::JsonFormatter.ToDiagnosticString(this);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void WriteTo(pb::CodedOutputStream output)
+        {
+            if (Key != 0UL)
+            {
+                output.WriteRawTag(8);
+                output.WriteUInt64(Key);
+            }
+
+            if (_unknownFields != null)
+            {
+                _unknownFields.WriteTo(output);
+            }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public int CalculateSize()
+        {
+            int size = 0;
+            if (Key != 0UL)
+            {
+                size += 1 + pb::CodedOutputStream.ComputeUInt64Size(Key);
+            }
+
+            if (_unknownFields != null)
+            {
+                size += _unknownFields.CalculateSize();
+            }
+
+            return size;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void MergeFrom(BlobKey other)
+        {
+            if (other == null)
+            {
+                return;
+            }
+
+            if (other.Key != 0UL)
+            {
+                Key = other.Key;
+            }
+
+            _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void MergeFrom(pb::CodedInputStream input)
+        {
+            uint tag;
+            while ((tag = input.ReadTag()) != 0)
+            {
+                switch (tag)
+                {
+                    default:
+                        _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+                        break;
+                    case 8:
+                    {
+                        Key = input.ReadUInt64();
+                        break;
+                    }
+                }
+            }
+        }
+
+    }
 
     /// <summary>
     /// Data blob
     /// </summary>
-    internal sealed partial class Blob : pb::IMessage<Blob> {
-    private static readonly pb::MessageParser<Blob> _parser = new pb::MessageParser<Blob>(() => new Blob());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<Blob> Parser { get { return _parser; } }
+    internal sealed partial class Blob : pb::IMessage<Blob>
+    {
+        private static readonly pb::MessageParser<Blob> _parser = new pb::MessageParser<Blob>(() => new Blob());
+        private pb::UnknownFieldSet _unknownFields;
 
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::BobStorage.BobReflection.Descriptor.MessageTypes[4]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Blob() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Blob(Blob other) : this() {
-      data_ = other.data_;
-      meta_ = other.meta_ != null ? other.meta_.Clone() : null;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Blob Clone() {
-      return new Blob(this);
-    }
-
-    /// <summary>Field number for the "data" field.</summary>
-    public const int DataFieldNumber = 1;
-    private pb::ByteString data_ = pb::ByteString.Empty;
-    /// <summary>
-    /// Data
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pb::ByteString Data {
-      get { return data_; }
-      set {
-        data_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    /// <summary>Field number for the "meta" field.</summary>
-    public const int MetaFieldNumber = 2;
-    private global::BobStorage.BlobMeta meta_;
-    /// <summary>
-    /// Metadata
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::BobStorage.BlobMeta Meta {
-      get { return meta_; }
-      set {
-        meta_ = value;
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as Blob);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(Blob other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (Data != other.Data) return false;
-      if (!object.Equals(Meta, other.Meta)) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (Data.Length != 0) hash ^= Data.GetHashCode();
-      if (meta_ != null) hash ^= Meta.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (Data.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteBytes(Data);
-      }
-      if (meta_ != null) {
-        output.WriteRawTag(18);
-        output.WriteMessage(Meta);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (Data.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Data);
-      }
-      if (meta_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Meta);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(Blob other) {
-      if (other == null) {
-        return;
-      }
-      if (other.Data.Length != 0) {
-        Data = other.Data;
-      }
-      if (other.meta_ != null) {
-        if (meta_ == null) {
-          Meta = new global::BobStorage.BlobMeta();
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public static pb::MessageParser<Blob> Parser
+        {
+            get { return _parser; }
         }
-        Meta.MergeFrom(other.Meta);
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
 
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            Data = input.ReadBytes();
-            break;
-          }
-          case 18: {
-            if (meta_ == null) {
-              Meta = new global::BobStorage.BlobMeta();
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public static pbr::MessageDescriptor Descriptor
+        {
+            get { return global::BobStorage.BobReflection.Descriptor.MessageTypes[4]; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        pbr::MessageDescriptor pb::IMessage.Descriptor
+        {
+            get { return Descriptor; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public Blob()
+        {
+            OnConstruction();
+        }
+
+        partial void OnConstruction();
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public Blob(Blob other) : this()
+        {
+            data_ = other.data_;
+            meta_ = other.meta_ != null ? other.meta_.Clone() : null;
+            _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public Blob Clone()
+        {
+            return new Blob(this);
+        }
+
+        /// <summary>Field number for the "data" field.</summary>
+        public const int DataFieldNumber = 1;
+
+        private pb::ByteString data_ = pb::ByteString.Empty;
+
+        /// <summary>
+        /// Data
+        /// </summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public pb::ByteString Data
+        {
+            get { return data_; }
+            set { data_ = pb::ProtoPreconditions.CheckNotNull(value, "value"); }
+        }
+
+        /// <summary>Field number for the "meta" field.</summary>
+        public const int MetaFieldNumber = 2;
+
+        private global::BobStorage.BlobMeta meta_;
+
+        /// <summary>
+        /// Metadata
+        /// </summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public global::BobStorage.BlobMeta Meta
+        {
+            get { return meta_; }
+            set { meta_ = value; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override bool Equals(object other)
+        {
+            return Equals(other as Blob);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public bool Equals(Blob other)
+        {
+            if (ReferenceEquals(other, null))
+            {
+                return false;
             }
-            input.ReadMessage(Meta);
-            break;
-          }
-        }
-      }
-    }
 
-  }
+            if (ReferenceEquals(other, this))
+            {
+                return true;
+            }
+
+            if (Data != other.Data) return false;
+            if (!object.Equals(Meta, other.Meta)) return false;
+            return Equals(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override int GetHashCode()
+        {
+            int hash = 1;
+            if (Data.Length != 0) hash ^= Data.GetHashCode();
+            if (meta_ != null) hash ^= Meta.GetHashCode();
+            if (_unknownFields != null)
+            {
+                hash ^= _unknownFields.GetHashCode();
+            }
+
+            return hash;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override string ToString()
+        {
+            return pb::JsonFormatter.ToDiagnosticString(this);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void WriteTo(pb::CodedOutputStream output)
+        {
+            if (Data.Length != 0)
+            {
+                output.WriteRawTag(10);
+                output.WriteBytes(Data);
+            }
+
+            if (meta_ != null)
+            {
+                output.WriteRawTag(18);
+                output.WriteMessage(Meta);
+            }
+
+            if (_unknownFields != null)
+            {
+                _unknownFields.WriteTo(output);
+            }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public int CalculateSize()
+        {
+            int size = 0;
+            if (Data.Length != 0)
+            {
+                size += 1 + pb::CodedOutputStream.ComputeBytesSize(Data);
+            }
+
+            if (meta_ != null)
+            {
+                size += 1 + pb::CodedOutputStream.ComputeMessageSize(Meta);
+            }
+
+            if (_unknownFields != null)
+            {
+                size += _unknownFields.CalculateSize();
+            }
+
+            return size;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void MergeFrom(Blob other)
+        {
+            if (other == null)
+            {
+                return;
+            }
+
+            if (other.Data.Length != 0)
+            {
+                Data = other.Data;
+            }
+
+            if (other.meta_ != null)
+            {
+                if (meta_ == null)
+                {
+                    Meta = new global::BobStorage.BlobMeta();
+                }
+
+                Meta.MergeFrom(other.Meta);
+            }
+
+            _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void MergeFrom(pb::CodedInputStream input)
+        {
+            uint tag;
+            while ((tag = input.ReadTag()) != 0)
+            {
+                switch (tag)
+                {
+                    default:
+                        _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+                        break;
+                    case 10:
+                    {
+                        Data = input.ReadBytes();
+                        break;
+                    }
+
+                    case 18:
+                    {
+                        if (meta_ == null)
+                        {
+                            Meta = new global::BobStorage.BlobMeta();
+                        }
+
+                        input.ReadMessage(Meta);
+                        break;
+                    }
+                }
+            }
+        }
+
+    }
 
     /// <summary>
     /// Blob metadata
     /// </summary>
-    internal sealed partial class BlobMeta : pb::IMessage<BlobMeta> {
-    private static readonly pb::MessageParser<BlobMeta> _parser = new pb::MessageParser<BlobMeta>(() => new BlobMeta());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<BlobMeta> Parser { get { return _parser; } }
+    internal sealed partial class BlobMeta : pb::IMessage<BlobMeta>
+    {
+        private static readonly pb::MessageParser<BlobMeta> _parser =
+            new pb::MessageParser<BlobMeta>(() => new BlobMeta());
 
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::BobStorage.BobReflection.Descriptor.MessageTypes[5]; }
-    }
+        private pb::UnknownFieldSet _unknownFields;
 
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public BlobMeta() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public BlobMeta(BlobMeta other) : this() {
-      timestamp_ = other.timestamp_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public BlobMeta Clone() {
-      return new BlobMeta(this);
-    }
-
-    /// <summary>Field number for the "timestamp" field.</summary>
-    public const int TimestampFieldNumber = 1;
-    private long timestamp_;
-    /// <summary>
-    /// timestamp for data version
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public long Timestamp {
-      get { return timestamp_; }
-      set {
-        timestamp_ = value;
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as BlobMeta);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(BlobMeta other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (Timestamp != other.Timestamp) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (Timestamp != 0L) hash ^= Timestamp.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (Timestamp != 0L) {
-        output.WriteRawTag(8);
-        output.WriteInt64(Timestamp);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (Timestamp != 0L) {
-        size += 1 + pb::CodedOutputStream.ComputeInt64Size(Timestamp);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(BlobMeta other) {
-      if (other == null) {
-        return;
-      }
-      if (other.Timestamp != 0L) {
-        Timestamp = other.Timestamp;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 8: {
-            Timestamp = input.ReadInt64();
-            break;
-          }
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public static pb::MessageParser<BlobMeta> Parser
+        {
+            get { return _parser; }
         }
-      }
-    }
 
-  }
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public static pbr::MessageDescriptor Descriptor
+        {
+            get { return global::BobStorage.BobReflection.Descriptor.MessageTypes[5]; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        pbr::MessageDescriptor pb::IMessage.Descriptor
+        {
+            get { return Descriptor; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public BlobMeta()
+        {
+            OnConstruction();
+        }
+
+        partial void OnConstruction();
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public BlobMeta(BlobMeta other) : this()
+        {
+            timestamp_ = other.timestamp_;
+            _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public BlobMeta Clone()
+        {
+            return new BlobMeta(this);
+        }
+
+        /// <summary>Field number for the "timestamp" field.</summary>
+        public const int TimestampFieldNumber = 1;
+
+        private long timestamp_;
+
+        /// <summary>
+        /// timestamp for data version
+        /// </summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public long Timestamp
+        {
+            get { return timestamp_; }
+            set { timestamp_ = value; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override bool Equals(object other)
+        {
+            return Equals(other as BlobMeta);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public bool Equals(BlobMeta other)
+        {
+            if (ReferenceEquals(other, null))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(other, this))
+            {
+                return true;
+            }
+
+            if (Timestamp != other.Timestamp) return false;
+            return Equals(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override int GetHashCode()
+        {
+            int hash = 1;
+            if (Timestamp != 0L) hash ^= Timestamp.GetHashCode();
+            if (_unknownFields != null)
+            {
+                hash ^= _unknownFields.GetHashCode();
+            }
+
+            return hash;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override string ToString()
+        {
+            return pb::JsonFormatter.ToDiagnosticString(this);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void WriteTo(pb::CodedOutputStream output)
+        {
+            if (Timestamp != 0L)
+            {
+                output.WriteRawTag(8);
+                output.WriteInt64(Timestamp);
+            }
+
+            if (_unknownFields != null)
+            {
+                _unknownFields.WriteTo(output);
+            }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public int CalculateSize()
+        {
+            int size = 0;
+            if (Timestamp != 0L)
+            {
+                size += 1 + pb::CodedOutputStream.ComputeInt64Size(Timestamp);
+            }
+
+            if (_unknownFields != null)
+            {
+                size += _unknownFields.CalculateSize();
+            }
+
+            return size;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void MergeFrom(BlobMeta other)
+        {
+            if (other == null)
+            {
+                return;
+            }
+
+            if (other.Timestamp != 0L)
+            {
+                Timestamp = other.Timestamp;
+            }
+
+            _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void MergeFrom(pb::CodedInputStream input)
+        {
+            uint tag;
+            while ((tag = input.ReadTag()) != 0)
+            {
+                switch (tag)
+                {
+                    default:
+                        _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+                        break;
+                    case 8:
+                    {
+                        Timestamp = input.ReadInt64();
+                        break;
+                    }
+                }
+            }
+        }
+
+    }
 
     /// <summary>
     /// Operation status
     /// </summary>
-    internal sealed partial class OpStatus : pb::IMessage<OpStatus> {
-    private static readonly pb::MessageParser<OpStatus> _parser = new pb::MessageParser<OpStatus>(() => new OpStatus());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<OpStatus> Parser { get { return _parser; } }
+    internal sealed partial class OpStatus : pb::IMessage<OpStatus>
+    {
+        private static readonly pb::MessageParser<OpStatus> _parser =
+            new pb::MessageParser<OpStatus>(() => new OpStatus());
 
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::BobStorage.BobReflection.Descriptor.MessageTypes[6]; }
-    }
+        private pb::UnknownFieldSet _unknownFields;
 
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public OpStatus() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public OpStatus(OpStatus other) : this() {
-      error_ = other.error_ != null ? other.error_.Clone() : null;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public OpStatus Clone() {
-      return new OpStatus(this);
-    }
-
-    /// <summary>Field number for the "error" field.</summary>
-    public const int ErrorFieldNumber = 1;
-    private global::BobStorage.BobError error_;
-    /// <summary>
-    /// If all good - null
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::BobStorage.BobError Error {
-      get { return error_; }
-      set {
-        error_ = value;
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as OpStatus);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(OpStatus other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (!object.Equals(Error, other.Error)) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (error_ != null) hash ^= Error.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (error_ != null) {
-        output.WriteRawTag(10);
-        output.WriteMessage(Error);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (error_ != null) {
-        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Error);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(OpStatus other) {
-      if (other == null) {
-        return;
-      }
-      if (other.error_ != null) {
-        if (error_ == null) {
-          Error = new global::BobStorage.BobError();
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public static pb::MessageParser<OpStatus> Parser
+        {
+            get { return _parser; }
         }
-        Error.MergeFrom(other.Error);
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
 
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            if (error_ == null) {
-              Error = new global::BobStorage.BobError();
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public static pbr::MessageDescriptor Descriptor
+        {
+            get { return global::BobStorage.BobReflection.Descriptor.MessageTypes[6]; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        pbr::MessageDescriptor pb::IMessage.Descriptor
+        {
+            get { return Descriptor; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public OpStatus()
+        {
+            OnConstruction();
+        }
+
+        partial void OnConstruction();
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public OpStatus(OpStatus other) : this()
+        {
+            error_ = other.error_ != null ? other.error_.Clone() : null;
+            _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public OpStatus Clone()
+        {
+            return new OpStatus(this);
+        }
+
+        /// <summary>Field number for the "error" field.</summary>
+        public const int ErrorFieldNumber = 1;
+
+        private global::BobStorage.BobError error_;
+
+        /// <summary>
+        /// If all good - null
+        /// </summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public global::BobStorage.BobError Error
+        {
+            get { return error_; }
+            set { error_ = value; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override bool Equals(object other)
+        {
+            return Equals(other as OpStatus);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public bool Equals(OpStatus other)
+        {
+            if (ReferenceEquals(other, null))
+            {
+                return false;
             }
-            input.ReadMessage(Error);
-            break;
-          }
-        }
-      }
-    }
 
-  }
+            if (ReferenceEquals(other, this))
+            {
+                return true;
+            }
+
+            if (!object.Equals(Error, other.Error)) return false;
+            return Equals(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override int GetHashCode()
+        {
+            int hash = 1;
+            if (error_ != null) hash ^= Error.GetHashCode();
+            if (_unknownFields != null)
+            {
+                hash ^= _unknownFields.GetHashCode();
+            }
+
+            return hash;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override string ToString()
+        {
+            return pb::JsonFormatter.ToDiagnosticString(this);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void WriteTo(pb::CodedOutputStream output)
+        {
+            if (error_ != null)
+            {
+                output.WriteRawTag(10);
+                output.WriteMessage(Error);
+            }
+
+            if (_unknownFields != null)
+            {
+                _unknownFields.WriteTo(output);
+            }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public int CalculateSize()
+        {
+            int size = 0;
+            if (error_ != null)
+            {
+                size += 1 + pb::CodedOutputStream.ComputeMessageSize(Error);
+            }
+
+            if (_unknownFields != null)
+            {
+                size += _unknownFields.CalculateSize();
+            }
+
+            return size;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void MergeFrom(OpStatus other)
+        {
+            if (other == null)
+            {
+                return;
+            }
+
+            if (other.error_ != null)
+            {
+                if (error_ == null)
+                {
+                    Error = new global::BobStorage.BobError();
+                }
+
+                Error.MergeFrom(other.Error);
+            }
+
+            _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void MergeFrom(pb::CodedInputStream input)
+        {
+            uint tag;
+            while ((tag = input.ReadTag()) != 0)
+            {
+                switch (tag)
+                {
+                    default:
+                        _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+                        break;
+                    case 10:
+                    {
+                        if (error_ == null)
+                        {
+                            Error = new global::BobStorage.BobError();
+                        }
+
+                        input.ReadMessage(Error);
+                        break;
+                    }
+                }
+            }
+        }
+
+    }
 
     /// <summary>
     /// Put operation options
     /// </summary>
-    internal sealed partial class PutOptions : pb::IMessage<PutOptions> {
-    private static readonly pb::MessageParser<PutOptions> _parser = new pb::MessageParser<PutOptions>(() => new PutOptions());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<PutOptions> Parser { get { return _parser; } }
+    internal sealed partial class PutOptions : pb::IMessage<PutOptions>
+    {
+        private static readonly pb::MessageParser<PutOptions> _parser =
+            new pb::MessageParser<PutOptions>(() => new PutOptions());
 
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::BobStorage.BobReflection.Descriptor.MessageTypes[7]; }
-    }
+        private pb::UnknownFieldSet _unknownFields;
 
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public PutOptions() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public PutOptions(PutOptions other) : this() {
-      remoteNodes_ = other.remoteNodes_.Clone();
-      forceNode_ = other.forceNode_;
-      overwrite_ = other.overwrite_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public PutOptions Clone() {
-      return new PutOptions(this);
-    }
-
-    /// <summary>Field number for the "remote_nodes" field.</summary>
-    public const int RemoteNodesFieldNumber = 1;
-    private static readonly pb::FieldCodec<string> _repeated_remoteNodes_codec
-        = pb::FieldCodec.ForString(10);
-    private readonly pbc::RepeatedField<string> remoteNodes_ = new pbc::RepeatedField<string>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<string> RemoteNodes {
-      get { return remoteNodes_; }
-    }
-
-    /// <summary>Field number for the "force_node" field.</summary>
-    public const int ForceNodeFieldNumber = 2;
-    private bool forceNode_;
-    /// <summary>
-    /// Force operation to be served by node to which it comes
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool ForceNode {
-      get { return forceNode_; }
-      set {
-        forceNode_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "overwrite" field.</summary>
-    public const int OverwriteFieldNumber = 3;
-    private bool overwrite_;
-    /// <summary>
-    /// Overwrite data in case of id existens
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Overwrite {
-      get { return overwrite_; }
-      set {
-        overwrite_ = value;
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as PutOptions);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(PutOptions other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if(!remoteNodes_.Equals(other.remoteNodes_)) return false;
-      if (ForceNode != other.ForceNode) return false;
-      if (Overwrite != other.Overwrite) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      hash ^= remoteNodes_.GetHashCode();
-      if (ForceNode != false) hash ^= ForceNode.GetHashCode();
-      if (Overwrite != false) hash ^= Overwrite.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      remoteNodes_.WriteTo(output, _repeated_remoteNodes_codec);
-      if (ForceNode != false) {
-        output.WriteRawTag(16);
-        output.WriteBool(ForceNode);
-      }
-      if (Overwrite != false) {
-        output.WriteRawTag(24);
-        output.WriteBool(Overwrite);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      size += remoteNodes_.CalculateSize(_repeated_remoteNodes_codec);
-      if (ForceNode != false) {
-        size += 1 + 1;
-      }
-      if (Overwrite != false) {
-        size += 1 + 1;
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(PutOptions other) {
-      if (other == null) {
-        return;
-      }
-      remoteNodes_.Add(other.remoteNodes_);
-      if (other.ForceNode != false) {
-        ForceNode = other.ForceNode;
-      }
-      if (other.Overwrite != false) {
-        Overwrite = other.Overwrite;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            remoteNodes_.AddEntriesFrom(input, _repeated_remoteNodes_codec);
-            break;
-          }
-          case 16: {
-            ForceNode = input.ReadBool();
-            break;
-          }
-          case 24: {
-            Overwrite = input.ReadBool();
-            break;
-          }
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public static pb::MessageParser<PutOptions> Parser
+        {
+            get { return _parser; }
         }
-      }
-    }
 
-  }
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public static pbr::MessageDescriptor Descriptor
+        {
+            get { return global::BobStorage.BobReflection.Descriptor.MessageTypes[7]; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        pbr::MessageDescriptor pb::IMessage.Descriptor
+        {
+            get { return Descriptor; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public PutOptions()
+        {
+            OnConstruction();
+        }
+
+        partial void OnConstruction();
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public PutOptions(PutOptions other) : this()
+        {
+            remoteNodes_ = other.remoteNodes_.Clone();
+            forceNode_ = other.forceNode_;
+            overwrite_ = other.overwrite_;
+            _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public PutOptions Clone()
+        {
+            return new PutOptions(this);
+        }
+
+        /// <summary>Field number for the "remote_nodes" field.</summary>
+        public const int RemoteNodesFieldNumber = 1;
+
+        private static readonly pb::FieldCodec<string> _repeated_remoteNodes_codec
+            = pb::FieldCodec.ForString(10);
+
+        private readonly pbc::RepeatedField<string> remoteNodes_ = new pbc::RepeatedField<string>();
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public pbc::RepeatedField<string> RemoteNodes
+        {
+            get { return remoteNodes_; }
+        }
+
+        /// <summary>Field number for the "force_node" field.</summary>
+        public const int ForceNodeFieldNumber = 2;
+
+        private bool forceNode_;
+
+        /// <summary>
+        /// Force operation to be served by node to which it comes
+        /// </summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public bool ForceNode
+        {
+            get { return forceNode_; }
+            set { forceNode_ = value; }
+        }
+
+        /// <summary>Field number for the "overwrite" field.</summary>
+        public const int OverwriteFieldNumber = 3;
+
+        private bool overwrite_;
+
+        /// <summary>
+        /// Overwrite data in case of id existens
+        /// </summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public bool Overwrite
+        {
+            get { return overwrite_; }
+            set { overwrite_ = value; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override bool Equals(object other)
+        {
+            return Equals(other as PutOptions);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public bool Equals(PutOptions other)
+        {
+            if (ReferenceEquals(other, null))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(other, this))
+            {
+                return true;
+            }
+
+            if (!remoteNodes_.Equals(other.remoteNodes_)) return false;
+            if (ForceNode != other.ForceNode) return false;
+            if (Overwrite != other.Overwrite) return false;
+            return Equals(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override int GetHashCode()
+        {
+            int hash = 1;
+            hash ^= remoteNodes_.GetHashCode();
+            if (ForceNode != false) hash ^= ForceNode.GetHashCode();
+            if (Overwrite != false) hash ^= Overwrite.GetHashCode();
+            if (_unknownFields != null)
+            {
+                hash ^= _unknownFields.GetHashCode();
+            }
+
+            return hash;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override string ToString()
+        {
+            return pb::JsonFormatter.ToDiagnosticString(this);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void WriteTo(pb::CodedOutputStream output)
+        {
+            remoteNodes_.WriteTo(output, _repeated_remoteNodes_codec);
+            if (ForceNode != false)
+            {
+                output.WriteRawTag(16);
+                output.WriteBool(ForceNode);
+            }
+
+            if (Overwrite != false)
+            {
+                output.WriteRawTag(24);
+                output.WriteBool(Overwrite);
+            }
+
+            if (_unknownFields != null)
+            {
+                _unknownFields.WriteTo(output);
+            }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public int CalculateSize()
+        {
+            int size = 0;
+            size += remoteNodes_.CalculateSize(_repeated_remoteNodes_codec);
+            if (ForceNode != false)
+            {
+                size += 1 + 1;
+            }
+
+            if (Overwrite != false)
+            {
+                size += 1 + 1;
+            }
+
+            if (_unknownFields != null)
+            {
+                size += _unknownFields.CalculateSize();
+            }
+
+            return size;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void MergeFrom(PutOptions other)
+        {
+            if (other == null)
+            {
+                return;
+            }
+
+            remoteNodes_.Add(other.remoteNodes_);
+            if (other.ForceNode != false)
+            {
+                ForceNode = other.ForceNode;
+            }
+
+            if (other.Overwrite != false)
+            {
+                Overwrite = other.Overwrite;
+            }
+
+            _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void MergeFrom(pb::CodedInputStream input)
+        {
+            uint tag;
+            while ((tag = input.ReadTag()) != 0)
+            {
+                switch (tag)
+                {
+                    default:
+                        _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+                        break;
+                    case 10:
+                    {
+                        remoteNodes_.AddEntriesFrom(input, _repeated_remoteNodes_codec);
+                        break;
+                    }
+
+                    case 16:
+                    {
+                        ForceNode = input.ReadBool();
+                        break;
+                    }
+
+                    case 24:
+                    {
+                        Overwrite = input.ReadBool();
+                        break;
+                    }
+                }
+            }
+        }
+
+    }
 
     /// <summary>
     /// Get operation options
     /// </summary>
-   internal sealed partial class GetOptions : pb::IMessage<GetOptions> {
-    private static readonly pb::MessageParser<GetOptions> _parser = new pb::MessageParser<GetOptions>(() => new GetOptions());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<GetOptions> Parser { get { return _parser; } }
+    internal sealed partial class GetOptions : pb::IMessage<GetOptions>
+    {
+        private static readonly pb::MessageParser<GetOptions> _parser =
+            new pb::MessageParser<GetOptions>(() => new GetOptions());
 
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::BobStorage.BobReflection.Descriptor.MessageTypes[8]; }
-    }
+        private pb::UnknownFieldSet _unknownFields;
 
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public GetOptions() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public GetOptions(GetOptions other) : this() {
-      forceNode_ = other.forceNode_;
-      source_ = other.source_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public GetOptions Clone() {
-      return new GetOptions(this);
-    }
-
-    /// <summary>Field number for the "force_node" field.</summary>
-    public const int ForceNodeFieldNumber = 1;
-    private bool forceNode_;
-    /// <summary>
-    /// Force operation to be served by node to which it comes
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool ForceNode {
-      get { return forceNode_; }
-      set {
-        forceNode_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "source" field.</summary>
-    public const int SourceFieldNumber = 2;
-    private global::BobStorage.GetSource source_ = 0;
-    /// <summary>
-    /// Set source for data reading
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::BobStorage.GetSource Source {
-      get { return source_; }
-      set {
-        source_ = value;
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as GetOptions);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(GetOptions other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (ForceNode != other.ForceNode) return false;
-      if (Source != other.Source) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (ForceNode != false) hash ^= ForceNode.GetHashCode();
-      if (Source != 0) hash ^= Source.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (ForceNode != false) {
-        output.WriteRawTag(8);
-        output.WriteBool(ForceNode);
-      }
-      if (Source != 0) {
-        output.WriteRawTag(16);
-        output.WriteEnum((int) Source);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (ForceNode != false) {
-        size += 1 + 1;
-      }
-      if (Source != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Source);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(GetOptions other) {
-      if (other == null) {
-        return;
-      }
-      if (other.ForceNode != false) {
-        ForceNode = other.ForceNode;
-      }
-      if (other.Source != 0) {
-        Source = other.Source;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 8: {
-            ForceNode = input.ReadBool();
-            break;
-          }
-          case 16: {
-            Source = (global::BobStorage.GetSource) input.ReadEnum();
-            break;
-          }
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public static pb::MessageParser<GetOptions> Parser
+        {
+            get { return _parser; }
         }
-      }
-    }
 
-  }
-
-    internal sealed partial class BobError : pb::IMessage<BobError> {
-    private static readonly pb::MessageParser<BobError> _parser = new pb::MessageParser<BobError>(() => new BobError());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<BobError> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::BobStorage.BobReflection.Descriptor.MessageTypes[9]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public BobError() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public BobError(BobError other) : this() {
-      code_ = other.code_;
-      desc_ = other.desc_;
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public BobError Clone() {
-      return new BobError(this);
-    }
-
-    /// <summary>Field number for the "code" field.</summary>
-    public const int CodeFieldNumber = 1;
-    private int code_;
-    /// <summary>
-    /// Error code in case of error
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int Code {
-      get { return code_; }
-      set {
-        code_ = value;
-      }
-    }
-
-    /// <summary>Field number for the "desc" field.</summary>
-    public const int DescFieldNumber = 2;
-    private string desc_ = "";
-    /// <summary>
-    /// Error desription
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public string Desc {
-      get { return desc_; }
-      set {
-        desc_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override bool Equals(object other) {
-      return Equals(other as BobError);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(BobError other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if (Code != other.Code) return false;
-      if (Desc != other.Desc) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override int GetHashCode() {
-      int hash = 1;
-      if (Code != 0) hash ^= Code.GetHashCode();
-      if (Desc.Length != 0) hash ^= Desc.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void WriteTo(pb::CodedOutputStream output) {
-      if (Code != 0) {
-        output.WriteRawTag(8);
-        output.WriteInt32(Code);
-      }
-      if (Desc.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(Desc);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public int CalculateSize() {
-      int size = 0;
-      if (Code != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Code);
-      }
-      if (Desc.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(Desc);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(BobError other) {
-      if (other == null) {
-        return;
-      }
-      if (other.Code != 0) {
-        Code = other.Code;
-      }
-      if (other.Desc.Length != 0) {
-        Desc = other.Desc;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(pb::CodedInputStream input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 8: {
-            Code = input.ReadInt32();
-            break;
-          }
-          case 18: {
-            Desc = input.ReadString();
-            break;
-          }
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public static pbr::MessageDescriptor Descriptor
+        {
+            get { return global::BobStorage.BobReflection.Descriptor.MessageTypes[8]; }
         }
-      }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        pbr::MessageDescriptor pb::IMessage.Descriptor
+        {
+            get { return Descriptor; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public GetOptions()
+        {
+            OnConstruction();
+        }
+
+        partial void OnConstruction();
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public GetOptions(GetOptions other) : this()
+        {
+            forceNode_ = other.forceNode_;
+            source_ = other.source_;
+            fullGet_ = other.fullGet_;
+            _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public GetOptions Clone()
+        {
+            return new GetOptions(this);
+        }
+
+        /// <summary>Field number for the "force_node" field.</summary>
+        public const int ForceNodeFieldNumber = 1;
+
+        private bool forceNode_;
+
+        /// <summary>
+        /// Force operation to be served by node to which it comes
+        /// </summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public bool ForceNode
+        {
+            get { return forceNode_; }
+            set { forceNode_ = value; }
+        }
+
+        /// <summary>Field number for the "source" field.</summary>
+        public const int SourceFieldNumber = 2;
+
+        private global::BobStorage.GetSource source_ = 0;
+
+        /// <summary>
+        /// Set source for data reading
+        /// </summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public global::BobStorage.GetSource Source
+        {
+            get { return source_; }
+            set { source_ = value; }
+        }
+
+        /// <summary>Field number for the "full_get" field.</summary>
+        public const int FullGetFieldNumber = 3;
+
+        private bool fullGet_;
+
+        /// <summary>
+        /// try read data from 'sup' nodes if data not found on 'config' nodes
+        /// </summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public bool FullGet
+        {
+            get { return fullGet_; }
+            set { fullGet_ = value; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override bool Equals(object other)
+        {
+            return Equals(other as GetOptions);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public bool Equals(GetOptions other)
+        {
+            if (ReferenceEquals(other, null))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(other, this))
+            {
+                return true;
+            }
+
+            if (ForceNode != other.ForceNode) return false;
+            if (Source != other.Source) return false;
+            if (FullGet != other.FullGet) return false;
+            return Equals(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override int GetHashCode()
+        {
+            int hash = 1;
+            if (ForceNode != false) hash ^= ForceNode.GetHashCode();
+            if (Source != 0) hash ^= Source.GetHashCode();
+            if (FullGet != false) hash ^= FullGet.GetHashCode();
+            if (_unknownFields != null)
+            {
+                hash ^= _unknownFields.GetHashCode();
+            }
+
+            return hash;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override string ToString()
+        {
+            return pb::JsonFormatter.ToDiagnosticString(this);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void WriteTo(pb::CodedOutputStream output)
+        {
+            if (ForceNode != false)
+            {
+                output.WriteRawTag(8);
+                output.WriteBool(ForceNode);
+            }
+
+            if (Source != 0)
+            {
+                output.WriteRawTag(16);
+                output.WriteEnum((int) Source);
+            }
+
+            if (FullGet != false)
+            {
+                output.WriteRawTag(24);
+                output.WriteBool(FullGet);
+            }
+
+            if (_unknownFields != null)
+            {
+                _unknownFields.WriteTo(output);
+            }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public int CalculateSize()
+        {
+            int size = 0;
+            if (ForceNode != false)
+            {
+                size += 1 + 1;
+            }
+
+            if (Source != 0)
+            {
+                size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Source);
+            }
+
+            if (FullGet != false)
+            {
+                size += 1 + 1;
+            }
+
+            if (_unknownFields != null)
+            {
+                size += _unknownFields.CalculateSize();
+            }
+
+            return size;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void MergeFrom(GetOptions other)
+        {
+            if (other == null)
+            {
+                return;
+            }
+
+            if (other.ForceNode != false)
+            {
+                ForceNode = other.ForceNode;
+            }
+
+            if (other.Source != 0)
+            {
+                Source = other.Source;
+            }
+
+            if (other.FullGet != false)
+            {
+                FullGet = other.FullGet;
+            }
+
+            _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void MergeFrom(pb::CodedInputStream input)
+        {
+            uint tag;
+            while ((tag = input.ReadTag()) != 0)
+            {
+                switch (tag)
+                {
+                    default:
+                        _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+                        break;
+                    case 8:
+                    {
+                        ForceNode = input.ReadBool();
+                        break;
+                    }
+
+                    case 16:
+                    {
+                        Source = (global::BobStorage.GetSource) input.ReadEnum();
+                        break;
+                    }
+
+                    case 24:
+                    {
+                        FullGet = input.ReadBool();
+                        break;
+                    }
+                }
+            }
+        }
+
     }
 
-  }
+    internal sealed partial class BobError : pb::IMessage<BobError>
+    {
+        private static readonly pb::MessageParser<BobError> _parser =
+            new pb::MessageParser<BobError>(() => new BobError());
 
-  #endregion
+        private pb::UnknownFieldSet _unknownFields;
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public static pb::MessageParser<BobError> Parser
+        {
+            get { return _parser; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public static pbr::MessageDescriptor Descriptor
+        {
+            get { return global::BobStorage.BobReflection.Descriptor.MessageTypes[9]; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        pbr::MessageDescriptor pb::IMessage.Descriptor
+        {
+            get { return Descriptor; }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public BobError()
+        {
+            OnConstruction();
+        }
+
+        partial void OnConstruction();
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public BobError(BobError other) : this()
+        {
+            code_ = other.code_;
+            desc_ = other.desc_;
+            _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public BobError Clone()
+        {
+            return new BobError(this);
+        }
+
+        /// <summary>Field number for the "code" field.</summary>
+        public const int CodeFieldNumber = 1;
+
+        private int code_;
+
+        /// <summary>
+        /// Error code in case of error
+        /// </summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public int Code
+        {
+            get { return code_; }
+            set { code_ = value; }
+        }
+
+        /// <summary>Field number for the "desc" field.</summary>
+        public const int DescFieldNumber = 2;
+
+        private string desc_ = "";
+
+        /// <summary>
+        /// Error desription
+        /// </summary>
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public string Desc
+        {
+            get { return desc_; }
+            set { desc_ = pb::ProtoPreconditions.CheckNotNull(value, "value"); }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override bool Equals(object other)
+        {
+            return Equals(other as BobError);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public bool Equals(BobError other)
+        {
+            if (ReferenceEquals(other, null))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(other, this))
+            {
+                return true;
+            }
+
+            if (Code != other.Code) return false;
+            if (Desc != other.Desc) return false;
+            return Equals(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override int GetHashCode()
+        {
+            int hash = 1;
+            if (Code != 0) hash ^= Code.GetHashCode();
+            if (Desc.Length != 0) hash ^= Desc.GetHashCode();
+            if (_unknownFields != null)
+            {
+                hash ^= _unknownFields.GetHashCode();
+            }
+
+            return hash;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public override string ToString()
+        {
+            return pb::JsonFormatter.ToDiagnosticString(this);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void WriteTo(pb::CodedOutputStream output)
+        {
+            if (Code != 0)
+            {
+                output.WriteRawTag(8);
+                output.WriteInt32(Code);
+            }
+
+            if (Desc.Length != 0)
+            {
+                output.WriteRawTag(18);
+                output.WriteString(Desc);
+            }
+
+            if (_unknownFields != null)
+            {
+                _unknownFields.WriteTo(output);
+            }
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public int CalculateSize()
+        {
+            int size = 0;
+            if (Code != 0)
+            {
+                size += 1 + pb::CodedOutputStream.ComputeInt32Size(Code);
+            }
+
+            if (Desc.Length != 0)
+            {
+                size += 1 + pb::CodedOutputStream.ComputeStringSize(Desc);
+            }
+
+            if (_unknownFields != null)
+            {
+                size += _unknownFields.CalculateSize();
+            }
+
+            return size;
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void MergeFrom(BobError other)
+        {
+            if (other == null)
+            {
+                return;
+            }
+
+            if (other.Code != 0)
+            {
+                Code = other.Code;
+            }
+
+            if (other.Desc.Length != 0)
+            {
+                Desc = other.Desc;
+            }
+
+            _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+        }
+
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+        public void MergeFrom(pb::CodedInputStream input)
+        {
+            uint tag;
+            while ((tag = input.ReadTag()) != 0)
+            {
+                switch (tag)
+                {
+                    default:
+                        _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+                        break;
+                    case 8:
+                    {
+                        Code = input.ReadInt32();
+                        break;
+                    }
+
+                    case 18:
+                    {
+                        Desc = input.ReadString();
+                        break;
+                    }
+                }
+            }
+        }
+
+    }
+
+    #endregion
 
 }
 
