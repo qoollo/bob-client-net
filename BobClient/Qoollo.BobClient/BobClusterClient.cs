@@ -47,16 +47,26 @@ namespace Qoollo.BobClient
         }
 
 
-        public Task OpenAsync(TimeSpan timeout)
+        public async Task OpenAsync(TimeSpan timeout)
         {
             if (timeout < TimeSpan.Zero && timeout != Timeout.InfiniteTimeSpan)
                 throw new ArgumentOutOfRangeException(nameof(timeout));
 
-            Task[] openTasks = new Task[_clients.Length];
+            List<Exception> exceptions = new List<Exception>();
             for (int i = 0; i < _clients.Length; i++)
-                openTasks[i] = _clients[i].OpenAsync(timeout);
+            {
+                try
+                {
+                    await _clients[i].OpenAsync(timeout);
+                }
+                catch (Exception e)
+                {
+                    exceptions.Add(e);
+                }
+            }
 
-            return Task.WhenAll(openTasks);
+            if (exceptions.Count > 0)
+                throw new AggregateException(exceptions);
         }
         public Task OpenAsync()
         {
@@ -67,7 +77,7 @@ namespace Qoollo.BobClient
             if (timeout < TimeSpan.Zero && timeout != Timeout.InfiniteTimeSpan)
                 throw new ArgumentOutOfRangeException(nameof(timeout));
 
-            List<Exception> exs = new List<Exception>();
+            List<Exception> exceptions = new List<Exception>();
             for (int i = 0; i < _clients.Length; i++)
             {
                 try
@@ -76,12 +86,12 @@ namespace Qoollo.BobClient
                 }
                 catch (Exception e)
                 {
-                    exs.Add(e);
+                    exceptions.Add(e);
                 }
             }
 
-            if (exs.Count > 0)
-                throw new AggregateException(exs);
+            if (exceptions.Count > 0)
+                throw new AggregateException(exceptions);
         }
         public void Open()
         {
@@ -89,17 +99,27 @@ namespace Qoollo.BobClient
         }
 
 
-        public Task CloseAsync()
+        public async Task CloseAsync()
         {
-            Task[] openTasks = new Task[_clients.Length];
+            List<Exception> exceptions = new List<Exception>();
             for (int i = 0; i < _clients.Length; i++)
-                openTasks[i] = _clients[i].CloseAsync();
+            {
+                try
+                {
+                    await _clients[i].CloseAsync();
+                }
+                catch (Exception e)
+                {
+                    exceptions.Add(e);
+                }
+            }
 
-            return Task.WhenAll(openTasks);
+            if (exceptions.Count > 0)
+                throw new AggregateException(exceptions);
         }
         public void Close()
         {
-            List<Exception> exs = new List<Exception>();
+            List<Exception> exceptions = new List<Exception>();
             for (int i = 0; i < _clients.Length; i++)
             {
                 try
@@ -108,12 +128,12 @@ namespace Qoollo.BobClient
                 }
                 catch (Exception e)
                 {
-                    exs.Add(e);
+                    exceptions.Add(e);
                 }
             }
 
-            if (exs.Count > 0)
-                throw new AggregateException(exs);
+            if (exceptions.Count > 0)
+                throw new AggregateException(exceptions);
         }
 
 

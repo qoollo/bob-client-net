@@ -65,7 +65,11 @@ namespace Qoollo.BobClient
 
         private static bool IsKeyNotFoundError(Grpc.Core.RpcException e)
         {
-            return e.StatusCode == Grpc.Core.StatusCode.Unknown && (e.Status.Detail == "KeyNotFound" || e.Message == "DuplicateKey");
+            return e.StatusCode == Grpc.Core.StatusCode.NotFound && e.Status.Detail.IndexOf("key not found", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+        private static bool IsOperationTimeoutError(Grpc.Core.RpcException e)
+        {
+            return e.StatusCode == Grpc.Core.StatusCode.DeadlineExceeded;
         }
 
         // =========
@@ -118,10 +122,13 @@ namespace Qoollo.BobClient
             {
                 if (_rpcChannel.State == Grpc.Core.ChannelState.Shutdown)
                     throw new BobOperationException($"Connection failed to node {_nodeAddress}", tce);
-                throw new TimeoutException($"Connection timeout reached (node: {_nodeAddress}, speciefied timeout: {timeout}ms)", tce);
+                throw new TimeoutException($"Connection timeout reached (node: {_nodeAddress}, speciefied timeout: {timeout})", tce);
             }
             catch (Grpc.Core.RpcException rpce)
             {
+                if (IsOperationTimeoutError(rpce))
+                    throw new TimeoutException($"Connection timeout reached (node: {_nodeAddress}, speciefied timeout: {timeout})", rpce);
+
                 throw new BobOperationException($"Connection failed to node {_nodeAddress}", rpce);
             }
         }
@@ -144,6 +151,7 @@ namespace Qoollo.BobClient
             try
             {
                 await _rpcChannel.ShutdownAsync();
+                _isDisposed = true;
             }
             catch (Grpc.Core.RpcException rpce)
             {
@@ -173,6 +181,9 @@ namespace Qoollo.BobClient
             }
             catch (Grpc.Core.RpcException e)
             {
+                if (IsOperationTimeoutError(e))
+                    throw new TimeoutException($"Put operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
+
                 throw new BobOperationException($"Put operation failed for key: {key}", e);
             }
 
@@ -202,6 +213,9 @@ namespace Qoollo.BobClient
             }
             catch (Grpc.Core.RpcException e)
             {
+                if (IsOperationTimeoutError(e))
+                    throw new TimeoutException($"Put operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
+
                 throw new BobOperationException($"Put operation failed for key: {key}", e);
             }
 
@@ -229,9 +243,11 @@ namespace Qoollo.BobClient
             }
             catch (Grpc.Core.RpcException e)
             {
+                if (IsOperationTimeoutError(e))
+                    throw new TimeoutException($"Put operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
                 if (IsKeyNotFoundError(e))
                     throw new BobKeyNotFoundException($"Record for key = {key} is not found in Bob", e);
-
+                
                 throw new BobOperationException($"Get operation failed for key: {key}", e);
             }
 
@@ -265,6 +281,8 @@ namespace Qoollo.BobClient
             }
             catch (Grpc.Core.RpcException e)
             {
+                if (IsOperationTimeoutError(e))
+                    throw new TimeoutException($"Put operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
                 if (IsKeyNotFoundError(e))
                     throw new BobKeyNotFoundException($"Record for key = {key} is not found in Bob", e);
 

@@ -70,7 +70,7 @@ namespace Qoollo.BobClient
         /// <returns></returns>
         public override string ToString()
         {
-            return $"code: {Code}, message: {Message}";
+            return $"[code: {Code}, message: '{Message}']";
         }
     }
 
@@ -97,6 +97,11 @@ namespace Qoollo.BobClient
 
         public BobGetResult(BobResult result) : this(result, null)
         {
+        }
+
+        public override string ToString()
+        {
+            return $"[code: {Result.Code}, message: '{Result.Message}', data length: {Data?.Length ?? 0}]";
         }
     }
 }
