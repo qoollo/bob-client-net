@@ -1,0 +1,414 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Qoollo.BobClient</name>
+    </assembly>
+    <members>
+        <member name="T:BobClient.BobBuilder">
+            <summary>
+            Bob api builder
+            </summary>
+        </member>
+        <member name="M:BobClient.BobBuilder.#ctor(System.Collections.Generic.List{BobClient.Node})">
+            <summary>
+            Constructor
+            </summary>
+            <param name="clients">list of Bob's nodes. Api will have access only to them</param>
+        </member>
+        <member name="M:BobClient.BobBuilder.WithTimeout(System.TimeSpan)">
+            <summary>
+            Add timeout for api calls
+            </summary>
+            <param name="timeout"></param>
+            <returns></returns>
+        </member>
+        <member name="M:BobClient.BobBuilder.Build">
+            <summary>
+            Build api
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:BobClient.Node">
+            <summary>
+            Single node describtion
+            </summary>
+        </member>
+        <member name="M:BobClient.Node.#ctor(System.String)">
+            <summary>
+            Node constructor
+            </summary>
+            <param name="address">Node address. Format like host:port </param>
+        </member>
+        <member name="T:BobClient.BobCode">
+            <summary>
+            Bob operations result codes
+            </summary>
+        </member>
+        <member name="F:BobClient.BobCode.Error">
+            <summary>
+            Operation ends with error
+            </summary>
+        </member>
+        <member name="F:BobClient.BobCode.Ok">
+            <summary>
+            Operation ends normally
+            </summary>
+        </member>
+        <member name="F:BobClient.BobCode.KeyNotFound">
+            <summary>
+            Target key not found
+            </summary>
+        </member>
+        <member name="T:BobClient.BobResult">
+            <summary>
+            Bob operations result
+            </summary>
+        </member>
+        <member name="P:BobClient.BobResult.Message">
+            <summary>
+            Operation message
+            </summary>
+        </member>
+        <member name="P:BobClient.BobResult.Code">
+            <summary>
+            Operation result code
+            </summary>
+        </member>
+        <member name="M:BobClient.BobResult.IsError">
+            <summary>
+            Check operation result status
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:BobClient.BobResult.ToString">
+            <summary>
+            print result to string
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:BobClient.BobGetResult">
+            <summary>
+            Bob get operation result
+            </summary>
+        </member>
+        <member name="P:BobClient.BobGetResult.Result">
+            <summary>
+            Operation result message
+            </summary>
+        </member>
+        <member name="P:BobClient.BobGetResult.Data">
+            <summary>
+            Operation result data
+            </summary>
+        </member>
+        <member name="T:BobClient.IBobApi">
+            <summary>
+            Bob api. It chooses random node for access
+            </summary>
+        </member>
+        <member name="M:BobClient.IBobApi.Put(System.UInt64,System.Byte[])">
+            <summary>
+            Write data to Bob
+            </summary>
+            <param name="key">key</param>
+            <param name="data">binary data</param>
+            <returns>operation result</returns>
+        </member>
+        <member name="M:BobClient.IBobApi.Put(System.UInt64,System.Byte[],System.Threading.CancellationToken)">
+            <summary>
+            Write data to Bob
+            </summary>
+            <param name="key">key</param>
+            <param name="data">binary data</param>
+            <param name="token">token</param>
+            <returns>operation result</returns>
+        </member>
+        <member name="M:BobClient.IBobApi.PutAsync(System.UInt64,System.Byte[])">
+            <summary>
+            Write data to Bob asynchronously
+            </summary>
+            <param name="key">key</param>
+            <param name="data">binary data</param>
+            <returns>operation result</returns>
+        </member>
+        <member name="M:BobClient.IBobApi.PutAsync(System.UInt64,System.Byte[],System.Threading.CancellationToken)">
+            <summary>
+            Write data to Bob asynchronously
+            </summary>
+            <param name="key">key</param>
+            <param name="data">binary data</param>
+            <param name="token">token</param>
+            <returns>operation result</returns>
+        </member>
+        <member name="M:BobClient.IBobApi.Get(System.UInt64,System.Boolean)">
+            <summary>
+            Read data from Bob
+            </summary>
+            <param name="key">key</param>
+            /// <param name="fullGet">try read data from sup nodes</param>
+            <returns>operation result</returns>
+        </member>
+        <member name="M:BobClient.IBobApi.Get(System.UInt64,System.Threading.CancellationToken,System.Boolean)">
+            <summary>
+            Read data from Bob
+            </summary>
+            <param name="key">key</param>
+            <param name="token">token</param>
+            /// <param name="fullGet">try read data from sup nodes</param>
+            <returns>operation result</returns>
+        </member>
+        <member name="M:BobClient.IBobApi.GetAsync(System.UInt64,System.Boolean)">
+            <summary>
+            Read data from Bob asynchronously
+            </summary>
+            <param name="key">key</param>
+            /// <param name="fullGet">try read data from sup nodes</param>
+            <returns>operation result with data</returns>
+        </member>
+        <member name="M:BobClient.IBobApi.GetAsync(System.UInt64,System.Threading.CancellationToken,System.Boolean)">
+            <summary>
+            Read data from Bob asynchronously
+            </summary>
+            <param name="key">key</param>
+            <param name="token">token</param>
+            <param name="fullGet">try read data from sup nodes</param>
+            <returns>operation result with data</returns>
+        </member>
+        <member name="T:BobClient.NodeAddress">
+            <summary>
+            Single node describtion
+            </summary>
+        </member>
+        <member name="M:BobClient.NodeAddress.#ctor(System.String)">
+            <summary>
+            Node constructor
+            </summary>
+            <param name="address">Node address. Format like host:port </param>
+        </member>
+        <member name="P:BobClient.NodeAddress.Address">
+            <summary>
+            Address of node in format 'host:port'
+            </summary>
+        </member>
+        <member name="M:BobClient.NodeAddress.ToString">
+            <summary>
+            Returns string representation of NodeAddress
+            </summary>
+            <returns>String representation of NodeAddress</returns>
+        </member>
+        <member name="T:BobStorage.BobReflection">
+            <summary>Holder for reflection information generated from proto/bob.proto</summary>
+        </member>
+        <member name="P:BobStorage.BobReflection.Descriptor">
+            <summary>File descriptor for proto/bob.proto</summary>
+        </member>
+        <member name="T:BobStorage.PutRequest">
+            <summary>
+            Put operation parameters
+            </summary>
+        </member>
+        <member name="F:BobStorage.PutRequest.KeyFieldNumber">
+            <summary>Field number for the "key" field.</summary>
+        </member>
+        <member name="P:BobStorage.PutRequest.Key">
+            <summary>
+            Blob's key
+            </summary>
+        </member>
+        <member name="F:BobStorage.PutRequest.DataFieldNumber">
+            <summary>Field number for the "data" field.</summary>
+        </member>
+        <member name="P:BobStorage.PutRequest.Data">
+            <summary>
+            Data
+            </summary>
+        </member>
+        <member name="F:BobStorage.PutRequest.OptionsFieldNumber">
+            <summary>Field number for the "options" field.</summary>
+        </member>
+        <member name="P:BobStorage.PutRequest.Options">
+            <summary>
+            options
+            </summary>
+        </member>
+        <member name="T:BobStorage.GetRequest">
+            <summary>
+            Get operation parameters
+            </summary>
+        </member>
+        <member name="F:BobStorage.GetRequest.KeyFieldNumber">
+            <summary>Field number for the "key" field.</summary>
+        </member>
+        <member name="P:BobStorage.GetRequest.Key">
+            <summary>
+            Blob's key
+            </summary>
+        </member>
+        <member name="F:BobStorage.GetRequest.OptionsFieldNumber">
+            <summary>Field number for the "options" field.</summary>
+        </member>
+        <member name="P:BobStorage.GetRequest.Options">
+            <summary>
+            options
+            </summary>
+        </member>
+        <member name="T:BobStorage.BlobKey">
+            <summary>
+            Blob id
+            </summary>
+        </member>
+        <member name="F:BobStorage.BlobKey.KeyFieldNumber">
+            <summary>Field number for the "key" field.</summary>
+        </member>
+        <member name="P:BobStorage.BlobKey.Key">
+             <summary>
+            Inner id representation
+             </summary>
+        </member>
+        <member name="T:BobStorage.Blob">
+            <summary>
+            Data blob
+            </summary>
+        </member>
+        <member name="F:BobStorage.Blob.DataFieldNumber">
+            <summary>Field number for the "data" field.</summary>
+        </member>
+        <member name="P:BobStorage.Blob.Data">
+            <summary>
+            Data
+            </summary>
+        </member>
+        <member name="F:BobStorage.Blob.MetaFieldNumber">
+            <summary>Field number for the "meta" field.</summary>
+        </member>
+        <member name="P:BobStorage.Blob.Meta">
+            <summary>
+            Metadata
+            </summary>
+        </member>
+        <member name="T:BobStorage.BlobMeta">
+            <summary>
+            Blob metadata
+            </summary>
+        </member>
+        <member name="F:BobStorage.BlobMeta.TimestampFieldNumber">
+            <summary>Field number for the "timestamp" field.</summary>
+        </member>
+        <member name="P:BobStorage.BlobMeta.Timestamp">
+            <summary>
+            timestamp for data version
+            </summary>
+        </member>
+        <member name="T:BobStorage.OpStatus">
+            <summary>
+            Operation status
+            </summary>
+        </member>
+        <member name="F:BobStorage.OpStatus.ErrorFieldNumber">
+            <summary>Field number for the "error" field.</summary>
+        </member>
+        <member name="P:BobStorage.OpStatus.Error">
+            <summary>
+            If all good - null
+            </summary>
+        </member>
+        <member name="T:BobStorage.PutOptions">
+            <summary>
+            Put operation options
+            </summary>
+        </member>
+        <member name="F:BobStorage.PutOptions.RemoteNodesFieldNumber">
+            <summary>Field number for the "remote_nodes" field.</summary>
+        </member>
+        <member name="F:BobStorage.PutOptions.ForceNodeFieldNumber">
+            <summary>Field number for the "force_node" field.</summary>
+        </member>
+        <member name="P:BobStorage.PutOptions.ForceNode">
+            <summary>
+            Force operation to be served by node to which it comes
+            </summary>
+        </member>
+        <member name="F:BobStorage.PutOptions.OverwriteFieldNumber">
+            <summary>Field number for the "overwrite" field.</summary>
+        </member>
+        <member name="P:BobStorage.PutOptions.Overwrite">
+            <summary>
+            Overwrite data in case of id existens
+            </summary>
+        </member>
+        <member name="T:BobStorage.GetOptions">
+            <summary>
+            Get operation options
+            </summary>
+        </member>
+        <member name="F:BobStorage.GetOptions.ForceNodeFieldNumber">
+            <summary>Field number for the "force_node" field.</summary>
+        </member>
+        <member name="P:BobStorage.GetOptions.ForceNode">
+            <summary>
+            Force operation to be served by node to which it comes
+            </summary>
+        </member>
+        <member name="F:BobStorage.GetOptions.SourceFieldNumber">
+            <summary>Field number for the "source" field.</summary>
+        </member>
+        <member name="P:BobStorage.GetOptions.Source">
+            <summary>
+            Set source for data reading
+            </summary>
+        </member>
+        <member name="F:BobStorage.GetOptions.FullGetFieldNumber">
+            <summary>Field number for the "full_get" field.</summary>
+        </member>
+        <member name="P:BobStorage.GetOptions.FullGet">
+            <summary>
+            try read data from 'sup' nodes if data not found on 'config' nodes
+            </summary>
+        </member>
+        <member name="F:BobStorage.BobError.CodeFieldNumber">
+            <summary>Field number for the "code" field.</summary>
+        </member>
+        <member name="P:BobStorage.BobError.Code">
+            <summary>
+            Error code in case of error
+            </summary>
+        </member>
+        <member name="F:BobStorage.BobError.DescFieldNumber">
+            <summary>Field number for the "desc" field.</summary>
+        </member>
+        <member name="P:BobStorage.BobError.Desc">
+            <summary>
+            Error desription
+            </summary>
+        </member>
+        <member name="T:BobStorage.BobApi">
+            <summary>
+            API
+            </summary>
+        </member>
+        <member name="P:BobStorage.BobApi.Descriptor">
+            <summary>Service descriptor</summary>
+        </member>
+        <member name="T:BobStorage.BobApi.BobApiClient">
+            <summary>Client for BobApi</summary>
+        </member>
+        <member name="M:BobStorage.BobApi.BobApiClient.#ctor(Grpc.Core.ChannelBase)">
+            <summary>Creates a new client for BobApi</summary>
+            <param name="channel">The channel to use to make remote calls.</param>
+        </member>
+        <member name="M:BobStorage.BobApi.BobApiClient.#ctor(Grpc.Core.CallInvoker)">
+            <summary>Creates a new client for BobApi that uses a custom <c>CallInvoker</c>.</summary>
+            <param name="callInvoker">The callInvoker to use to make remote calls.</param>
+        </member>
+        <member name="M:BobStorage.BobApi.BobApiClient.#ctor">
+            <summary>Protected parameterless constructor to allow creation of test doubles.</summary>
+        </member>
+        <member name="M:BobStorage.BobApi.BobApiClient.#ctor(Grpc.Core.ClientBase.ClientBaseConfiguration)">
+            <summary>Protected constructor to allow creation of configured clients.</summary>
+            <param name="configuration">The client configuration.</param>
+        </member>
+        <member name="M:BobStorage.BobApi.BobApiClient.NewInstance(Grpc.Core.ClientBase.ClientBaseConfiguration)">
+            <summary>Creates a new instance of client from given <c>ClientBaseConfiguration</c>.</summary>
+        </member>
+    </members>
+</doc>

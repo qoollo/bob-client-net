@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using BobStorage;
 using Grpc.Core;
 
-namespace BobClient
+namespace Qoollo.BobClient
 {
     /// <summary>
     /// Bob api. It chooses random node for access

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 
-namespace BobClient
+namespace Qoollo.BobClient
 {
     /// <summary>
     /// Bob api builder
@@ -24,6 +24,7 @@ namespace BobClient
                 var channel = new Channel(x.Address, ChannelCredentials.Insecure);
                 return new BobStorage.BobApi.BobApiClient(channel);
             }).ToList();
+
         }
 
         /// <summary>

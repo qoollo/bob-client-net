@@ -1,5 +1,6 @@
 ﻿using BobStorage;
-namespace BobClient
+
+namespace Qoollo.BobClient
 {
     /// <summary>
     /// Bob operations result codes
