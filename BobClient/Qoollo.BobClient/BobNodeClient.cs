@@ -34,14 +34,14 @@ namespace Qoollo.BobClient
     }
 
 
-    public class BobNodeClient: IDisposable
+    public class BobNodeClient: IBobApi, IDisposable
     {
-        private static DateTime? GetDeadline(int timeout)
+        private static DateTime? GetDeadline(TimeSpan timeout)
         {
-            if (timeout == Timeout.Infinite)
+            if (timeout == Timeout.InfiniteTimeSpan)
                 return null;
 
-            return DateTime.UtcNow + TimeSpan.FromMilliseconds(timeout);
+            return DateTime.UtcNow + timeout;
         }
 
         private static BobNodeClientState ConvertState(Grpc.Core.ChannelState state)
@@ -61,6 +61,11 @@ namespace Qoollo.BobClient
                 default:
                     throw new Exception($"Unexpected internal channel state: {state}");
             }
+        }
+
+        private static bool IsKeyNotFoundError(Grpc.Core.RpcException e)
+        {
+            return e.StatusCode == Grpc.Core.StatusCode.Unknown && (e.Status.Detail == "KeyNotFound" || e.Message == "DuplicateKey");
         }
 
         // =========
@@ -98,20 +103,22 @@ namespace Qoollo.BobClient
 
         public BobNodeClientState State { get { return ConvertState(_rpcChannel.State); } }
 
-        public async Task OpenAsync(int timeoutMs)
+        public async Task OpenAsync(TimeSpan timeout)
         {
-            if (timeoutMs < 0 && timeoutMs != Timeout.Infinite)
-                throw new ArgumentOutOfRangeException(nameof(timeoutMs));
+            if (_isDisposed)
+                throw new ObjectDisposedException(this.GetType().Name);
+            if (timeout < TimeSpan.Zero && timeout != Timeout.InfiniteTimeSpan)
+                throw new ArgumentOutOfRangeException(nameof(timeout));
 
             try
             {
-                await _rpcChannel.ConnectAsync(GetDeadline(timeoutMs));
+                await _rpcChannel.ConnectAsync(GetDeadline(timeout));
             }
             catch (TaskCanceledException tce)
             {
                 if (_rpcChannel.State == Grpc.Core.ChannelState.Shutdown)
                     throw new BobOperationException($"Connection failed to node {_nodeAddress}", tce);
-                throw new TimeoutException($"Connection timeout reached (node: {_nodeAddress}, speciefied timeout: {timeoutMs}ms)", tce);
+                throw new TimeoutException($"Connection timeout reached (node: {_nodeAddress}, speciefied timeout: {timeout}ms)", tce);
             }
             catch (Grpc.Core.RpcException rpce)
             {
@@ -120,11 +127,11 @@ namespace Qoollo.BobClient
         }
         public Task OpenAsync()
         {
-            return OpenAsync(Timeout.Infinite);
+            return OpenAsync(Timeout.InfiniteTimeSpan);
         }
-        public void Open(int timeoutMs)
+        public void Open(TimeSpan timeout)
         {
-            OpenAsync(timeoutMs).GetAwaiter().GetResult();
+            OpenAsync(timeout).GetAwaiter().GetResult();
         }
         public void Open()
         {
@@ -149,22 +156,27 @@ namespace Qoollo.BobClient
         }
 
 
-
-        private DateTime? Deadline()
+        public BobResult Put(ulong key, byte[] data, CancellationToken token)
         {
-            return _timeout is null ? DateTime.UtcNow + _timeout : null;
-        }
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
+            if (_isDisposed)
+                throw new ObjectDisposedException(this.GetType().Name);
 
-        private BobStorage.BobApi.BobApiClient GetClient()
-        {
-            var number = _random.Next(_clients.Count);
-            return _clients[number];
-        }
+            var request = new BobStorage.PutRequest(key, data);
 
-        private bool CanProcessRcpException(RpcException e)
-        {
-            return e.StatusCode == StatusCode.Unknown &&
-                   (e.Status.Detail == "KeyNotFound" || e.Message == "DuplicateKey");
+            BobResult result;
+            try
+            {
+                var answer = _rpcClient.Put(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
+                result = BobResult.FromOp(answer);
+            }
+            catch (Grpc.Core.RpcException e)
+            {
+                throw new BobOperationException($"Put operation failed for key: {key}", e);
+            }
+
+            return result;
         }
 
         public BobResult Put(ulong key, byte[] data)
@@ -172,115 +184,107 @@ namespace Qoollo.BobClient
             return Put(key, data, new CancellationToken());
         }
 
-        public BobResult Put(ulong key, byte[] data, CancellationToken token)
-        {
-            var client = GetClient();
-            var request = new PutRequest(key, data);
-
-            BobResult result;
-            try
-            {
-                var answer = client.Put(request, cancellationToken: token, deadline: Deadline());
-                result = BobResult.FromOp(answer);
-            }
-            catch (RpcException e)
-            {
-                result = BobResult.Error(e.Message);
-            }
-            catch (OperationCanceledException e)
-            {
-                result = BobResult.Error(e.Message);
-            }
-
-            return result;
-        }
-
-        public async Task<BobResult> PutAsync(ulong key, byte[] data)
-        {
-            return await PutAsync(key, data, new CancellationToken());
-        }
 
         public async Task<BobResult> PutAsync(ulong key, byte[] data, CancellationToken token)
         {
-            var client = GetClient();
-            var request = new PutRequest(key, data);
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
+            if (_isDisposed)
+                throw new ObjectDisposedException(this.GetType().Name);
+
+            var request = new BobStorage.PutRequest(key, data);
 
             BobResult result;
             try
             {
-                var answer = await client.PutAsync(request, cancellationToken: token, deadline: Deadline());
+                var answer = await _rpcClient.PutAsync(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
                 result = BobResult.FromOp(answer);
             }
-            catch (RpcException e)
+            catch (Grpc.Core.RpcException e)
             {
-                result = BobResult.Error(e.Message);
-            }
-            catch (OperationCanceledException e)
-            {
-                result = BobResult.Error(e.Message);
+                throw new BobOperationException($"Put operation failed for key: {key}", e);
             }
 
             return result;
         }
 
-        public BobGetResult Get(ulong key, bool fullGet = false)
+        public Task<BobResult> PutAsync(ulong key, byte[] data)
         {
-            return Get(key, new CancellationToken(), fullGet);
+            return PutAsync(key, data, new CancellationToken());
         }
 
-        public BobGetResult Get(ulong key, CancellationToken token, bool fullGet = false)
+
+        public BobGetResult Get(ulong key, bool fullGet, CancellationToken token)
         {
-            var client = GetClient();
-            var request = new GetRequest(key, fullGet);
+            if (_isDisposed)
+                throw new ObjectDisposedException(this.GetType().Name);
+
+            var request = new BobStorage.GetRequest(key, fullGet);
 
             BobGetResult result;
             try
             {
-                var answer = client.Get(request, cancellationToken: token, deadline: Deadline());
+                var answer = _rpcClient.Get(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
                 result = new BobGetResult(BobResult.Ok(), answer.Data.ToByteArray());
             }
-            catch (RpcException e)
+            catch (Grpc.Core.RpcException e)
             {
-                result = new BobGetResult(CanProcessRcpException(e)
-                    ? BobResult.KeyNotFound()
-                    : BobResult.Error(e.Message));
-            }
-            catch (OperationCanceledException e)
-            {
-                result = new BobGetResult(BobResult.Error(e.Message));
+                if (IsKeyNotFoundError(e))
+                    throw new BobKeyNotFoundException($"Record for key = {key} is not found in Bob", e);
+
+                throw new BobOperationException($"Get operation failed for key: {key}", e);
             }
 
             return result;
         }
-
-        public async Task<BobGetResult> GetAsync(ulong key, bool fullGet = false)
+        public BobGetResult Get(ulong key, CancellationToken token)
         {
-            return await GetAsync(key, new CancellationToken(), fullGet);
+            return Get(key, false, token);
+        }
+        public BobGetResult Get(ulong key, bool fullGet)
+        {
+            return Get(key, fullGet, new CancellationToken());
+        }
+        public BobGetResult Get(ulong key)
+        {
+            return Get(key, false, new CancellationToken());
         }
 
-        public async Task<BobGetResult> GetAsync(ulong key, CancellationToken token, bool fullGet = false)
+        public async Task<BobGetResult> GetAsync(ulong key, bool fullGet, CancellationToken token)
         {
-            var client = GetClient();
-            var request = new GetRequest(key, fullGet);
+            if (_isDisposed)
+                throw new ObjectDisposedException(this.GetType().Name);
+
+            var request = new BobStorage.GetRequest(key, fullGet);
 
             BobGetResult result;
             try
             {
-                var answer = await client.GetAsync(request, cancellationToken: token, deadline: Deadline());
+                var answer = await _rpcClient.GetAsync(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
                 result = new BobGetResult(BobResult.Ok(), answer.Data.ToByteArray());
             }
-            catch (RpcException e)
+            catch (Grpc.Core.RpcException e)
             {
-                result = new BobGetResult(CanProcessRcpException(e)
-                    ? BobResult.KeyNotFound()
-                    : BobResult.Error(e.Message));
-            }
-            catch (OperationCanceledException e)
-            {
-                result = new BobGetResult(BobResult.Error(e.Message));
+                if (IsKeyNotFoundError(e))
+                    throw new BobKeyNotFoundException($"Record for key = {key} is not found in Bob", e);
+
+                throw new BobOperationException($"Get operation failed for key: {key}", e);
             }
 
             return result;
+        }
+
+        public Task<BobGetResult> GetAsync(ulong key, CancellationToken token)
+        {
+            return GetAsync(key, false, token);
+        }
+        public Task<BobGetResult> GetAsync(ulong key, bool fullGet)
+        {
+            return GetAsync(key, fullGet, new CancellationToken());
+        }
+        public Task<BobGetResult> GetAsync(ulong key)
+        {
+            return GetAsync(key, false, new CancellationToken());
         }
 
 
@@ -289,13 +293,13 @@ namespace Qoollo.BobClient
         {
             if (!_isDisposed)
             {
+                _isDisposed = true;
+
                 try
                 {
                     this.Close();
                 }
                 catch { }
-
-                _isDisposed = true;
             }
         }
 

@@ -11,4 +11,12 @@ namespace Qoollo.BobClient
         public BobOperationException(string message) : base(message) { }
         public BobOperationException(string message, Exception innerException) : base(message, innerException) { }
     }
+
+
+    public class BobKeyNotFoundException: BobOperationException
+    {
+        public BobKeyNotFoundException() { }
+        public BobKeyNotFoundException(string message) : base(message) { }
+        public BobKeyNotFoundException(string message, Exception innerException) : base(message, innerException) { }
+    }
 }

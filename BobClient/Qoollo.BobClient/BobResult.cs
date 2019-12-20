@@ -24,7 +24,7 @@ namespace Qoollo.BobClient
     /// <summary>
     /// Bob operations result
     /// </summary>
-    public class BobResult
+    public struct BobResult
     {
         /// <summary>
         /// Operation message
@@ -35,7 +35,7 @@ namespace Qoollo.BobClient
         /// </summary>
         public BobCode Code { get; }
 
-        internal BobResult(string message, BobCode code)
+        public BobResult(string message, BobCode code)
         {
             Message = message;
             Code = code;
@@ -77,7 +77,7 @@ namespace Qoollo.BobClient
     /// <summary>
     /// Bob get operation result
     /// </summary>
-    public class BobGetResult
+    public struct BobGetResult
     {
         /// <summary>
         /// Operation result message
@@ -89,13 +89,13 @@ namespace Qoollo.BobClient
         /// </summary>
         public byte[] Data { get; }
 
-        internal BobGetResult(BobResult result, byte[] data)
+        public BobGetResult(BobResult result, byte[] data)
         {
             Result = result;
             Data = data;
         }
 
-        internal BobGetResult(BobResult result) : this(result, null)
+        public BobGetResult(BobResult result) : this(result, null)
         {
         }
     }

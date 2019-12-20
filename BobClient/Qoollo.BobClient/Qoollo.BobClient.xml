@@ -4,117 +4,117 @@
         <name>Qoollo.BobClient</name>
     </assembly>
     <members>
-        <member name="T:BobClient.BobBuilder">
-            <summary>
-            Bob api builder
-            </summary>
-        </member>
-        <member name="M:BobClient.BobBuilder.#ctor(System.Collections.Generic.List{BobClient.Node})">
-            <summary>
-            Constructor
-            </summary>
-            <param name="clients">list of Bob's nodes. Api will have access only to them</param>
-        </member>
-        <member name="M:BobClient.BobBuilder.WithTimeout(System.TimeSpan)">
+        <member name="M:Qoollo.BobClient.BobClusterBuilder.WithOperationTimeout(System.TimeSpan)">
             <summary>
             Add timeout for api calls
             </summary>
             <param name="timeout"></param>
             <returns></returns>
         </member>
-        <member name="M:BobClient.BobBuilder.Build">
+        <member name="M:Qoollo.BobClient.BobClusterBuilder.Build">
             <summary>
             Build api
             </summary>
             <returns></returns>
         </member>
-        <member name="T:BobClient.Node">
+        <member name="T:Qoollo.BobClient.BobNodeClientState">
             <summary>
-            Single node describtion
+            State of the <see cref="T:Qoollo.BobClient.BobNodeClient"/>
             </summary>
         </member>
-        <member name="M:BobClient.Node.#ctor(System.String)">
+        <member name="F:Qoollo.BobClient.BobNodeClientState.Idle">
             <summary>
-            Node constructor
+            Client is idle
             </summary>
-            <param name="address">Node address. Format like host:port </param>
         </member>
-        <member name="T:BobClient.BobCode">
+        <member name="F:Qoollo.BobClient.BobNodeClientState.Connecting">
+            <summary>
+            Client is connecting
+            </summary>
+        </member>
+        <member name="F:Qoollo.BobClient.BobNodeClientState.Ready">
+            <summary>
+            Client is ready for work
+            </summary>
+        </member>
+        <member name="F:Qoollo.BobClient.BobNodeClientState.TransientFailure">
+            <summary>
+            Client has seen a failure but expects to recover
+            </summary>
+        </member>
+        <member name="F:Qoollo.BobClient.BobNodeClientState.Shutdown">
+            <summary>
+            Client closed or has seen a failure that it cannot recover from
+            </summary>
+        </member>
+        <member name="T:Qoollo.BobClient.BobCode">
             <summary>
             Bob operations result codes
             </summary>
         </member>
-        <member name="F:BobClient.BobCode.Error">
+        <member name="F:Qoollo.BobClient.BobCode.Error">
             <summary>
             Operation ends with error
             </summary>
         </member>
-        <member name="F:BobClient.BobCode.Ok">
+        <member name="F:Qoollo.BobClient.BobCode.Ok">
             <summary>
             Operation ends normally
             </summary>
         </member>
-        <member name="F:BobClient.BobCode.KeyNotFound">
+        <member name="F:Qoollo.BobClient.BobCode.KeyNotFound">
             <summary>
             Target key not found
             </summary>
         </member>
-        <member name="T:BobClient.BobResult">
+        <member name="T:Qoollo.BobClient.BobResult">
             <summary>
             Bob operations result
             </summary>
         </member>
-        <member name="P:BobClient.BobResult.Message">
+        <member name="P:Qoollo.BobClient.BobResult.Message">
             <summary>
             Operation message
             </summary>
         </member>
-        <member name="P:BobClient.BobResult.Code">
+        <member name="P:Qoollo.BobClient.BobResult.Code">
             <summary>
             Operation result code
             </summary>
         </member>
-        <member name="M:BobClient.BobResult.IsError">
+        <member name="M:Qoollo.BobClient.BobResult.IsError">
             <summary>
             Check operation result status
             </summary>
             <returns></returns>
         </member>
-        <member name="M:BobClient.BobResult.ToString">
+        <member name="M:Qoollo.BobClient.BobResult.ToString">
             <summary>
             print result to string
             </summary>
             <returns></returns>
         </member>
-        <member name="T:BobClient.BobGetResult">
+        <member name="T:Qoollo.BobClient.BobGetResult">
             <summary>
             Bob get operation result
             </summary>
         </member>
-        <member name="P:BobClient.BobGetResult.Result">
+        <member name="P:Qoollo.BobClient.BobGetResult.Result">
             <summary>
             Operation result message
             </summary>
         </member>
-        <member name="P:BobClient.BobGetResult.Data">
+        <member name="P:Qoollo.BobClient.BobGetResult.Data">
             <summary>
             Operation result data
             </summary>
         </member>
-        <member name="T:BobClient.IBobApi">
+        <member name="T:Qoollo.BobClient.IBobApi">
             <summary>
             Bob api. It chooses random node for access
             </summary>
         </member>
-        <member name="M:BobClient.IBobApi.Put(System.UInt64,System.Byte[])">
-            <summary>
-            Write data to Bob
-            </summary>
-            <param name="key">key</param>
-            <param name="data">binary data</param>
-            <returns>operation result</returns>
-        </member>
-        <member name="M:BobClient.IBobApi.Put(System.UInt64,System.Byte[],System.Threading.CancellationToken)">
+        <member name="M:Qoollo.BobClient.IBobApi.Put(System.UInt64,System.Byte[],System.Threading.CancellationToken)">
             <summary>
             Write data to Bob
             </summary>
@@ -123,15 +123,7 @@
             <param name="token">token</param>
             <returns>operation result</returns>
         </member>
-        <member name="M:BobClient.IBobApi.PutAsync(System.UInt64,System.Byte[])">
-            <summary>
-            Write data to Bob asynchronously
-            </summary>
-            <param name="key">key</param>
-            <param name="data">binary data</param>
-            <returns>operation result</returns>
-        </member>
-        <member name="M:BobClient.IBobApi.PutAsync(System.UInt64,System.Byte[],System.Threading.CancellationToken)">
+        <member name="M:Qoollo.BobClient.IBobApi.PutAsync(System.UInt64,System.Byte[],System.Threading.CancellationToken)">
             <summary>
             Write data to Bob asynchronously
             </summary>
@@ -140,15 +132,7 @@
             <param name="token">token</param>
             <returns>operation result</returns>
         </member>
-        <member name="M:BobClient.IBobApi.Get(System.UInt64,System.Boolean)">
-            <summary>
-            Read data from Bob
-            </summary>
-            <param name="key">key</param>
-            /// <param name="fullGet">try read data from sup nodes</param>
-            <returns>operation result</returns>
-        </member>
-        <member name="M:BobClient.IBobApi.Get(System.UInt64,System.Threading.CancellationToken,System.Boolean)">
+        <member name="M:Qoollo.BobClient.IBobApi.Get(System.UInt64,System.Boolean,System.Threading.CancellationToken)">
             <summary>
             Read data from Bob
             </summary>
@@ -157,15 +141,7 @@
             /// <param name="fullGet">try read data from sup nodes</param>
             <returns>operation result</returns>
         </member>
-        <member name="M:BobClient.IBobApi.GetAsync(System.UInt64,System.Boolean)">
-            <summary>
-            Read data from Bob asynchronously
-            </summary>
-            <param name="key">key</param>
-            /// <param name="fullGet">try read data from sup nodes</param>
-            <returns>operation result with data</returns>
-        </member>
-        <member name="M:BobClient.IBobApi.GetAsync(System.UInt64,System.Threading.CancellationToken,System.Boolean)">
+        <member name="M:Qoollo.BobClient.IBobApi.GetAsync(System.UInt64,System.Boolean,System.Threading.CancellationToken)">
             <summary>
             Read data from Bob asynchronously
             </summary>
@@ -174,23 +150,23 @@
             <param name="fullGet">try read data from sup nodes</param>
             <returns>operation result with data</returns>
         </member>
-        <member name="T:BobClient.NodeAddress">
+        <member name="T:Qoollo.BobClient.NodeAddress">
             <summary>
             Single node describtion
             </summary>
         </member>
-        <member name="M:BobClient.NodeAddress.#ctor(System.String)">
+        <member name="M:Qoollo.BobClient.NodeAddress.#ctor(System.String)">
             <summary>
             Node constructor
             </summary>
             <param name="address">Node address. Format like host:port </param>
         </member>
-        <member name="P:BobClient.NodeAddress.Address">
+        <member name="P:Qoollo.BobClient.NodeAddress.Address">
             <summary>
             Address of node in format 'host:port'
             </summary>
         </member>
-        <member name="M:BobClient.NodeAddress.ToString">
+        <member name="M:Qoollo.BobClient.NodeAddress.ToString">
             <summary>
             Returns string representation of NodeAddress
             </summary>

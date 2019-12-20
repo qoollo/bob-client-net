@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Qoollo.BobClient;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,9 +10,11 @@ namespace BobClient.ConsoleApp
     {
         static void Main(string[] args)
         {
-            var client = new BobBuilder(new[] { new Node("10.5.5.124:20000") }.ToList())
-                    .WithTimeout(TimeSpan.FromSeconds(1))
-                    .Build();
+            var client = new BobClusterBuilder()
+                .WithAdditionalNode("10.5.5.124:20000")
+                .WithOperationTimeout(TimeSpan.FromSeconds(1))
+                .Build();
+
 
 //            ulong id = 1;
             while  (true) {
