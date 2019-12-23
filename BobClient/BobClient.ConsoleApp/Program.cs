@@ -16,8 +16,8 @@ namespace BobClient.ConsoleApp
             Stopwatch sw = Stopwatch.StartNew();
             for (int i = 0; i < count; i++)
             {
-                var result = client.Put(startId, _sampleData);
-                Console.WriteLine($"Put: {result}");
+                client.Put(startId, _sampleData);
+                Console.WriteLine($"Put: OK");
             }
 
             Console.WriteLine($"Put finished in {sw.ElapsedMilliseconds}ms. Rps: {(double)(1000 * count) / sw.ElapsedMilliseconds}");
@@ -29,7 +29,7 @@ namespace BobClient.ConsoleApp
             for (int i = 0; i < count; i++)
             {
                 var result = client.Get(startId);
-                Console.WriteLine($"Get: {result}");
+                Console.WriteLine($"Get: {result.Length}");
             }
 
             Console.WriteLine($"Get finished in {sw.ElapsedMilliseconds}ms. Rps: {(double)(1000 * count) / sw.ElapsedMilliseconds}");
@@ -46,12 +46,8 @@ namespace BobClient.ConsoleApp
             {
                 client.Open();
 
-                CancellationTokenSource tk = new CancellationTokenSource();
-                tk.Cancel();
-                client.Put(10000, _sampleData, tk.Token);
-
-                PutTest(client, 6000, 1000);
-                GetTest(client, 6000, 1000);
+                PutTest(client, 8000, 1000);
+                GetTest(client, 8000, 1000);
 
                 client.Close();
             }

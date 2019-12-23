@@ -104,16 +104,7 @@ namespace Qoollo.BobClient
             if (_nodeAddresses.Count == 0)
                 throw new InvalidOperationException("At least one node shoulde be added to cluster");
 
-            var policy = _nodeSelectionPolicy;
-            if (policy == null)
-            {
-                if (_nodeAddresses.Count == 1)
-                    policy = FirstNodeSelectionPolicy.Instance;
-                else
-                    policy = new SequentialNodeSelectionPolicy();
-            }
-
-            return new BobClusterClient(_nodeAddresses.Select(o => new BobNodeClient(o, _operationTimeout)).ToList(), policy);
+            return new BobClusterClient(_nodeAddresses.Select(o => new BobNodeClient(o, _operationTimeout)).ToList(), _nodeSelectionPolicy);
         }
     }
 }

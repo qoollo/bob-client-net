@@ -240,13 +240,12 @@ namespace Qoollo.BobClient
         /// <param name="key">Key</param>
         /// <param name="data">Binary data</param>
         /// <param name="token">Cancellation token</param>
-        /// <returns>Operation result</returns>
         /// <exception cref="ArgumentNullException">Data is null</exception>
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public BobResult Put(ulong key, byte[] data, CancellationToken token)
+        public void Put(ulong key, byte[] data, CancellationToken token)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
@@ -255,11 +254,11 @@ namespace Qoollo.BobClient
 
             var request = new BobStorage.PutRequest(key, data);
 
-            BobResult result;
             try
             {
                 var answer = _rpcClient.Put(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
-                result = BobResult.FromOp(answer);
+                if (answer.Error != null)
+                    throw new BobOperationException($"Put operation failed for key: {key}. Code: {answer.Error.Code}, Description: {answer.Error.Desc}");
             }
             catch (Grpc.Core.RpcException e)
             {
@@ -270,8 +269,6 @@ namespace Qoollo.BobClient
 
                 throw new BobOperationException($"Put operation failed for key: {key}", e);
             }
-
-            return result;
         }
 
         /// <summary>
@@ -279,14 +276,13 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="key">Key</param>
         /// <param name="data">Binary data</param>
-        /// <returns>Operation result</returns>
         /// <exception cref="ArgumentNullException">Data is null</exception>
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public BobResult Put(ulong key, byte[] data)
+        public void Put(ulong key, byte[] data)
         {
-            return Put(key, data, new CancellationToken());
+            Put(key, data, new CancellationToken());
         }
 
         /// <summary>
@@ -301,7 +297,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public async Task<BobResult> PutAsync(ulong key, byte[] data, CancellationToken token)
+        public async Task PutAsync(ulong key, byte[] data, CancellationToken token)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
@@ -310,11 +306,11 @@ namespace Qoollo.BobClient
 
             var request = new BobStorage.PutRequest(key, data);
 
-            BobResult result;
             try
             {
                 var answer = await _rpcClient.PutAsync(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
-                result = BobResult.FromOp(answer);
+                if (answer.Error != null)
+                    throw new BobOperationException($"Put operation failed for key: {key}. Code: {answer.Error.Code}, Description: {answer.Error.Desc}");
             }
             catch (Grpc.Core.RpcException e)
             {
@@ -325,8 +321,6 @@ namespace Qoollo.BobClient
 
                 throw new BobOperationException($"Put operation failed for key: {key}", e);
             }
-
-            return result;
         }
 
         /// <summary>
@@ -339,7 +333,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task<BobResult> PutAsync(ulong key, byte[] data)
+        public Task PutAsync(ulong key, byte[] data)
         {
             return PutAsync(key, data, new CancellationToken());
         }
@@ -357,18 +351,17 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public BobGetResult Get(ulong key, bool fullGet, CancellationToken token)
+        public byte[] Get(ulong key, bool fullGet, CancellationToken token)
         {
             if (_isDisposed)
                 throw new ObjectDisposedException(this.GetType().Name);
 
             var request = new BobStorage.GetRequest(key, fullGet);
 
-            BobGetResult result;
             try
             {
                 var answer = _rpcClient.Get(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
-                result = new BobGetResult(BobResult.Ok(), answer.Data.ToByteArray());
+                return answer.Data.ToByteArray();
             }
             catch (Grpc.Core.RpcException e)
             {
@@ -381,8 +374,6 @@ namespace Qoollo.BobClient
                 
                 throw new BobOperationException($"Get operation failed for key: {key}", e);
             }
-
-            return result;
         }
 
         /// <summary>
@@ -396,7 +387,7 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public BobGetResult Get(ulong key, CancellationToken token)
+        public byte[] Get(ulong key, CancellationToken token)
         {
             return Get(key, false, token);
         }
@@ -411,7 +402,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public BobGetResult Get(ulong key, bool fullGet)
+        public byte[] Get(ulong key, bool fullGet)
         {
             return Get(key, fullGet, new CancellationToken());
         }
@@ -425,7 +416,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public BobGetResult Get(ulong key)
+        public byte[] Get(ulong key)
         {
             return Get(key, false, new CancellationToken());
         }
@@ -443,18 +434,17 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public async Task<BobGetResult> GetAsync(ulong key, bool fullGet, CancellationToken token)
+        public async Task<byte[]> GetAsync(ulong key, bool fullGet, CancellationToken token)
         {
             if (_isDisposed)
                 throw new ObjectDisposedException(this.GetType().Name);
 
             var request = new BobStorage.GetRequest(key, fullGet);
 
-            BobGetResult result;
             try
             {
                 var answer = await _rpcClient.GetAsync(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
-                result = new BobGetResult(BobResult.Ok(), answer.Data.ToByteArray());
+                return answer.Data.ToByteArray();
             }
             catch (Grpc.Core.RpcException e)
             {
@@ -467,8 +457,6 @@ namespace Qoollo.BobClient
 
                 throw new BobOperationException($"Get operation failed for key: {key}", e);
             }
-
-            return result;
         }
 
         /// <summary>
@@ -482,7 +470,7 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task<BobGetResult> GetAsync(ulong key, CancellationToken token)
+        public Task<byte[]> GetAsync(ulong key, CancellationToken token)
         {
             return GetAsync(key, false, token);
         }
@@ -497,7 +485,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task<BobGetResult> GetAsync(ulong key, bool fullGet)
+        public Task<byte[]> GetAsync(ulong key, bool fullGet)
         {
             return GetAsync(key, fullGet, new CancellationToken());
         }
@@ -511,7 +499,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task<BobGetResult> GetAsync(ulong key)
+        public Task<byte[]> GetAsync(ulong key)
         {
             return GetAsync(key, false, new CancellationToken());
         }

@@ -73,7 +73,7 @@
             </summary>
             <param name="clients">List of clients for every bob node</param>
         </member>
-        <member name="M:Qoollo.BobClient.BobClusterClient.#ctor(System.Collections.Generic.IEnumerable{System.String},System.TimeSpan,Qoollo.BobClient.BobNodeSelectionPolicy)">
+        <member name="M:Qoollo.BobClient.BobClusterClient.#ctor(System.Collections.Generic.IEnumerable{System.String},Qoollo.BobClient.BobNodeSelectionPolicy,System.TimeSpan)">
             <summary>
             <see cref="T:Qoollo.BobClient.BobClusterClient"/> constructor
             </summary>
@@ -135,7 +135,6 @@
             <param name="key">Key</param>
             <param name="data">Binary data</param>
             <param name="token">Cancellation token</param>
-            <returns>Operation result</returns>
             <exception cref="T:System.ArgumentNullException">Data is null</exception>
             <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
             <exception cref="T:System.TimeoutException">Timeout reached</exception>
@@ -148,7 +147,6 @@
             </summary>
             <param name="key">Key</param>
             <param name="data">Binary data</param>
-            <returns>Operation result</returns>
             <exception cref="T:System.ArgumentNullException">Data is null</exception>
             <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
             <exception cref="T:System.TimeoutException">Timeout reached</exception>
@@ -426,7 +424,6 @@
             <param name="key">Key</param>
             <param name="data">Binary data</param>
             <param name="token">Cancellation token</param>
-            <returns>Operation result</returns>
             <exception cref="T:System.ArgumentNullException">Data is null</exception>
             <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
             <exception cref="T:System.TimeoutException">Timeout reached</exception>
@@ -439,7 +436,6 @@
             </summary>
             <param name="key">Key</param>
             <param name="data">Binary data</param>
-            <returns>Operation result</returns>
             <exception cref="T:System.ArgumentNullException">Data is null</exception>
             <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
             <exception cref="T:System.TimeoutException">Timeout reached</exception>
@@ -680,94 +676,6 @@
             </summary>
             <param name="message">Message</param>
             <param name="innerException">Inner exception</param>
-        </member>
-        <member name="T:Qoollo.BobClient.BobCode">
-            <summary>
-            Bob operations result codes
-            </summary>
-        </member>
-        <member name="F:Qoollo.BobClient.BobCode.Error">
-            <summary>
-            Operation ends with error
-            </summary>
-        </member>
-        <member name="F:Qoollo.BobClient.BobCode.Ok">
-            <summary>
-            Operation ends normally
-            </summary>
-        </member>
-        <member name="F:Qoollo.BobClient.BobCode.KeyNotFound">
-            <summary>
-            Target key not found
-            </summary>
-        </member>
-        <member name="T:Qoollo.BobClient.BobResult">
-            <summary>
-            Bob operations result
-            </summary>
-        </member>
-        <member name="P:Qoollo.BobClient.BobResult.Message">
-            <summary>
-            Operation message
-            </summary>
-        </member>
-        <member name="P:Qoollo.BobClient.BobResult.Code">
-            <summary>
-            Operation result code
-            </summary>
-        </member>
-        <member name="M:Qoollo.BobClient.BobResult.#ctor(System.String,Qoollo.BobClient.BobCode)">
-            <summary>
-            BobResult constructor
-            </summary>
-            <param name="message">Message</param>
-            <param name="code">Code</param>
-        </member>
-        <member name="M:Qoollo.BobClient.BobResult.IsError">
-            <summary>
-            Checks operation result status
-            </summary>
-            <returns></returns>
-        </member>
-        <member name="M:Qoollo.BobClient.BobResult.ToString">
-            <summary>
-            Gets string representation of this result
-            </summary>
-            <returns>String representation</returns>
-        </member>
-        <member name="T:Qoollo.BobClient.BobGetResult">
-            <summary>
-            Bob get operation result
-            </summary>
-        </member>
-        <member name="P:Qoollo.BobClient.BobGetResult.Result">
-            <summary>
-            Operation result message
-            </summary>
-        </member>
-        <member name="P:Qoollo.BobClient.BobGetResult.Data">
-            <summary>
-            Operation result data
-            </summary>
-        </member>
-        <member name="M:Qoollo.BobClient.BobGetResult.#ctor(Qoollo.BobClient.BobResult,System.Byte[])">
-            <summary>
-            BobGetResult constructor
-            </summary>
-            <param name="result">Result</param>
-            <param name="data">BLOB data</param>
-        </member>
-        <member name="M:Qoollo.BobClient.BobGetResult.#ctor(Qoollo.BobClient.BobResult)">
-            <summary>
-            BobGetResult constructor without data
-            </summary>
-            <param name="result">Result</param>
-        </member>
-        <member name="M:Qoollo.BobClient.BobGetResult.ToString">
-            <summary>
-            Gets string representation of this result
-            </summary>
-            <returns>String representation</returns>
         </member>
         <member name="T:Qoollo.BobClient.IBobApi">
             <summary>

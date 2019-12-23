@@ -55,7 +55,7 @@ namespace Qoollo.BobClient
         /// <param name="nodeAddress">List of nodes addresses</param>
         /// <param name="operationTimeout">Operation timeout for every created node client</param>
         /// <param name="selectionPolicy">Node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
-        public BobClusterClient(IEnumerable<string> nodeAddress, TimeSpan operationTimeout, BobNodeSelectionPolicy selectionPolicy)
+        public BobClusterClient(IEnumerable<string> nodeAddress, BobNodeSelectionPolicy selectionPolicy, TimeSpan operationTimeout)
             : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), selectionPolicy)
         {
         }
@@ -64,7 +64,7 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="nodeAddress">List of nodes addresses</param>
         public BobClusterClient(IEnumerable<string> nodeAddress)
-            : this(nodeAddress, Timeout.InfiniteTimeSpan, new SequentialNodeSelectionPolicy())
+            : this(nodeAddress, null, Timeout.InfiniteTimeSpan)
         {
         }
 
@@ -195,16 +195,15 @@ namespace Qoollo.BobClient
         /// <param name="key">Key</param>
         /// <param name="data">Binary data</param>
         /// <param name="token">Cancellation token</param>
-        /// <returns>Operation result</returns>
         /// <exception cref="ArgumentNullException">Data is null</exception>
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public BobResult Put(ulong key, byte[] data, CancellationToken token)
+        public void Put(ulong key, byte[] data, CancellationToken token)
         {
             var client = _selectionPolicy.Select(_clients);
-            return client.Put(key, data, token);
+            client.Put(key, data, token);
         }
 
         /// <summary>
@@ -212,15 +211,14 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="key">Key</param>
         /// <param name="data">Binary data</param>
-        /// <returns>Operation result</returns>
         /// <exception cref="ArgumentNullException">Data is null</exception>
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public BobResult Put(ulong key, byte[] data)
+        public void Put(ulong key, byte[] data)
         {
             var client = _selectionPolicy.Select(_clients);
-            return client.Put(key, data);
+            client.Put(key, data);
         }
 
         /// <summary>
@@ -235,7 +233,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task<BobResult> PutAsync(ulong key, byte[] data, CancellationToken token)
+        public Task PutAsync(ulong key, byte[] data, CancellationToken token)
         {
             var client = _selectionPolicy.Select(_clients);
             return client.PutAsync(key, data, token);
@@ -251,7 +249,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task<BobResult> PutAsync(ulong key, byte[] data)
+        public Task PutAsync(ulong key, byte[] data)
         {
             var client = _selectionPolicy.Select(_clients);
             return client.PutAsync(key, data);
@@ -270,7 +268,7 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public BobGetResult Get(ulong key, bool fullGet, CancellationToken token)
+        public byte[] Get(ulong key, bool fullGet, CancellationToken token)
         {
             var client = _selectionPolicy.Select(_clients);
             return client.Get(key, fullGet, token);
@@ -287,7 +285,7 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public BobGetResult Get(ulong key, CancellationToken token)
+        public byte[] Get(ulong key, CancellationToken token)
         {
             var client = _selectionPolicy.Select(_clients);
             return client.Get(key, token);
@@ -303,7 +301,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public BobGetResult Get(ulong key, bool fullGet)
+        public byte[] Get(ulong key, bool fullGet)
         {
             var client = _selectionPolicy.Select(_clients);
             return client.Get(key, fullGet);
@@ -318,7 +316,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public BobGetResult Get(ulong key)
+        public byte[] Get(ulong key)
         {
             var client = _selectionPolicy.Select(_clients);
             return client.Get(key);
@@ -337,7 +335,7 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task<BobGetResult> GetAsync(ulong key, bool fullGet, CancellationToken token)
+        public Task<byte[]> GetAsync(ulong key, bool fullGet, CancellationToken token)
         {
             var client = _selectionPolicy.Select(_clients);
             return client.GetAsync(key, fullGet, token);
@@ -354,7 +352,7 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task<BobGetResult> GetAsync(ulong key, CancellationToken token)
+        public Task<byte[]> GetAsync(ulong key, CancellationToken token)
         {
             var client = _selectionPolicy.Select(_clients);
             return client.GetAsync(key, token);
@@ -370,7 +368,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task<BobGetResult> GetAsync(ulong key, bool fullGet)
+        public Task<byte[]> GetAsync(ulong key, bool fullGet)
         {
             var client = _selectionPolicy.Select(_clients);
             return client.GetAsync(key, fullGet);
@@ -385,7 +383,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task<BobGetResult> GetAsync(ulong key)
+        public Task<byte[]> GetAsync(ulong key)
         {
             var client = _selectionPolicy.Select(_clients);
             return client.GetAsync(key);
