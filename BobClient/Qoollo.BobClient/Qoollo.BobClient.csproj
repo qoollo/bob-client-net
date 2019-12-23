@@ -2,21 +2,20 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Company>Policesoft</Company>
+    <Company>Qoollo</Company>
     <Authors>Nikita Menshov</Authors>
-    <Description>C# api to Bob storage</Description>
+    <Description>.NET client library for Bob</Description>
     <PackageTags>Bob, storage</PackageTags>
     <Copyright></Copyright>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <AssemblyVersion>1.0.6.0</AssemblyVersion>
-    <Version>1.0.6</Version>
-    <FileVersion>1.0.6.0</FileVersion>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <Version>2.0.0</Version>
+    <FileVersion>2.0.0.0</FileVersion>
     <AssemblyName>Qoollo.BobClient</AssemblyName>
     <RootNamespace>Qoollo.BobClient</RootNamespace>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'"><!--<PlatformTarget>x64</PlatformTarget>-->
-  
+  <PropertyGroup>
     <DocumentationFile>Qoollo.BobClient.xml</DocumentationFile>
   </PropertyGroup>
 
