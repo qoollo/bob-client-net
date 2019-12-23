@@ -35,6 +35,11 @@ namespace Qoollo.BobClient
         /// </summary>
         public BobCode Code { get; }
 
+        /// <summary>
+        /// BobResult constructor
+        /// </summary>
+        /// <param name="message">Message</param>
+        /// <param name="code">Code</param>
         public BobResult(string message, BobCode code)
         {
             Message = message;
@@ -59,15 +64,15 @@ namespace Qoollo.BobClient
         }
 
         /// <summary>
-        /// Check operation result status
+        /// Checks operation result status
         /// </summary>
         /// <returns></returns>
         public bool IsError() => Code == BobCode.Error;
 
         /// <summary>
-        /// print result to string
+        /// Gets string representation of this result
         /// </summary>
-        /// <returns></returns>
+        /// <returns>String representation</returns>
         public override string ToString()
         {
             return $"[code: {Code}, message: '{Message}']";
@@ -89,16 +94,28 @@ namespace Qoollo.BobClient
         /// </summary>
         public byte[] Data { get; }
 
+        /// <summary>
+        /// BobGetResult constructor
+        /// </summary>
+        /// <param name="result">Result</param>
+        /// <param name="data">BLOB data</param>
         public BobGetResult(BobResult result, byte[] data)
         {
             Result = result;
             Data = data;
         }
-
+        /// <summary>
+        /// BobGetResult constructor without data
+        /// </summary>
+        /// <param name="result">Result</param>
         public BobGetResult(BobResult result) : this(result, null)
         {
         }
 
+        /// <summary>
+        /// Gets string representation of this result
+        /// </summary>
+        /// <returns>String representation</returns>
         public override string ToString()
         {
             return $"[code: {Result.Code}, message: '{Result.Message}', data length: {Data?.Length ?? 0}]";

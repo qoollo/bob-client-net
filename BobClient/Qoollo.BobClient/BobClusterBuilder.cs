@@ -6,12 +6,18 @@ using System.Threading;
 
 namespace Qoollo.BobClient
 {
+    /// <summary>
+    /// Bob cluster builder
+    /// </summary>
     public class BobClusterBuilder
     {
         private readonly List<NodeAddress> _nodeAddresses;
         private TimeSpan _operationTimeout;
         private BobNodeSelectionPolicy _nodeSelectionPolicy;
 
+        /// <summary>
+        /// Builder constructor
+        /// </summary>
         public BobClusterBuilder()
         {
             _nodeAddresses = new List<NodeAddress>();
@@ -19,7 +25,11 @@ namespace Qoollo.BobClient
             _nodeSelectionPolicy = null;
         }
 
-
+        /// <summary>
+        /// Adds a node to the cluster
+        /// </summary>
+        /// <param name="address">Address of a node</param>
+        /// <returns>The reference to the current builder instatnce</returns>
         public BobClusterBuilder WithAdditionalNode(NodeAddress address)
         {
             if (address == null)
@@ -29,6 +39,11 @@ namespace Qoollo.BobClient
             return this;
         }
 
+        /// <summary>
+        /// Adds a node to the cluster
+        /// </summary>
+        /// <param name="nodeAddress">Address of a node</param>
+        /// <returns>The reference to the current builder instatnce</returns>
         public BobClusterBuilder WithAdditionalNode(string nodeAddress)
         {
             if (nodeAddress == null)
@@ -39,10 +54,10 @@ namespace Qoollo.BobClient
         }
 
         /// <summary>
-        /// Add timeout for api calls
+        /// Adds timeout for api calls
         /// </summary>
-        /// <param name="timeout"></param>
-        /// <returns></returns>
+        /// <param name="timeout">Timeout value (can be <see cref="Timeout.InfiniteTimeSpan"/>)</param>
+        /// <returns>The reference to the current builder instatnce</returns>
         public BobClusterBuilder WithOperationTimeout(TimeSpan timeout)
         {
             if (timeout < TimeSpan.Zero && timeout != Timeout.InfiniteTimeSpan)
@@ -51,6 +66,12 @@ namespace Qoollo.BobClient
             _operationTimeout = timeout;
             return this;
         }
+
+        /// <summary>
+        /// Adds timeout for api calls
+        /// </summary>
+        /// <param name="timeoutMs">Timeout value in milliseconds (can be <see cref="Timeout.Infinite"/>)</param>
+        /// <returns>The reference to the current builder instatnce</returns>
         public BobClusterBuilder WithOperationTimeout(int timeoutMs)
         {
             if (timeoutMs < 0 && timeoutMs != Timeout.Infinite)
@@ -60,7 +81,11 @@ namespace Qoollo.BobClient
             return this;
         }
 
-
+        /// <summary>
+        /// Specifies a node selection policy for opertions on cluster
+        /// </summary>
+        /// <param name="policy">Policy instatnce</param>
+        /// <returns>The reference to the current builder instatnce</returns>
         public BobClusterBuilder WithNodeSelectionPolicy(BobNodeSelectionPolicy policy)
         {
             if (policy == null)
@@ -71,9 +96,9 @@ namespace Qoollo.BobClient
         }
 
         /// <summary>
-        /// Build api
+        /// Builds <see cref="BobClusterClient"/>
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Created cluster</returns>
         public BobClusterClient Build()
         {
             if (_nodeAddresses.Count == 0)

@@ -34,8 +34,14 @@ namespace Qoollo.BobClient
     }
 
 
+    /// <summary>
+    /// Client for a single Bob node
+    /// </summary>
     public class BobNodeClient: IBobApi, IDisposable
     {
+        /// <summary>
+        /// Calculates deadline value for GRPC
+        /// </summary>
         private static DateTime? GetDeadline(TimeSpan timeout)
         {
             if (timeout == Timeout.InfiniteTimeSpan)
@@ -44,6 +50,9 @@ namespace Qoollo.BobClient
             return DateTime.UtcNow + timeout;
         }
 
+        /// <summary>
+        /// Converts GRPC ChannelState into BobNodeClientState
+        /// </summary>
         private static BobNodeClientState ConvertState(Grpc.Core.ChannelState state)
         {
             switch (state)
@@ -63,13 +72,26 @@ namespace Qoollo.BobClient
             }
         }
 
+        /// <summary>
+        /// Checks whether the exception is a KeyNotFound exception
+        /// </summary>
         private static bool IsKeyNotFoundError(Grpc.Core.RpcException e)
         {
             return e.StatusCode == Grpc.Core.StatusCode.NotFound && e.Status.Detail.IndexOf("key not found", StringComparison.OrdinalIgnoreCase) >= 0;
         }
+        /// <summary>
+        /// Checks whether the exception is a timeout
+        /// </summary>
         private static bool IsOperationTimeoutError(Grpc.Core.RpcException e)
         {
             return e.StatusCode == Grpc.Core.StatusCode.DeadlineExceeded;
+        }
+        /// <summary>
+        /// Checks whether the exception is an operation cancelled exception
+        /// </summary>
+        private static bool IsOperationCancelledError(Grpc.Core.RpcException e, CancellationToken suppliedToken)
+        {
+            return e.StatusCode == Grpc.Core.StatusCode.Cancelled && suppliedToken.IsCancellationRequested;
         }
 
         // =========
@@ -80,8 +102,14 @@ namespace Qoollo.BobClient
         private readonly Grpc.Core.Channel _rpcChannel;
         private readonly BobStorage.BobApi.BobApiClient _rpcClient;
 
-        private bool _isDisposed;
+        private volatile bool _isDisposed;
 
+
+        /// <summary>
+        /// <see cref="BobNodeClient"/> constructor
+        /// </summary>
+        /// <param name="nodeAddress">Address of a Bob node</param>
+        /// <param name="operationTimeout">Timeout for every operation</param>
         public BobNodeClient(NodeAddress nodeAddress, TimeSpan operationTimeout)
         {
             if (nodeAddress == null)
@@ -96,17 +124,36 @@ namespace Qoollo.BobClient
 
             _isDisposed = false;
         }
+        /// <summary>
+        /// <see cref="BobNodeClient"/> constructor
+        /// </summary>
+        /// <param name="nodeAddress">Address of a Bob node</param>
+        /// <param name="operationTimeout">Timeout for every operation</param>
         public BobNodeClient(string nodeAddress, TimeSpan operationTimeout)
             : this(new NodeAddress(nodeAddress), operationTimeout)
         {
         }
+        /// <summary>
+        /// <see cref="BobNodeClient"/> constructor
+        /// </summary>
+        /// <param name="nodeAddress">Address of a Bob node</param>
         public BobNodeClient(string nodeAddress)
             : this(nodeAddress, Timeout.InfiniteTimeSpan)
         {
         }
 
+        /// <summary>
+        /// State of the client
+        /// </summary>
         public BobNodeClientState State { get { return ConvertState(_rpcChannel.State); } }
 
+        /// <summary>
+        /// Explicitly opens connection to the Bob node
+        /// </summary>
+        /// <param name="timeout">Timeout</param>
+        /// <returns>Task to await</returns>
+        /// <exception cref="BobOperationException">Connection was not opened</exception>
+        /// <exception cref="TimeoutException">Specified timeout reached</exception>
         public async Task OpenAsync(TimeSpan timeout)
         {
             if (_isDisposed)
@@ -132,20 +179,39 @@ namespace Qoollo.BobClient
                 throw new BobOperationException($"Connection failed to node {_nodeAddress}", rpce);
             }
         }
+        /// <summary>
+        /// Explicitly opens connection to the Bob node
+        /// </summary>
+        /// <returns>Task to await</returns>
+        /// <exception cref="BobOperationException">Connection was not opened</exception>
         public Task OpenAsync()
         {
             return OpenAsync(Timeout.InfiniteTimeSpan);
         }
+        /// <summary>
+        /// Explicitly opens connection to the Bob node
+        /// </summary>
+        /// <param name="timeout">Timeout</param>
+        /// <exception cref="BobOperationException">Connection was not opened</exception>
+        /// <exception cref="TimeoutException">Specified timeout reached</exception>
         public void Open(TimeSpan timeout)
         {
             OpenAsync(timeout).GetAwaiter().GetResult();
         }
+        /// <summary>
+        /// Explicitly opens connection to the Bob node
+        /// </summary>
+        /// <exception cref="BobOperationException">Connection was not opened</exception>
         public void Open()
         {
             OpenAsync().GetAwaiter().GetResult();
         }
 
-
+        /// <summary>
+        /// Closes connection to the Bob node
+        /// </summary>
+        /// <returns>Task to await</returns>
+        /// <exception cref="BobOperationException">Error during connection shutdown</exception>
         public async Task CloseAsync()
         {
             try
@@ -158,12 +224,28 @@ namespace Qoollo.BobClient
                 throw new BobOperationException($"Client closing failed for node {_nodeAddress}", rpce);
             }
         }
+        /// <summary>
+        /// Closes connection to the Bob node
+        /// </summary>
+        /// <exception cref="BobOperationException">Error during connection shutdown</exception>
         public void Close()
         {
             CloseAsync().GetAwaiter().GetResult();
         }
 
 
+        /// <summary>
+        /// Writes data to Bob
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="data">Binary data</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ArgumentNullException">Data is null</exception>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
         public BobResult Put(ulong key, byte[] data, CancellationToken token)
         {
             if (data == null)
@@ -181,6 +263,8 @@ namespace Qoollo.BobClient
             }
             catch (Grpc.Core.RpcException e)
             {
+                if (IsOperationCancelledError(e, token))
+                    throw new OperationCanceledException(token);
                 if (IsOperationTimeoutError(e))
                     throw new TimeoutException($"Put operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
 
@@ -190,12 +274,33 @@ namespace Qoollo.BobClient
             return result;
         }
 
+        /// <summary>
+        /// Writes data to Bob
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="data">Binary data</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ArgumentNullException">Data is null</exception>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
         public BobResult Put(ulong key, byte[] data)
         {
             return Put(key, data, new CancellationToken());
         }
 
-
+        /// <summary>
+        /// Writes data to Bob asynchronously
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="data">Binary data</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ArgumentNullException">Data is null</exception>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
         public async Task<BobResult> PutAsync(ulong key, byte[] data, CancellationToken token)
         {
             if (data == null)
@@ -213,6 +318,8 @@ namespace Qoollo.BobClient
             }
             catch (Grpc.Core.RpcException e)
             {
+                if (IsOperationCancelledError(e, token))
+                    throw new OperationCanceledException(token);
                 if (IsOperationTimeoutError(e))
                     throw new TimeoutException($"Put operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
 
@@ -222,12 +329,34 @@ namespace Qoollo.BobClient
             return result;
         }
 
+        /// <summary>
+        /// Writes data to Bob asynchronously
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="data">Binary data</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ArgumentNullException">Data is null</exception>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
         public Task<BobResult> PutAsync(ulong key, byte[] data)
         {
             return PutAsync(key, data, new CancellationToken());
         }
 
 
+        /// <summary>
+        /// Reads data from Bob
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="token">Cancellation token</param>
+        /// /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
         public BobGetResult Get(ulong key, bool fullGet, CancellationToken token)
         {
             if (_isDisposed)
@@ -243,6 +372,8 @@ namespace Qoollo.BobClient
             }
             catch (Grpc.Core.RpcException e)
             {
+                if (IsOperationCancelledError(e, token))
+                    throw new OperationCanceledException(token);
                 if (IsOperationTimeoutError(e))
                     throw new TimeoutException($"Put operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
                 if (IsKeyNotFoundError(e))
@@ -253,19 +384,65 @@ namespace Qoollo.BobClient
 
             return result;
         }
+
+        /// <summary>
+        /// Reads data from Bob
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
         public BobGetResult Get(ulong key, CancellationToken token)
         {
             return Get(key, false, token);
         }
+
+        /// <summary>
+        /// Reads data from Bob
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
         public BobGetResult Get(ulong key, bool fullGet)
         {
             return Get(key, fullGet, new CancellationToken());
         }
+
+        /// <summary>
+        /// Reads data from Bob
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
         public BobGetResult Get(ulong key)
         {
             return Get(key, false, new CancellationToken());
         }
 
+
+        /// <summary>
+        /// Reads data from Bob asynchronously
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="token">Cancellation token</param>
+        /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <returns>Operation result with data</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
         public async Task<BobGetResult> GetAsync(ulong key, bool fullGet, CancellationToken token)
         {
             if (_isDisposed)
@@ -281,6 +458,8 @@ namespace Qoollo.BobClient
             }
             catch (Grpc.Core.RpcException e)
             {
+                if (IsOperationCancelledError(e, token))
+                    throw new OperationCanceledException(token);
                 if (IsOperationTimeoutError(e))
                     throw new TimeoutException($"Put operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
                 if (IsKeyNotFoundError(e))
@@ -292,14 +471,46 @@ namespace Qoollo.BobClient
             return result;
         }
 
+        /// <summary>
+        /// Reads data from Bob asynchronously
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result with data</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
         public Task<BobGetResult> GetAsync(ulong key, CancellationToken token)
         {
             return GetAsync(key, false, token);
         }
+
+        /// <summary>
+        /// Reads data from Bob asynchronously
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <returns>Operation result with data</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
         public Task<BobGetResult> GetAsync(ulong key, bool fullGet)
         {
             return GetAsync(key, fullGet, new CancellationToken());
         }
+
+        /// <summary>
+        /// Reads data from Bob asynchronously
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <returns>Operation result with data</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
         public Task<BobGetResult> GetAsync(ulong key)
         {
             return GetAsync(key, false, new CancellationToken());
@@ -307,6 +518,10 @@ namespace Qoollo.BobClient
 
 
 
+        /// <summary>
+        ///  Cleans-up all resources
+        /// </summary>
+        /// <param name="isUserCall">Was called by user</param>
         protected virtual void Dispose(bool isUserCall)
         {
             if (!_isDisposed)
@@ -321,6 +536,9 @@ namespace Qoollo.BobClient
             }
         }
 
+        /// <summary>
+        /// Cleans-up all resources
+        /// </summary>
         void IDisposable.Dispose()
         {
             Dispose(true);

@@ -9,44 +9,44 @@ using Grpc.Core;
 namespace Qoollo.BobClient
 {
     /// <summary>
-    /// Bob api. It chooses random node for access
+    /// Bob api
     /// </summary>
     public interface IBobApi
     {
         /// <summary>
-        /// Write data to Bob
+        /// Writes data to Bob
         /// </summary>
-        /// <param name="key">key</param>
-        /// <param name="data">binary data</param>
-        /// <param name="token">token</param>
-        /// <returns>operation result</returns>
+        /// <param name="key">Key</param>
+        /// <param name="data">Binary data</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result</returns>
         BobResult Put(ulong key, byte[] data, CancellationToken token);
 
         /// <summary>
-        /// Write data to Bob asynchronously
+        /// Writes data to Bob asynchronously
         /// </summary>
-        /// <param name="key">key</param>
+        /// <param name="key">Key</param>
         /// <param name="data">binary data</param>
-        /// <param name="token">token</param>
-        /// <returns>operation result</returns>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result</returns>
         Task<BobResult> PutAsync(ulong key, byte[] data, CancellationToken token);
 
         /// <summary>
-        /// Read data from Bob
+        /// Reads data from Bob
         /// </summary>
-        /// <param name="key">key</param>
-        /// <param name="token">token</param>
-        /// /// <param name="fullGet">try read data from sup nodes</param>
-        /// <returns>operation result</returns>
+        /// <param name="key">Key</param>
+        /// <param name="token">Cancellation token</param>
+        /// /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <returns>Operation result</returns>
         BobGetResult Get(ulong key, bool fullGet, CancellationToken token);
 
         /// <summary>
-        /// Read data from Bob asynchronously
+        /// Reads data from Bob asynchronously
         /// </summary>
-        /// <param name="key">key</param>
-        /// <param name="token">token</param>
-        /// <param name="fullGet">try read data from sup nodes</param>
-        /// <returns>operation result with data</returns>
+        /// <param name="key">Key</param>
+        /// <param name="token">Cancellation token</param>
+        /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <returns>Operation result with data</returns>
         Task<BobGetResult> GetAsync(ulong key, bool fullGet, CancellationToken token);
     }
 }

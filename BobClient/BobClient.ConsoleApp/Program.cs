@@ -46,6 +46,10 @@ namespace BobClient.ConsoleApp
             {
                 client.Open();
 
+                CancellationTokenSource tk = new CancellationTokenSource();
+                tk.Cancel();
+                client.Put(10000, _sampleData, tk.Token);
+
                 PutTest(client, 6000, 1000);
                 GetTest(client, 6000, 1000);
 

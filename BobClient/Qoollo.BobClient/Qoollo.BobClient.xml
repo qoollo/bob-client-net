@@ -4,18 +4,292 @@
         <name>Qoollo.BobClient</name>
     </assembly>
     <members>
+        <member name="T:Qoollo.BobClient.BobClusterBuilder">
+            <summary>
+            Bob cluster builder
+            </summary>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterBuilder.#ctor">
+            <summary>
+            Builder constructor
+            </summary>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterBuilder.WithAdditionalNode(Qoollo.BobClient.NodeAddress)">
+            <summary>
+            Adds a node to the cluster
+            </summary>
+            <param name="address">Address of a node</param>
+            <returns>The reference to the current builder instatnce</returns>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterBuilder.WithAdditionalNode(System.String)">
+            <summary>
+            Adds a node to the cluster
+            </summary>
+            <param name="nodeAddress">Address of a node</param>
+            <returns>The reference to the current builder instatnce</returns>
+        </member>
         <member name="M:Qoollo.BobClient.BobClusterBuilder.WithOperationTimeout(System.TimeSpan)">
             <summary>
-            Add timeout for api calls
+            Adds timeout for api calls
             </summary>
-            <param name="timeout"></param>
-            <returns></returns>
+            <param name="timeout">Timeout value (can be <see cref="F:System.Threading.Timeout.InfiniteTimeSpan"/>)</param>
+            <returns>The reference to the current builder instatnce</returns>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterBuilder.WithOperationTimeout(System.Int32)">
+            <summary>
+            Adds timeout for api calls
+            </summary>
+            <param name="timeoutMs">Timeout value in milliseconds (can be <see cref="F:System.Threading.Timeout.Infinite"/>)</param>
+            <returns>The reference to the current builder instatnce</returns>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterBuilder.WithNodeSelectionPolicy(Qoollo.BobClient.BobNodeSelectionPolicy)">
+            <summary>
+            Specifies a node selection policy for opertions on cluster
+            </summary>
+            <param name="policy">Policy instatnce</param>
+            <returns>The reference to the current builder instatnce</returns>
         </member>
         <member name="M:Qoollo.BobClient.BobClusterBuilder.Build">
             <summary>
-            Build api
+            Builds <see cref="T:Qoollo.BobClient.BobClusterClient"/>
             </summary>
-            <returns></returns>
+            <returns>Created cluster</returns>
+        </member>
+        <member name="T:Qoollo.BobClient.BobClusterClient">
+            <summary>
+            Bob client for whole cluster (switch nodes according to the policy)
+            </summary>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.#ctor(System.Collections.Generic.IEnumerable{Qoollo.BobClient.BobNodeClient},Qoollo.BobClient.BobNodeSelectionPolicy)">
+            <summary>
+            <see cref="T:Qoollo.BobClient.BobClusterClient"/> constructor
+            </summary>
+            <param name="clients">List of clients for every bob node</param>
+            <param name="selectionPolicy">Node selection policy (null for <see cref="T:Qoollo.BobClient.SequentialNodeSelectionPolicy"/>)</param>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.#ctor(System.Collections.Generic.IEnumerable{Qoollo.BobClient.BobNodeClient})">
+            <summary>
+            <see cref="T:Qoollo.BobClient.BobClusterClient"/> constructor
+            </summary>
+            <param name="clients">List of clients for every bob node</param>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.#ctor(System.Collections.Generic.IEnumerable{System.String},System.TimeSpan,Qoollo.BobClient.BobNodeSelectionPolicy)">
+            <summary>
+            <see cref="T:Qoollo.BobClient.BobClusterClient"/> constructor
+            </summary>
+            <param name="nodeAddress">List of nodes addresses</param>
+            <param name="operationTimeout">Operation timeout for every created node client</param>
+            <param name="selectionPolicy">Node selection policy (null for <see cref="T:Qoollo.BobClient.SequentialNodeSelectionPolicy"/>)</param>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.#ctor(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            <see cref="T:Qoollo.BobClient.BobClusterClient"/> constructor
+            </summary>
+            <param name="nodeAddress">List of nodes addresses</param>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.OpenAsync(System.TimeSpan)">
+            <summary>
+            Explicitly opens connection to every Bob node in cluster
+            </summary>
+            <param name="timeout">Timeout</param>
+            <returns>Task to await</returns>
+            <exception cref="T:System.AggregateException">Aggregated exceptions from every node</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.OpenAsync">
+            <summary>
+            Explicitly opens connection to every Bob node in cluster
+            </summary>
+            <returns>Task to await</returns>
+            <exception cref="T:System.AggregateException">Aggregated exceptions from every node</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.Open(System.TimeSpan)">
+            <summary>
+            Explicitly opens connection to every Bob node in cluster
+            </summary>
+            <param name="timeout">Timeout</param>
+            <exception cref="T:System.AggregateException">Aggregated exceptions from every node</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.Open">
+            <summary>
+            Explicitly opens connection to every Bob node in cluster
+            </summary>
+            <exception cref="T:System.AggregateException">Aggregated exceptions from every node</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.CloseAsync">
+            <summary>
+            Closes connections to every Bob node in cluster
+            </summary>
+            <returns>Task to await</returns>
+            <exception cref="T:System.AggregateException">Aggregated exceptions from every node</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.Close">
+            <summary>
+            Closes connections to every Bob node in cluster
+            </summary>
+            <exception cref="T:System.AggregateException">Aggregated exceptions from every node</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.Put(System.UInt64,System.Byte[],System.Threading.CancellationToken)">
+            <summary>
+            Writes data to Bob
+            </summary>
+            <param name="key">Key</param>
+            <param name="data">Binary data</param>
+            <param name="token">Cancellation token</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ArgumentNullException">Data is null</exception>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.Put(System.UInt64,System.Byte[])">
+            <summary>
+            Writes data to Bob
+            </summary>
+            <param name="key">Key</param>
+            <param name="data">Binary data</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ArgumentNullException">Data is null</exception>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.PutAsync(System.UInt64,System.Byte[],System.Threading.CancellationToken)">
+            <summary>
+            Writes data to Bob asynchronously
+            </summary>
+            <param name="key">Key</param>
+            <param name="data">Binary data</param>
+            <param name="token">Cancellation token</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ArgumentNullException">Data is null</exception>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.PutAsync(System.UInt64,System.Byte[])">
+            <summary>
+            Writes data to Bob asynchronously
+            </summary>
+            <param name="key">Key</param>
+            <param name="data">Binary data</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ArgumentNullException">Data is null</exception>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.Get(System.UInt64,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Reads data from Bob
+            </summary>
+            <param name="key">Key</param>
+            <param name="token">Cancellation token</param>
+            /// <param name="fullGet">Try read data from sup nodes</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+            <exception cref="T:Qoollo.BobClient.BobKeyNotFoundException">Specified key was not found</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.Get(System.UInt64,System.Threading.CancellationToken)">
+            <summary>
+            Reads data from Bob
+            </summary>
+            <param name="key">Key</param>
+            <param name="token">Cancellation token</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+            <exception cref="T:Qoollo.BobClient.BobKeyNotFoundException">Specified key was not found</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.Get(System.UInt64,System.Boolean)">
+            <summary>
+            Reads data from Bob
+            </summary>
+            <param name="key">Key</param>
+            /// <param name="fullGet">Try read data from sup nodes</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:Qoollo.BobClient.BobKeyNotFoundException">Specified key was not found</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.Get(System.UInt64)">
+            <summary>
+            Reads data from Bob
+            </summary>
+            <param name="key">Key</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:Qoollo.BobClient.BobKeyNotFoundException">Specified key was not found</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.GetAsync(System.UInt64,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Reads data from Bob asynchronously
+            </summary>
+            <param name="key">Key</param>
+            <param name="token">Cancellation token</param>
+            <param name="fullGet">Try read data from sup nodes</param>
+            <returns>Operation result with data</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+            <exception cref="T:Qoollo.BobClient.BobKeyNotFoundException">Specified key was not found</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.GetAsync(System.UInt64,System.Threading.CancellationToken)">
+            <summary>
+            Reads data from Bob asynchronously
+            </summary>
+            <param name="key">Key</param>
+            <param name="token">Cancellation token</param>
+            <returns>Operation result with data</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+            <exception cref="T:Qoollo.BobClient.BobKeyNotFoundException">Specified key was not found</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.GetAsync(System.UInt64,System.Boolean)">
+            <summary>
+            Reads data from Bob asynchronously
+            </summary>
+            <param name="key">Key</param>
+            <param name="fullGet">Try read data from sup nodes</param>
+            <returns>Operation result with data</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:Qoollo.BobClient.BobKeyNotFoundException">Specified key was not found</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.GetAsync(System.UInt64)">
+            <summary>
+            Reads data from Bob asynchronously
+            </summary>
+            <param name="key">Key</param>
+            <returns>Operation result with data</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:Qoollo.BobClient.BobKeyNotFoundException">Specified key was not found</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.Dispose(System.Boolean)">
+            <summary>
+             Cleans-up all resources
+            </summary>
+            <param name="isUserCall">Was called by user</param>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.System#IDisposable#Dispose">
+            <summary>
+            Cleans-up all resources
+            </summary>
         </member>
         <member name="T:Qoollo.BobClient.BobNodeClientState">
             <summary>
@@ -46,6 +320,366 @@
             <summary>
             Client closed or has seen a failure that it cannot recover from
             </summary>
+        </member>
+        <member name="T:Qoollo.BobClient.BobNodeClient">
+            <summary>
+            Client for a single Bob node
+            </summary>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.GetDeadline(System.TimeSpan)">
+            <summary>
+            Calculates deadline value for GRPC
+            </summary>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.ConvertState(Grpc.Core.ChannelState)">
+            <summary>
+            Converts GRPC ChannelState into BobNodeClientState
+            </summary>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.IsKeyNotFoundError(Grpc.Core.RpcException)">
+            <summary>
+            Checks whether the exception is a KeyNotFound exception
+            </summary>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.IsOperationTimeoutError(Grpc.Core.RpcException)">
+            <summary>
+            Checks whether the exception is a timeout
+            </summary>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.IsOperationCancelledError(Grpc.Core.RpcException,System.Threading.CancellationToken)">
+            <summary>
+            Checks whether the exception is an operation cancelled exception
+            </summary>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.#ctor(Qoollo.BobClient.NodeAddress,System.TimeSpan)">
+            <summary>
+            <see cref="T:Qoollo.BobClient.BobNodeClient"/> constructor
+            </summary>
+            <param name="nodeAddress">Address of a Bob node</param>
+            <param name="operationTimeout">Timeout for every operation</param>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.#ctor(System.String,System.TimeSpan)">
+            <summary>
+            <see cref="T:Qoollo.BobClient.BobNodeClient"/> constructor
+            </summary>
+            <param name="nodeAddress">Address of a Bob node</param>
+            <param name="operationTimeout">Timeout for every operation</param>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.#ctor(System.String)">
+            <summary>
+            <see cref="T:Qoollo.BobClient.BobNodeClient"/> constructor
+            </summary>
+            <param name="nodeAddress">Address of a Bob node</param>
+        </member>
+        <member name="P:Qoollo.BobClient.BobNodeClient.State">
+            <summary>
+            State of the client
+            </summary>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.OpenAsync(System.TimeSpan)">
+            <summary>
+            Explicitly opens connection to the Bob node
+            </summary>
+            <param name="timeout">Timeout</param>
+            <returns>Task to await</returns>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Connection was not opened</exception>
+            <exception cref="T:System.TimeoutException">Specified timeout reached</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.OpenAsync">
+            <summary>
+            Explicitly opens connection to the Bob node
+            </summary>
+            <returns>Task to await</returns>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Connection was not opened</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.Open(System.TimeSpan)">
+            <summary>
+            Explicitly opens connection to the Bob node
+            </summary>
+            <param name="timeout">Timeout</param>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Connection was not opened</exception>
+            <exception cref="T:System.TimeoutException">Specified timeout reached</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.Open">
+            <summary>
+            Explicitly opens connection to the Bob node
+            </summary>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Connection was not opened</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.CloseAsync">
+            <summary>
+            Closes connection to the Bob node
+            </summary>
+            <returns>Task to await</returns>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Error during connection shutdown</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.Close">
+            <summary>
+            Closes connection to the Bob node
+            </summary>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Error during connection shutdown</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.Put(System.UInt64,System.Byte[],System.Threading.CancellationToken)">
+            <summary>
+            Writes data to Bob
+            </summary>
+            <param name="key">Key</param>
+            <param name="data">Binary data</param>
+            <param name="token">Cancellation token</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ArgumentNullException">Data is null</exception>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.Put(System.UInt64,System.Byte[])">
+            <summary>
+            Writes data to Bob
+            </summary>
+            <param name="key">Key</param>
+            <param name="data">Binary data</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ArgumentNullException">Data is null</exception>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.PutAsync(System.UInt64,System.Byte[],System.Threading.CancellationToken)">
+            <summary>
+            Writes data to Bob asynchronously
+            </summary>
+            <param name="key">Key</param>
+            <param name="data">Binary data</param>
+            <param name="token">Cancellation token</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ArgumentNullException">Data is null</exception>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.PutAsync(System.UInt64,System.Byte[])">
+            <summary>
+            Writes data to Bob asynchronously
+            </summary>
+            <param name="key">Key</param>
+            <param name="data">Binary data</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ArgumentNullException">Data is null</exception>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.Get(System.UInt64,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Reads data from Bob
+            </summary>
+            <param name="key">Key</param>
+            <param name="token">Cancellation token</param>
+            /// <param name="fullGet">Try read data from sup nodes</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+            <exception cref="T:Qoollo.BobClient.BobKeyNotFoundException">Specified key was not found</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.Get(System.UInt64,System.Threading.CancellationToken)">
+            <summary>
+            Reads data from Bob
+            </summary>
+            <param name="key">Key</param>
+            <param name="token">Cancellation token</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+            <exception cref="T:Qoollo.BobClient.BobKeyNotFoundException">Specified key was not found</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.Get(System.UInt64,System.Boolean)">
+            <summary>
+            Reads data from Bob
+            </summary>
+            <param name="key">Key</param>
+            /// <param name="fullGet">Try read data from sup nodes</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:Qoollo.BobClient.BobKeyNotFoundException">Specified key was not found</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.Get(System.UInt64)">
+            <summary>
+            Reads data from Bob
+            </summary>
+            <param name="key">Key</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:Qoollo.BobClient.BobKeyNotFoundException">Specified key was not found</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.GetAsync(System.UInt64,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Reads data from Bob asynchronously
+            </summary>
+            <param name="key">Key</param>
+            <param name="token">Cancellation token</param>
+            <param name="fullGet">Try read data from sup nodes</param>
+            <returns>Operation result with data</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+            <exception cref="T:Qoollo.BobClient.BobKeyNotFoundException">Specified key was not found</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.GetAsync(System.UInt64,System.Threading.CancellationToken)">
+            <summary>
+            Reads data from Bob asynchronously
+            </summary>
+            <param name="key">Key</param>
+            <param name="token">Cancellation token</param>
+            <returns>Operation result with data</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+            <exception cref="T:Qoollo.BobClient.BobKeyNotFoundException">Specified key was not found</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.GetAsync(System.UInt64,System.Boolean)">
+            <summary>
+            Reads data from Bob asynchronously
+            </summary>
+            <param name="key">Key</param>
+            <param name="fullGet">Try read data from sup nodes</param>
+            <returns>Operation result with data</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:Qoollo.BobClient.BobKeyNotFoundException">Specified key was not found</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.GetAsync(System.UInt64)">
+            <summary>
+            Reads data from Bob asynchronously
+            </summary>
+            <param name="key">Key</param>
+            <returns>Operation result with data</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:Qoollo.BobClient.BobKeyNotFoundException">Specified key was not found</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.Dispose(System.Boolean)">
+            <summary>
+             Cleans-up all resources
+            </summary>
+            <param name="isUserCall">Was called by user</param>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.System#IDisposable#Dispose">
+            <summary>
+            Cleans-up all resources
+            </summary>
+        </member>
+        <member name="T:Qoollo.BobClient.BobNodeSelectionPolicy">
+            <summary>
+            Base class for node selection policy in cluster
+            </summary>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeSelectionPolicy.Select(System.Collections.Generic.IReadOnlyList{Qoollo.BobClient.BobNodeClient})">
+            <summary>
+            Selects one of the node from cluster to perform operation
+            </summary>
+            <param name="clients">List of clients (will be the same for every operation on single cluster)</param>
+            <returns>Selected node (cannot be null)</returns>
+        </member>
+        <member name="T:Qoollo.BobClient.FirstNodeSelectionPolicy">
+            <summary>
+            Selection policy that always use first node to perform operations
+            </summary>
+        </member>
+        <member name="P:Qoollo.BobClient.FirstNodeSelectionPolicy.Instance">
+            <summary>
+            Singleton instance
+            </summary>
+        </member>
+        <member name="M:Qoollo.BobClient.FirstNodeSelectionPolicy.Select(System.Collections.Generic.IReadOnlyList{Qoollo.BobClient.BobNodeClient})">
+            <summary>
+            Selects one of the node from cluster to perform operation
+            </summary>
+            <param name="clients">List of clients (will be the same for every operation on single cluster)</param>
+            <returns>Selected node (cannot be null)</returns>
+        </member>
+        <member name="T:Qoollo.BobClient.SequentialNodeSelectionPolicy">
+            <summary>
+            Selection policy that returns nodes one-by-one in round
+            </summary>
+        </member>
+        <member name="M:Qoollo.BobClient.SequentialNodeSelectionPolicy.Select(System.Collections.Generic.IReadOnlyList{Qoollo.BobClient.BobNodeClient})">
+            <summary>
+            Selects one of the node from cluster to perform operation
+            </summary>
+            <param name="clients">List of clients (will be the same for every operation on single cluster)</param>
+            <returns>Selected node (cannot be null)</returns>
+        </member>
+        <member name="T:Qoollo.BobClient.FirstWorkingNodeSelectionPolicy">
+            <summary>
+            Selection policy that selects first working node cluster
+            </summary>
+        </member>
+        <member name="M:Qoollo.BobClient.FirstWorkingNodeSelectionPolicy.Select(System.Collections.Generic.IReadOnlyList{Qoollo.BobClient.BobNodeClient})">
+            <summary>
+            Selects one of the node from cluster to perform operation
+            </summary>
+            <param name="clients">List of clients (will be the same for every operation on single cluster)</param>
+            <returns>Selected node (cannot be null)</returns>
+        </member>
+        <member name="T:Qoollo.BobClient.BobOperationException">
+            <summary>
+            Common exception for operations in Bob
+            </summary>
+        </member>
+        <member name="M:Qoollo.BobClient.BobOperationException.#ctor">
+            <summary>
+            <see cref="T:Qoollo.BobClient.BobOperationException"/> constructor
+            </summary>
+        </member>
+        <member name="M:Qoollo.BobClient.BobOperationException.#ctor(System.String)">
+            <summary>
+            <see cref="T:Qoollo.BobClient.BobOperationException"/> constructor
+            </summary>
+            <param name="message">Message</param>
+        </member>
+        <member name="M:Qoollo.BobClient.BobOperationException.#ctor(System.String,System.Exception)">
+            <summary>
+            <see cref="T:Qoollo.BobClient.BobOperationException"/> constructor
+            </summary>
+            <param name="message">Message</param>
+            <param name="innerException">Inner exception</param>
+        </member>
+        <member name="T:Qoollo.BobClient.BobKeyNotFoundException">
+            <summary>
+            Exception for the case when specified key was not found in Bob cluster
+            </summary>
+        </member>
+        <member name="M:Qoollo.BobClient.BobKeyNotFoundException.#ctor">
+            <summary>
+            <see cref="T:Qoollo.BobClient.BobKeyNotFoundException"/> constructor
+            </summary>
+        </member>
+        <member name="M:Qoollo.BobClient.BobKeyNotFoundException.#ctor(System.String)">
+            <summary>
+            <see cref="T:Qoollo.BobClient.BobKeyNotFoundException"/> constructor
+            </summary>
+            <param name="message">Message</param>
+        </member>
+        <member name="M:Qoollo.BobClient.BobKeyNotFoundException.#ctor(System.String,System.Exception)">
+            <summary>
+            <see cref="T:Qoollo.BobClient.BobKeyNotFoundException"/> constructor
+            </summary>
+            <param name="message">Message</param>
+            <param name="innerException">Inner exception</param>
         </member>
         <member name="T:Qoollo.BobClient.BobCode">
             <summary>
@@ -82,17 +716,24 @@
             Operation result code
             </summary>
         </member>
+        <member name="M:Qoollo.BobClient.BobResult.#ctor(System.String,Qoollo.BobClient.BobCode)">
+            <summary>
+            BobResult constructor
+            </summary>
+            <param name="message">Message</param>
+            <param name="code">Code</param>
+        </member>
         <member name="M:Qoollo.BobClient.BobResult.IsError">
             <summary>
-            Check operation result status
+            Checks operation result status
             </summary>
             <returns></returns>
         </member>
         <member name="M:Qoollo.BobClient.BobResult.ToString">
             <summary>
-            print result to string
+            Gets string representation of this result
             </summary>
-            <returns></returns>
+            <returns>String representation</returns>
         </member>
         <member name="T:Qoollo.BobClient.BobGetResult">
             <summary>
@@ -109,46 +750,65 @@
             Operation result data
             </summary>
         </member>
+        <member name="M:Qoollo.BobClient.BobGetResult.#ctor(Qoollo.BobClient.BobResult,System.Byte[])">
+            <summary>
+            BobGetResult constructor
+            </summary>
+            <param name="result">Result</param>
+            <param name="data">BLOB data</param>
+        </member>
+        <member name="M:Qoollo.BobClient.BobGetResult.#ctor(Qoollo.BobClient.BobResult)">
+            <summary>
+            BobGetResult constructor without data
+            </summary>
+            <param name="result">Result</param>
+        </member>
+        <member name="M:Qoollo.BobClient.BobGetResult.ToString">
+            <summary>
+            Gets string representation of this result
+            </summary>
+            <returns>String representation</returns>
+        </member>
         <member name="T:Qoollo.BobClient.IBobApi">
             <summary>
-            Bob api. It chooses random node for access
+            Bob api
             </summary>
         </member>
         <member name="M:Qoollo.BobClient.IBobApi.Put(System.UInt64,System.Byte[],System.Threading.CancellationToken)">
             <summary>
-            Write data to Bob
+            Writes data to Bob
             </summary>
-            <param name="key">key</param>
-            <param name="data">binary data</param>
-            <param name="token">token</param>
-            <returns>operation result</returns>
+            <param name="key">Key</param>
+            <param name="data">Binary data</param>
+            <param name="token">Cancellation token</param>
+            <returns>Operation result</returns>
         </member>
         <member name="M:Qoollo.BobClient.IBobApi.PutAsync(System.UInt64,System.Byte[],System.Threading.CancellationToken)">
             <summary>
-            Write data to Bob asynchronously
+            Writes data to Bob asynchronously
             </summary>
-            <param name="key">key</param>
+            <param name="key">Key</param>
             <param name="data">binary data</param>
-            <param name="token">token</param>
-            <returns>operation result</returns>
+            <param name="token">Cancellation token</param>
+            <returns>Operation result</returns>
         </member>
         <member name="M:Qoollo.BobClient.IBobApi.Get(System.UInt64,System.Boolean,System.Threading.CancellationToken)">
             <summary>
-            Read data from Bob
+            Reads data from Bob
             </summary>
-            <param name="key">key</param>
-            <param name="token">token</param>
-            /// <param name="fullGet">try read data from sup nodes</param>
-            <returns>operation result</returns>
+            <param name="key">Key</param>
+            <param name="token">Cancellation token</param>
+            /// <param name="fullGet">Try read data from sup nodes</param>
+            <returns>Operation result</returns>
         </member>
         <member name="M:Qoollo.BobClient.IBobApi.GetAsync(System.UInt64,System.Boolean,System.Threading.CancellationToken)">
             <summary>
-            Read data from Bob asynchronously
+            Reads data from Bob asynchronously
             </summary>
-            <param name="key">key</param>
-            <param name="token">token</param>
-            <param name="fullGet">try read data from sup nodes</param>
-            <returns>operation result with data</returns>
+            <param name="key">Key</param>
+            <param name="token">Cancellation token</param>
+            <param name="fullGet">Try read data from sup nodes</param>
+            <returns>Operation result with data</returns>
         </member>
         <member name="T:Qoollo.BobClient.NodeAddress">
             <summary>
