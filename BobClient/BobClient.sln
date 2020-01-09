@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29326.143
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Qoollo.BobClient", "Qoollo.BobClient\Qoollo.BobClient.csproj", "{AD663FFE-FA0E-4B73-9B0F-3CC0E5C656F5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BobClient.ConsoleApp", "BobClient.ConsoleApp\BobClient.ConsoleApp.csproj", "{002F9416-6282-459E-BFCB-D95CD8BBAE7B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Qoollo.BobClient.InteractiveTests", "Qoollo.BobClient.InteractiveTests\Qoollo.BobClient.InteractiveTests.csproj", "{002F9416-6282-459E-BFCB-D95CD8BBAE7B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

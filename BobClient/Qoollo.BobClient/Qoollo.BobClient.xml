@@ -93,40 +93,55 @@
             </summary>
             <param name="timeout">Timeout</param>
             <returns>Task to await</returns>
-            <exception cref="T:System.AggregateException">Aggregated exceptions from every node</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Connection was not opened</exception>
+            <exception cref="T:System.TimeoutException">Specified timeout reached</exception>
+            <exception cref="T:System.ObjectDisposedException">Client was disposed</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">Incorrect timeout value</exception>
         </member>
         <member name="M:Qoollo.BobClient.BobClusterClient.OpenAsync">
             <summary>
             Explicitly opens connection to every Bob node in cluster
             </summary>
             <returns>Task to await</returns>
-            <exception cref="T:System.AggregateException">Aggregated exceptions from every node</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Connection was not opened</exception>
+            <exception cref="T:System.TimeoutException">Specified timeout reached</exception>
+            <exception cref="T:System.ObjectDisposedException">Client was disposed</exception>
         </member>
         <member name="M:Qoollo.BobClient.BobClusterClient.Open(System.TimeSpan)">
             <summary>
             Explicitly opens connection to every Bob node in cluster
             </summary>
             <param name="timeout">Timeout</param>
-            <exception cref="T:System.AggregateException">Aggregated exceptions from every node</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Connection was not opened</exception>
+            <exception cref="T:System.TimeoutException">Specified timeout reached</exception>
+            <exception cref="T:System.ObjectDisposedException">Client was disposed</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">Incorrect timeout value</exception>
         </member>
         <member name="M:Qoollo.BobClient.BobClusterClient.Open">
             <summary>
             Explicitly opens connection to every Bob node in cluster
             </summary>
-            <exception cref="T:System.AggregateException">Aggregated exceptions from every node</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Connection was not opened</exception>
+            <exception cref="T:System.TimeoutException">Specified timeout reached</exception>
+            <exception cref="T:System.ObjectDisposedException">Client was disposed</exception>
         </member>
         <member name="M:Qoollo.BobClient.BobClusterClient.CloseAsync">
             <summary>
             Closes connections to every Bob node in cluster
             </summary>
             <returns>Task to await</returns>
-            <exception cref="T:System.AggregateException">Aggregated exceptions from every node</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Error during connection shutdown</exception>
         </member>
         <member name="M:Qoollo.BobClient.BobClusterClient.Close">
             <summary>
             Closes connections to every Bob node in cluster
             </summary>
-            <exception cref="T:System.AggregateException">Aggregated exceptions from every node</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Error during connection shutdown</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.CloseSkipExceptions">
+            <summary>
+            Closes connections to every Bob node in cluster. Ignores exceptions
+            </summary>
         </member>
         <member name="M:Qoollo.BobClient.BobClusterClient.Put(System.UInt64,System.Byte[],System.Threading.CancellationToken)">
             <summary>
@@ -324,6 +339,11 @@
             Client for a single Bob node
             </summary>
         </member>
+        <member name="F:Qoollo.BobClient.BobNodeClient.DefaultOperationTimeout">
+            <summary>
+            Default operation timeout
+            </summary>
+        </member>
         <member name="M:Qoollo.BobClient.BobNodeClient.GetDeadline(System.TimeSpan)">
             <summary>
             Calculates deadline value for GRPC
@@ -382,6 +402,8 @@
             <returns>Task to await</returns>
             <exception cref="T:Qoollo.BobClient.BobOperationException">Connection was not opened</exception>
             <exception cref="T:System.TimeoutException">Specified timeout reached</exception>
+            <exception cref="T:System.ObjectDisposedException">Client was disposed</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">Incorrect timeout value</exception>
         </member>
         <member name="M:Qoollo.BobClient.BobNodeClient.OpenAsync">
             <summary>
@@ -389,6 +411,7 @@
             </summary>
             <returns>Task to await</returns>
             <exception cref="T:Qoollo.BobClient.BobOperationException">Connection was not opened</exception>
+            <exception cref="T:System.ObjectDisposedException">Client was disposed</exception>
         </member>
         <member name="M:Qoollo.BobClient.BobNodeClient.Open(System.TimeSpan)">
             <summary>
@@ -397,12 +420,15 @@
             <param name="timeout">Timeout</param>
             <exception cref="T:Qoollo.BobClient.BobOperationException">Connection was not opened</exception>
             <exception cref="T:System.TimeoutException">Specified timeout reached</exception>
+            <exception cref="T:System.ObjectDisposedException">Client was disposed</exception>
+            <exception cref="T:System.ArgumentOutOfRangeException">Incorrect timeout value</exception>
         </member>
         <member name="M:Qoollo.BobClient.BobNodeClient.Open">
             <summary>
             Explicitly opens connection to the Bob node
             </summary>
             <exception cref="T:Qoollo.BobClient.BobOperationException">Connection was not opened</exception>
+            <exception cref="T:System.ObjectDisposedException">Client was disposed</exception>
         </member>
         <member name="M:Qoollo.BobClient.BobNodeClient.CloseAsync">
             <summary>

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BobClient.ConsoleApp
+namespace Qoollo.BobClient.InteractiveTests
 {
     class Program
     {

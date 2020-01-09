@@ -64,7 +64,7 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="nodeAddress">List of nodes addresses</param>
         public BobClusterClient(IEnumerable<string> nodeAddress)
-            : this(nodeAddress, null, Timeout.InfiniteTimeSpan)
+            : this(nodeAddress, null, BobNodeClient.DefaultOperationTimeout)
         {
         }
 
@@ -74,70 +74,54 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="timeout">Timeout</param>
         /// <returns>Task to await</returns>
-        /// <exception cref="AggregateException">Aggregated exceptions from every node</exception>
+        /// <exception cref="BobOperationException">Connection was not opened</exception>
+        /// <exception cref="TimeoutException">Specified timeout reached</exception>
+        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Incorrect timeout value</exception>
         public async Task OpenAsync(TimeSpan timeout)
         {
             if (timeout < TimeSpan.Zero && timeout != Timeout.InfiniteTimeSpan)
                 throw new ArgumentOutOfRangeException(nameof(timeout));
 
-            List<Exception> exceptions = new List<Exception>();
             for (int i = 0; i < _clients.Length; i++)
-            {
-                try
-                {
-                    await _clients[i].OpenAsync(timeout);
-                }
-                catch (Exception e)
-                {
-                    exceptions.Add(e);
-                }
-            }
-
-            if (exceptions.Count > 0)
-                throw new AggregateException(exceptions);
+                await _clients[i].OpenAsync(timeout);
         }
         /// <summary>
         /// Explicitly opens connection to every Bob node in cluster
         /// </summary>
         /// <returns>Task to await</returns>
-        /// <exception cref="AggregateException">Aggregated exceptions from every node</exception>
+        /// <exception cref="BobOperationException">Connection was not opened</exception>
+        /// <exception cref="TimeoutException">Specified timeout reached</exception>
+        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
         public Task OpenAsync()
         {
-            return OpenAsync(Timeout.InfiniteTimeSpan);
+            return OpenAsync(BobNodeClient.DefaultOperationTimeout);
         }
         /// <summary>
         /// Explicitly opens connection to every Bob node in cluster
         /// </summary>
         /// <param name="timeout">Timeout</param>
-        /// <exception cref="AggregateException">Aggregated exceptions from every node</exception>
+        /// <exception cref="BobOperationException">Connection was not opened</exception>
+        /// <exception cref="TimeoutException">Specified timeout reached</exception>
+        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Incorrect timeout value</exception>
         public void Open(TimeSpan timeout)
         {
             if (timeout < TimeSpan.Zero && timeout != Timeout.InfiniteTimeSpan)
                 throw new ArgumentOutOfRangeException(nameof(timeout));
 
-            List<Exception> exceptions = new List<Exception>();
             for (int i = 0; i < _clients.Length; i++)
-            {
-                try
-                {
-                    _clients[i].Open(timeout);
-                }
-                catch (Exception e)
-                {
-                    exceptions.Add(e);
-                }
-            }
-
-            if (exceptions.Count > 0)
-                throw new AggregateException(exceptions);
+                _clients[i].Open(timeout);
         }
         /// <summary>
         /// Explicitly opens connection to every Bob node in cluster
         /// </summary>
-        /// <exception cref="AggregateException">Aggregated exceptions from every node</exception>
+        /// <exception cref="BobOperationException">Connection was not opened</exception>
+        /// <exception cref="TimeoutException">Specified timeout reached</exception>
+        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
         public void Open()
         {
-            Open(Timeout.InfiniteTimeSpan);
+            Open(BobNodeClient.DefaultOperationTimeout);
         }
 
 
@@ -145,46 +129,34 @@ namespace Qoollo.BobClient
         /// Closes connections to every Bob node in cluster
         /// </summary>
         /// <returns>Task to await</returns>
-        /// <exception cref="AggregateException">Aggregated exceptions from every node</exception>
+        /// <exception cref="BobOperationException">Error during connection shutdown</exception>
         public async Task CloseAsync()
         {
-            List<Exception> exceptions = new List<Exception>();
             for (int i = 0; i < _clients.Length; i++)
-            {
-                try
-                {
-                    await _clients[i].CloseAsync();
-                }
-                catch (Exception e)
-                {
-                    exceptions.Add(e);
-                }
-            }
-
-            if (exceptions.Count > 0)
-                throw new AggregateException(exceptions);
+                await _clients[i].CloseAsync();
         }
         /// <summary>
         /// Closes connections to every Bob node in cluster
         /// </summary>
-        /// <exception cref="AggregateException">Aggregated exceptions from every node</exception>
+        /// <exception cref="BobOperationException">Error during connection shutdown</exception>
         public void Close()
         {
-            List<Exception> exceptions = new List<Exception>();
+            for (int i = 0; i < _clients.Length; i++)
+                _clients[i].Close();
+        }
+        /// <summary>
+        /// Closes connections to every Bob node in cluster. Ignores exceptions
+        /// </summary>
+        private void CloseSkipExceptions()
+        {
             for (int i = 0; i < _clients.Length; i++)
             {
                 try
                 {
                     _clients[i].Close();
                 }
-                catch (Exception e)
-                {
-                    exceptions.Add(e);
-                }
+                catch (BobOperationException) { }
             }
-
-            if (exceptions.Count > 0)
-                throw new AggregateException(exceptions);
         }
 
 
@@ -397,11 +369,7 @@ namespace Qoollo.BobClient
         /// <param name="isUserCall">Was called by user</param>
         protected virtual void Dispose(bool isUserCall)
         {
-            try
-            {
-                this.Close();
-            }
-            catch { }
+            CloseSkipExceptions();
         }
 
         /// <summary>

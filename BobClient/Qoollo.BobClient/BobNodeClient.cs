@@ -40,6 +40,11 @@ namespace Qoollo.BobClient
     public class BobNodeClient: IBobApi, IDisposable
     {
         /// <summary>
+        /// Default operation timeout
+        /// </summary>
+        public static readonly TimeSpan DefaultOperationTimeout = TimeSpan.FromMinutes(2);
+
+        /// <summary>
         /// Calculates deadline value for GRPC
         /// </summary>
         private static DateTime? GetDeadline(TimeSpan timeout)
@@ -68,7 +73,7 @@ namespace Qoollo.BobClient
                 case Grpc.Core.ChannelState.Shutdown:
                     return BobNodeClientState.Shutdown;
                 default:
-                    throw new Exception($"Unexpected internal channel state: {state}");
+                    throw new ArgumentException($"Unexpected internal channel state: {state}");
             }
         }
 
@@ -77,7 +82,7 @@ namespace Qoollo.BobClient
         /// </summary>
         private static bool IsKeyNotFoundError(Grpc.Core.RpcException e)
         {
-            return e.StatusCode == Grpc.Core.StatusCode.NotFound && e.Status.Detail.IndexOf("key not found", StringComparison.OrdinalIgnoreCase) >= 0;
+            return e.StatusCode == Grpc.Core.StatusCode.NotFound;
         }
         /// <summary>
         /// Checks whether the exception is a timeout
@@ -138,7 +143,7 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="nodeAddress">Address of a Bob node</param>
         public BobNodeClient(string nodeAddress)
-            : this(nodeAddress, Timeout.InfiniteTimeSpan)
+            : this(nodeAddress, DefaultOperationTimeout)
         {
         }
 
@@ -154,6 +159,8 @@ namespace Qoollo.BobClient
         /// <returns>Task to await</returns>
         /// <exception cref="BobOperationException">Connection was not opened</exception>
         /// <exception cref="TimeoutException">Specified timeout reached</exception>
+        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Incorrect timeout value</exception>
         public async Task OpenAsync(TimeSpan timeout)
         {
             if (_isDisposed)
@@ -184,9 +191,10 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <returns>Task to await</returns>
         /// <exception cref="BobOperationException">Connection was not opened</exception>
+        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
         public Task OpenAsync()
         {
-            return OpenAsync(Timeout.InfiniteTimeSpan);
+            return OpenAsync(DefaultOperationTimeout);
         }
         /// <summary>
         /// Explicitly opens connection to the Bob node
@@ -194,6 +202,8 @@ namespace Qoollo.BobClient
         /// <param name="timeout">Timeout</param>
         /// <exception cref="BobOperationException">Connection was not opened</exception>
         /// <exception cref="TimeoutException">Specified timeout reached</exception>
+        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Incorrect timeout value</exception>
         public void Open(TimeSpan timeout)
         {
             OpenAsync(timeout).GetAwaiter().GetResult();
@@ -202,6 +212,7 @@ namespace Qoollo.BobClient
         /// Explicitly opens connection to the Bob node
         /// </summary>
         /// <exception cref="BobOperationException">Connection was not opened</exception>
+        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
         public void Open()
         {
             OpenAsync().GetAwaiter().GetResult();
@@ -214,6 +225,9 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Error during connection shutdown</exception>
         public async Task CloseAsync()
         {
+            if (_isDisposed)
+                return;
+
             try
             {
                 await _rpcChannel.ShutdownAsync();

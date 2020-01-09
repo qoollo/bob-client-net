@@ -21,7 +21,7 @@ namespace Qoollo.BobClient
         public BobClusterBuilder()
         {
             _nodeAddresses = new List<NodeAddress>();
-            _operationTimeout = Timeout.InfiniteTimeSpan;
+            _operationTimeout = BobNodeClient.DefaultOperationTimeout;
             _nodeSelectionPolicy = null;
         }
 
