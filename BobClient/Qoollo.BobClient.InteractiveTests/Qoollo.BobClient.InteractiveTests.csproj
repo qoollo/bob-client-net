@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BobClient\BobClient.csproj" />
+    <ProjectReference Include="..\Qoollo.BobClient\Qoollo.BobClient.csproj" />
   </ItemGroup>
 
 </Project>
