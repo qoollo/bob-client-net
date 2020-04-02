@@ -1,11 +1,11 @@
 ﻿using Google.Protobuf;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 
 namespace BobStorage
 {
-    internal sealed partial class PutRequest
+    public sealed partial class PutRequest
     {
         public PutRequest(ulong key, byte[] data)
         {
@@ -21,7 +21,7 @@ namespace BobStorage
         }
     }
 
-    internal sealed partial class GetRequest
+    public sealed partial class GetRequest
     {
         public GetRequest(ulong key, bool fullGet = false)
         {
@@ -31,8 +31,21 @@ namespace BobStorage
             };
             Options = new GetOptions
             {
-                FullGet = fullGet
+                Source = fullGet ? GetSource.All : GetSource.Normal,
             };
+        }
+    }
+
+    public sealed partial class ExistRequest
+    {
+        public ExistRequest(IEnumerable<ulong> keys, bool fullGet = false)
+        {
+            keys_ = new Google.Protobuf.Collections.RepeatedField<BlobKey>();
+            keys_.AddRange(keys.Select(k => new BlobKey() { Key = k } ));
+            Options = new GetOptions
+            {
+                Source = fullGet ? GetSource.All : GetSource.Normal
+            }; 
         }
     }
 }

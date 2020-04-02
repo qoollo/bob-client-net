@@ -361,7 +361,131 @@ namespace Qoollo.BobClient
             return client.GetAsync(key);
         }
 
+        /// <summary>
+        /// Check data in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        public bool[] Exist(ulong[] keys, bool fullGet, CancellationToken token)
+        {
+            var client = _selectionPolicy.Select(_clients);
+            return client.Exist(keys, fullGet, token);
+        }
 
+        /// <summary>
+        /// Check data in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        public bool[] Exist(ulong[] keys, CancellationToken token)
+        {
+            var client = _selectionPolicy.Select(_clients);
+            return client.Exist(keys, token);
+        }
+
+        /// <summary>
+        /// Check data in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        public bool[] Exist(ulong[] keys, bool fullGet)
+        {
+            var client = _selectionPolicy.Select(_clients);
+            return client.Exist(keys, fullGet);
+        }
+
+        /// <summary>
+        /// Check data in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        public bool[] Exist(ulong[] keys)
+        {
+            var client = _selectionPolicy.Select(_clients);
+            return client.Exist(keys);
+        }
+
+        /// <summary>
+        /// Check data in Bob asynchronously
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        public Task<bool[]> ExistAsync(ulong[] keys, bool fullGet, CancellationToken token)
+        {
+            var client = _selectionPolicy.Select(_clients);
+            return client.ExistAsync(keys, fullGet, token);
+        }
+
+        /// <summary>
+        /// Check data in Bob asynchronously
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        public Task<bool[]> ExistAsync(ulong[] keys, CancellationToken token)
+        {
+            var client = _selectionPolicy.Select(_clients);
+            return client.ExistAsync(keys, token);
+        }
+
+        /// <summary>
+        /// Check data in Bob asynchronously
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        public Task<bool[]> ExistAsync(ulong[] keys, bool fullGet)
+        {
+            var client = _selectionPolicy.Select(_clients);
+            return client.ExistAsync(keys, fullGet);
+        }
+
+        /// <summary>
+        /// Check data in Bob asynchronously
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        public Task<bool[]> ExistAsync(ulong[] keys)
+        {
+            var client = _selectionPolicy.Select(_clients);
+            return client.ExistAsync(keys);
+        }
 
         /// <summary>
         ///  Cleans-up all resources

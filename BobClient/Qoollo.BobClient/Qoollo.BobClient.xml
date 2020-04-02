@@ -293,6 +293,100 @@
             <exception cref="T:Qoollo.BobClient.BobKeyNotFoundException">Specified key was not found</exception>
             <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
         </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.Exist(System.UInt64[],System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Check data in Bob
+            </summary>
+            <param name="keys">Keys array</param>
+            <param name="fullGet">Try read data from sup nodes</param>
+            <param name="token">Cancellation token</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.Exist(System.UInt64[],System.Threading.CancellationToken)">
+            <summary>
+            Check data in Bob
+            </summary>
+            <param name="keys">Keys array</param>
+            <param name="token">Cancellation token</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.Exist(System.UInt64[],System.Boolean)">
+            <summary>
+            Check data in Bob
+            </summary>
+            <param name="keys">Keys array</param>
+            <param name="fullGet">Try read data from sup nodes</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.Exist(System.UInt64[])">
+            <summary>
+            Check data in Bob
+            </summary>
+            <param name="keys">Keys array</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.ExistAsync(System.UInt64[],System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Check data in Bob asynchronously
+            </summary>
+            <param name="keys">Keys array</param>
+            <param name="fullGet">Try read data from sup nodes</param>
+            <param name="token">Cancellation token</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.ExistAsync(System.UInt64[],System.Threading.CancellationToken)">
+            <summary>
+            Check data in Bob asynchronously
+            </summary>
+            <param name="keys">Keys array</param>
+            <param name="token">Cancellation token</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.ExistAsync(System.UInt64[],System.Boolean)">
+            <summary>
+            Check data in Bob asynchronously
+            </summary>
+            <param name="keys">Keys array</param>
+            <param name="fullGet">Try read data from sup nodes</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobClusterClient.ExistAsync(System.UInt64[])">
+            <summary>
+            Check data in Bob asynchronously
+            </summary>
+            <param name="keys">Keys array</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
         <member name="M:Qoollo.BobClient.BobClusterClient.Dispose(System.Boolean)">
             <summary>
              Cleans-up all resources
@@ -593,6 +687,98 @@
             <exception cref="T:Qoollo.BobClient.BobKeyNotFoundException">Specified key was not found</exception>
             <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
         </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.Exist(System.UInt64[],System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Check data in Bob
+            </summary>
+            <param name="keys">Keys array</param>
+            <param name="fullGet">Try read data from sup nodes</param>
+            <param name="token">Cancellation token</param>
+            /// <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.Exist(System.UInt64[],System.Threading.CancellationToken)">
+            <summary>
+            Check data in Bob
+            </summary>
+            <param name="keys">Keys array</param>
+            <param name="token">Cancellation token</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.Exist(System.UInt64[],System.Boolean)">
+            <summary>
+            Check data in Bob
+            </summary>
+            <param name="keys">Keys array</param>
+            <param name="fullGet">Try read data from sup nodes</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.Exist(System.UInt64[])">
+            <summary>
+            Check data in Bob
+            </summary>
+            <param name="keys">Keys array</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.ExistAsync(System.UInt64[],System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Check data in Bob asynchronously
+            </summary>
+            <param name="keys">Keys array</param>
+            <param name="fullGet">Try read data from sup nodes</param>
+            <param name="token">Cancellation token</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.ExistAsync(System.UInt64[],System.Threading.CancellationToken)">
+            <summary>
+            Check data in Bob asynchronously
+            </summary>
+            <param name="keys">Keys array</param>
+            <param name="token">Cancellation token</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:System.OperationCanceledException">Operation was cancelled</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.ExistAsync(System.UInt64[],System.Boolean)">
+            <summary>
+            Check data in Bob asynchronously
+            </summary>
+            <param name="keys">Keys array</param>
+            <param name="fullGet">Try read data from sup nodes</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
+        <member name="M:Qoollo.BobClient.BobNodeClient.ExistAsync(System.UInt64[])">
+            <summary>
+            Check data in Bob asynchronously
+            </summary>
+            <param name="keys">Keys array</param>
+            <returns>Operation result</returns>
+            <exception cref="T:System.ObjectDisposedException">Client was closed</exception>
+            <exception cref="T:System.TimeoutException">Timeout reached</exception>
+            <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
+        </member>
         <member name="M:Qoollo.BobClient.BobNodeClient.Dispose(System.Boolean)">
             <summary>
              Cleans-up all resources
@@ -744,6 +930,24 @@
             <param name="fullGet">Try read data from sup nodes</param>
             <returns>Operation result with data</returns>
         </member>
+        <member name="M:Qoollo.BobClient.IBobApi.Exist(System.UInt64[],System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Check data in Bob
+            </summary>
+            <param name="keys">Keys array</param>
+            <param name="token">Cancellation token</param>
+            <param name="fullGet">Try read data from sup nodes</param>
+            <returns>Operation result</returns>
+        </member>
+        <member name="M:Qoollo.BobClient.IBobApi.ExistAsync(System.UInt64[],System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Check data in Bob asynchronously
+            </summary>
+            <param name="keys">Keys array</param>
+            <param name="token">Cancellation token</param>
+            <param name="fullGet">Try read data from sup nodes</param>
+            <returns>Operation result</returns>
+        </member>
         <member name="T:Qoollo.BobClient.NodeAddress">
             <summary>
             Single node describtion
@@ -822,6 +1026,27 @@
             options
             </summary>
         </member>
+        <member name="T:BobStorage.ExistRequest">
+            <summary>
+            Exist operation parameters
+            </summary>
+        </member>
+        <member name="F:BobStorage.ExistRequest.KeysFieldNumber">
+            <summary>Field number for the "keys" field.</summary>
+        </member>
+        <member name="P:BobStorage.ExistRequest.Keys">
+            <summary>
+            Keys to check
+            </summary>
+        </member>
+        <member name="F:BobStorage.ExistRequest.OptionsFieldNumber">
+            <summary>Field number for the "options" field.</summary>
+        </member>
+        <member name="P:BobStorage.ExistRequest.Options">
+            <summary>
+            Options, same as in get request
+            </summary>
+        </member>
         <member name="T:BobStorage.BlobKey">
             <summary>
             Blob id
@@ -882,6 +1107,9 @@
             If all good - null
             </summary>
         </member>
+        <member name="F:BobStorage.ExistResponse.ExistFieldNumber">
+            <summary>Field number for the "exist" field.</summary>
+        </member>
         <member name="T:BobStorage.PutOptions">
             <summary>
             Put operation options
@@ -925,14 +1153,6 @@
         <member name="P:BobStorage.GetOptions.Source">
             <summary>
             Set source for data reading
-            </summary>
-        </member>
-        <member name="F:BobStorage.GetOptions.FullGetFieldNumber">
-            <summary>Field number for the "full_get" field.</summary>
-        </member>
-        <member name="P:BobStorage.GetOptions.FullGet">
-            <summary>
-            try read data from 'sup' nodes if data not found on 'config' nodes
             </summary>
         </member>
         <member name="F:BobStorage.BobError.CodeFieldNumber">
