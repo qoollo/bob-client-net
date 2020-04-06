@@ -362,7 +362,7 @@ namespace Qoollo.BobClient
         }
 
         /// <summary>
-        /// Check data in Bob
+        /// Checks data presented in Bob
         /// </summary>
         /// <param name="keys">Keys array</param>
         /// <param name="fullGet">Try read data from sup nodes</param>
@@ -372,14 +372,14 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public bool[] Exist(ulong[] keys, bool fullGet, CancellationToken token)
+        public bool[] Exists(ulong[] keys, bool fullGet, CancellationToken token)
         {
             var client = _selectionPolicy.Select(_clients);
-            return client.Exist(keys, fullGet, token);
+            return client.Exists(keys, fullGet, token);
         }
 
         /// <summary>
-        /// Check data in Bob
+        /// Checks data presented in Bob
         /// </summary>
         /// <param name="keys">Keys array</param>
         /// <param name="token">Cancellation token</param>
@@ -388,14 +388,14 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
-        public bool[] Exist(ulong[] keys, CancellationToken token)
+        public bool[] Exists(ulong[] keys, CancellationToken token)
         {
             var client = _selectionPolicy.Select(_clients);
-            return client.Exist(keys, token);
+            return client.Exists(keys, token);
         }
 
         /// <summary>
-        /// Check data in Bob
+        /// Checks data presented in Bob
         /// </summary>
         /// <param name="keys">Keys array</param>
         /// <param name="fullGet">Try read data from sup nodes</param>
@@ -403,28 +403,28 @@ namespace Qoollo.BobClient
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public bool[] Exist(ulong[] keys, bool fullGet)
+        public bool[] Exists(ulong[] keys, bool fullGet)
         {
             var client = _selectionPolicy.Select(_clients);
-            return client.Exist(keys, fullGet);
+            return client.Exists(keys, fullGet);
         }
 
         /// <summary>
-        /// Check data in Bob
+        /// Checks data presented in Bob
         /// </summary>
         /// <param name="keys">Keys array</param>
         /// <returns>Operation result</returns>
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public bool[] Exist(ulong[] keys)
+        public bool[] Exists(ulong[] keys)
         {
             var client = _selectionPolicy.Select(_clients);
-            return client.Exist(keys);
+            return client.Exists(keys);
         }
 
         /// <summary>
-        /// Check data in Bob asynchronously
+        /// Asynchronously checks data presented in Bob
         /// </summary>
         /// <param name="keys">Keys array</param>
         /// <param name="fullGet">Try read data from sup nodes</param>
@@ -434,14 +434,14 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task<bool[]> ExistAsync(ulong[] keys, bool fullGet, CancellationToken token)
+        public Task<bool[]> ExistsAsync(ulong[] keys, bool fullGet, CancellationToken token)
         {
             var client = _selectionPolicy.Select(_clients);
-            return client.ExistAsync(keys, fullGet, token);
+            return client.ExistsAsync(keys, fullGet, token);
         }
 
         /// <summary>
-        /// Check data in Bob asynchronously
+        /// Asynchronously checks data presented in Bob
         /// </summary>
         /// <param name="keys">Keys array</param>
         /// <param name="token">Cancellation token</param>
@@ -450,14 +450,14 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task<bool[]> ExistAsync(ulong[] keys, CancellationToken token)
+        public Task<bool[]> ExistsAsync(ulong[] keys, CancellationToken token)
         {
             var client = _selectionPolicy.Select(_clients);
-            return client.ExistAsync(keys, token);
+            return client.ExistsAsync(keys, token);
         }
 
         /// <summary>
-        /// Check data in Bob asynchronously
+        /// Asynchronously checks data presented in Bob
         /// </summary>
         /// <param name="keys">Keys array</param>
         /// <param name="fullGet">Try read data from sup nodes</param>
@@ -466,14 +466,14 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task<bool[]> ExistAsync(ulong[] keys, bool fullGet)
+        public Task<bool[]> ExistsAsync(ulong[] keys, bool fullGet)
         {
             var client = _selectionPolicy.Select(_clients);
             return client.ExistAsync(keys, fullGet);
         }
 
         /// <summary>
-        /// Check data in Bob asynchronously
+        /// Asynchronously checks data presented in Bob
         /// </summary>
         /// <param name="keys">Keys array</param>
         /// <returns>Operation result</returns>
@@ -481,7 +481,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task<bool[]> ExistAsync(ulong[] keys)
+        public Task<bool[]> ExistsAsync(ulong[] keys)
         {
             var client = _selectionPolicy.Select(_clients);
             return client.ExistAsync(keys);

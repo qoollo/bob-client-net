@@ -42,24 +42,24 @@ namespace Qoollo.BobClient
         /// <param name="token">Cancellation token</param>
         /// <param name="fullGet">Try read data from sup nodes</param>
         /// <returns>Operation result with data</returns>
-        Task<byte[]> GetAsync(ulong key,  bool fullGet, CancellationToken token);
+        Task<byte[]> GetAsync(ulong key, bool fullGet, CancellationToken token);
 
         /// <summary>
-        /// Check data in Bob
+        /// Checks data presented in Bob
         /// </summary>
         /// <param name="keys">Keys array</param>
         /// <param name="token">Cancellation token</param>
         /// <param name="fullGet">Try read data from sup nodes</param>
         /// <returns>Operation result</returns>
-        bool[] Exist(ulong[] keys, bool fullGet, CancellationToken token);
+        bool[] Exists(ulong[] keys, bool fullGet, CancellationToken token);
 
         /// <summary>
-        /// Check data in Bob asynchronously
+        /// Asynchronously checks data presented in Bob
         /// </summary>
         /// <param name="keys">Keys array</param>
         /// <param name="token">Cancellation token</param>
         /// <param name="fullGet">Try read data from sup nodes</param>
         /// <returns>Operation result</returns>
-        Task<bool[]> ExistAsync(ulong[] keys, bool fullGet, CancellationToken token);
+        Task<bool[]> ExistsAsync(ulong[] keys, bool fullGet, CancellationToken token);
     }
 }
