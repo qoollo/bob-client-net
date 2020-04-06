@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace BobStorage
 {
-    public sealed partial class PutRequest
+    internal sealed partial class PutRequest
     {
         public PutRequest(ulong key, byte[] data)
         {
@@ -21,7 +21,7 @@ namespace BobStorage
         }
     }
 
-    public sealed partial class GetRequest
+    internal sealed partial class GetRequest
     {
         public GetRequest(ulong key, bool fullGet = false)
         {
@@ -36,7 +36,7 @@ namespace BobStorage
         }
     }
 
-    public sealed partial class ExistRequest
+    internal sealed partial class ExistRequest
     {
         public ExistRequest(IEnumerable<ulong> keys, bool fullGet = false)
         {
