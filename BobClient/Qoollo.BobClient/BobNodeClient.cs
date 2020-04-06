@@ -530,10 +530,14 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
         public bool[] Exists(ulong[] keys, bool fullGet, CancellationToken token)
         {
             if (_isDisposed)
                 throw new ObjectDisposedException(GetType().Name);
+
+            if (keys == null)
+                throw new ArgumentNullException(nameof(keys), "keys should not be null");
 
             var request = new BobStorage.ExistRequest(keys, fullGet);
 
@@ -563,6 +567,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
         public bool[] Exists(ulong[] keys, CancellationToken token)
         {
             return Exists(keys, false, token);
@@ -577,6 +582,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
         public bool[] Exists(ulong[] keys, bool fullGet)
         {
             return Exists(keys, fullGet, new CancellationToken());
@@ -590,6 +596,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
         public bool[] Exists(ulong[] keys)
         {
             return Exists(keys, false, new CancellationToken());
@@ -606,10 +613,14 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
         public async Task<bool[]> ExistsAsync(ulong[] keys, bool fullGet, CancellationToken token)
         {
             if (_isDisposed)
                 throw new ObjectDisposedException(GetType().Name);
+
+            if (keys == null)
+                throw new ArgumentNullException(nameof(keys), "keys should not be null");
 
             var request = new BobStorage.ExistRequest(keys, fullGet);
 
@@ -639,6 +650,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
         public Task<bool[]> ExistsAsync(ulong[] keys, CancellationToken token)
         {
             return ExistsAsync(keys, false, token);
@@ -653,6 +665,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
         public Task<bool[]> ExistAsync(ulong[] keys, bool fullGet)
         {
             return ExistsAsync(keys, fullGet, new CancellationToken());
@@ -666,6 +679,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
         public Task<bool[]> ExistAsync(ulong[] keys)
         {
             return ExistsAsync(keys, false, new CancellationToken());

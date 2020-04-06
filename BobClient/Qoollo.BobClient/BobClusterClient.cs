@@ -372,6 +372,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
         public bool[] Exists(ulong[] keys, bool fullGet, CancellationToken token)
         {
             var client = _selectionPolicy.Select(_clients);
@@ -388,6 +389,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
         public bool[] Exists(ulong[] keys, CancellationToken token)
         {
             var client = _selectionPolicy.Select(_clients);
@@ -403,6 +405,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
         public bool[] Exists(ulong[] keys, bool fullGet)
         {
             var client = _selectionPolicy.Select(_clients);
@@ -417,6 +420,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
         public bool[] Exists(ulong[] keys)
         {
             var client = _selectionPolicy.Select(_clients);
@@ -434,6 +438,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
         public Task<bool[]> ExistsAsync(ulong[] keys, bool fullGet, CancellationToken token)
         {
             var client = _selectionPolicy.Select(_clients);
@@ -450,6 +455,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
         public Task<bool[]> ExistsAsync(ulong[] keys, CancellationToken token)
         {
             var client = _selectionPolicy.Select(_clients);
@@ -466,6 +472,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
         public Task<bool[]> ExistsAsync(ulong[] keys, bool fullGet)
         {
             var client = _selectionPolicy.Select(_clients);
@@ -481,6 +488,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
         public Task<bool[]> ExistsAsync(ulong[] keys)
         {
             var client = _selectionPolicy.Select(_clients);
