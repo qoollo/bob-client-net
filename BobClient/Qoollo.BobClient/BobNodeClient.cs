@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -518,7 +519,171 @@ namespace Qoollo.BobClient
             return GetAsync(key, false, new CancellationToken());
         }
 
+        /// <summary>
+        /// Checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <param name="token">Cancellation token</param>
+        /// /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public bool[] Exists(ulong[] keys, bool fullGet, CancellationToken token)
+        {
+            if (keys == null)
+                throw new ArgumentNullException(nameof(keys), "keys should not be null");
 
+            if (_isDisposed)
+                throw new ObjectDisposedException(GetType().Name);
+
+            var request = new BobStorage.ExistRequest(keys, fullGet);
+
+            try
+            {
+                var answer = _rpcClient.Exist(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
+                return answer.Exist.ToArray();
+            }
+            catch (Grpc.Core.RpcException e)
+            {
+                if (IsOperationCancelledError(e, token))
+                    throw new OperationCanceledException(token);
+                if (IsOperationTimeoutError(e))
+                    throw new TimeoutException($"Exists operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
+                
+                throw new BobOperationException($"Exists operation failed.", e);
+            }
+        }
+
+        /// <summary>
+        /// Checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public bool[] Exists(ulong[] keys, CancellationToken token)
+        {
+            return Exists(keys, false, token);
+        }
+
+        /// <summary>
+        /// Checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public bool[] Exists(ulong[] keys, bool fullGet)
+        {
+            return Exists(keys, fullGet, new CancellationToken());
+        }
+
+        /// <summary>
+        /// Checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public bool[] Exists(ulong[] keys)
+        {
+            return Exists(keys, false, new CancellationToken());
+        }
+
+        /// <summary>
+        /// Asynchronously checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public async Task<bool[]> ExistsAsync(ulong[] keys, bool fullGet, CancellationToken token)
+        {
+            if (keys == null)
+                throw new ArgumentNullException(nameof(keys), "keys should not be null");
+
+            if (_isDisposed)
+                throw new ObjectDisposedException(GetType().Name);
+
+            var request = new BobStorage.ExistRequest(keys, fullGet);
+
+            try
+            {
+                var answer = await _rpcClient.ExistAsync(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
+                return answer.Exist.ToArray();
+            }
+            catch (Grpc.Core.RpcException e)
+            {
+                if (IsOperationCancelledError(e, token))
+                    throw new OperationCanceledException(token);
+                if (IsOperationTimeoutError(e))
+                    throw new TimeoutException($"Exists operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
+                
+                throw new BobOperationException($"Exists operation failed.", e);
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public Task<bool[]> ExistsAsync(ulong[] keys, CancellationToken token)
+        {
+            return ExistsAsync(keys, false, token);
+        }
+
+        /// <summary>
+        /// Asynchronously checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public Task<bool[]> ExistAsync(ulong[] keys, bool fullGet)
+        {
+            return ExistsAsync(keys, fullGet, new CancellationToken());
+        }
+
+        /// <summary>
+        /// Asynchronously checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public Task<bool[]> ExistAsync(ulong[] keys)
+        {
+            return ExistsAsync(keys, false, new CancellationToken());
+        }
 
         /// <summary>
         ///  Cleans-up all resources

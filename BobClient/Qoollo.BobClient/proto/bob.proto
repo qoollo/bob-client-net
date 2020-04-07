@@ -1,4 +1,5 @@
-﻿syntax = "proto3";
+﻿  
+syntax = "proto3";
 
 package bob_storage;
 
@@ -7,9 +8,11 @@ service BobApi {
     rpc Put (PutRequest) returns (OpStatus) {}
     rpc Get (GetRequest) returns (Blob) {}
     rpc Ping (Null) returns (Null) {}
+    rpc Exist (ExistRequest) returns (ExistResponse) {}
 }
 
 message Null {};
+
 // Put operation parameters
 message PutRequest {
     BlobKey key = 1; // Blob's key
@@ -21,6 +24,12 @@ message PutRequest {
 message GetRequest {
     BlobKey key = 1; // Blob's key
     GetOptions options = 2; // options
+}
+
+// Exist operation parameters
+message ExistRequest {
+    repeated BlobKey keys = 1; // Keys to check
+    GetOptions options = 2; // Options, same as in get request
 }
 
 // Blob id
@@ -44,6 +53,10 @@ message OpStatus {
     BobError error = 1; // If all good - null
 }
 
+message ExistResponse {
+    repeated bool exist = 1;
+}
+
 // Put operation options
 message PutOptions {
     repeated string remote_nodes = 1;
@@ -61,7 +74,6 @@ enum GetSource {
 message GetOptions {
     bool force_node = 1; // Force operation to be served by node to which it comes
     GetSource source = 2; // Set source for data reading
-    bool full_get = 3; // try read data from 'sup' nodes if data not found on 'config' nodes
 }
 
 message BobError {

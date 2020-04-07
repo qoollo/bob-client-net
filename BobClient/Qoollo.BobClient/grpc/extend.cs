@@ -1,7 +1,7 @@
 ﻿using Google.Protobuf;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 
 namespace BobStorage
 {
@@ -31,8 +31,21 @@ namespace BobStorage
             };
             Options = new GetOptions
             {
-                FullGet = fullGet
+                Source = fullGet ? GetSource.All : GetSource.Normal,
             };
+        }
+    }
+
+    internal sealed partial class ExistRequest
+    {
+        public ExistRequest(IEnumerable<ulong> keys, bool fullGet = false)
+        {
+            keys_ = new Google.Protobuf.Collections.RepeatedField<BlobKey>();
+            keys_.AddRange(keys.Select(k => new BlobKey() { Key = k } ));
+            Options = new GetOptions
+            {
+                Source = fullGet ? GetSource.All : GetSource.Normal
+            }; 
         }
     }
 }
