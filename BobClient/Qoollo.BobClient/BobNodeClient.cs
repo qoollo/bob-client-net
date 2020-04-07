@@ -533,11 +533,11 @@ namespace Qoollo.BobClient
         /// <exception cref="ArgumentNullException">keys is null</exception>
         public bool[] Exists(ulong[] keys, bool fullGet, CancellationToken token)
         {
-            if (_isDisposed)
-                throw new ObjectDisposedException(GetType().Name);
-
             if (keys == null)
                 throw new ArgumentNullException(nameof(keys), "keys should not be null");
+
+            if (_isDisposed)
+                throw new ObjectDisposedException(GetType().Name);
 
             var request = new BobStorage.ExistRequest(keys, fullGet);
 
@@ -616,11 +616,11 @@ namespace Qoollo.BobClient
         /// <exception cref="ArgumentNullException">keys is null</exception>
         public async Task<bool[]> ExistsAsync(ulong[] keys, bool fullGet, CancellationToken token)
         {
-            if (_isDisposed)
-                throw new ObjectDisposedException(GetType().Name);
-
             if (keys == null)
                 throw new ArgumentNullException(nameof(keys), "keys should not be null");
+
+            if (_isDisposed)
+                throw new ObjectDisposedException(GetType().Name);
 
             var request = new BobStorage.ExistRequest(keys, fullGet);
 

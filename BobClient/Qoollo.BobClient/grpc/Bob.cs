@@ -68,7 +68,7 @@ namespace BobStorage {
 
   }
   #region Enums
-  public enum GetSource {
+  internal enum GetSource {
     [pbr::OriginalName("ALL")] All = 0,
     [pbr::OriginalName("NORMAL")] Normal = 1,
     [pbr::OriginalName("ALIEN")] Alien = 2,
