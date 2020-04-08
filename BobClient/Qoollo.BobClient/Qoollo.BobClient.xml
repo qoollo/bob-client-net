@@ -772,7 +772,7 @@
             <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
             <exception cref="T:System.ArgumentNullException">keys is null</exception>
         </member>
-        <member name="M:Qoollo.BobClient.BobNodeClient.ExistAsync(System.UInt64[],System.Boolean)">
+        <member name="M:Qoollo.BobClient.BobNodeClient.ExistsAsync(System.UInt64[],System.Boolean)">
             <summary>
             Asynchronously checks data presented in Bob
             </summary>
@@ -784,7 +784,7 @@
             <exception cref="T:Qoollo.BobClient.BobOperationException">Other operation errors</exception>
             <exception cref="T:System.ArgumentNullException">keys is null</exception>
         </member>
-        <member name="M:Qoollo.BobClient.BobNodeClient.ExistAsync(System.UInt64[])">
+        <member name="M:Qoollo.BobClient.BobNodeClient.ExistsAsync(System.UInt64[])">
             <summary>
             Asynchronously checks data presented in Bob
             </summary>

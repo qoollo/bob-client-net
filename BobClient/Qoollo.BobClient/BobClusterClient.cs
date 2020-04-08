@@ -476,7 +476,7 @@ namespace Qoollo.BobClient
         public Task<bool[]> ExistsAsync(ulong[] keys, bool fullGet)
         {
             var client = _selectionPolicy.Select(_clients);
-            return client.ExistAsync(keys, fullGet);
+            return client.ExistsAsync(keys, fullGet);
         }
 
         /// <summary>
@@ -492,7 +492,7 @@ namespace Qoollo.BobClient
         public Task<bool[]> ExistsAsync(ulong[] keys)
         {
             var client = _selectionPolicy.Select(_clients);
-            return client.ExistAsync(keys);
+            return client.ExistsAsync(keys);
         }
 
         /// <summary>
