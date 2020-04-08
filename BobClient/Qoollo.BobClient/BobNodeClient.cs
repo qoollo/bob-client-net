@@ -666,7 +666,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        public Task<bool[]> ExistAsync(ulong[] keys, bool fullGet)
+        public Task<bool[]> ExistsAsync(ulong[] keys, bool fullGet)
         {
             return ExistsAsync(keys, fullGet, new CancellationToken());
         }
@@ -680,7 +680,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        public Task<bool[]> ExistAsync(ulong[] keys)
+        public Task<bool[]> ExistsAsync(ulong[] keys)
         {
             return ExistsAsync(keys, false, new CancellationToken());
         }
