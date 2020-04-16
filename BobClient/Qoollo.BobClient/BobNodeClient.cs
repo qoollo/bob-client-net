@@ -383,7 +383,7 @@ namespace Qoollo.BobClient
                 if (IsOperationCancelledError(e, token))
                     throw new OperationCanceledException(token);
                 if (IsOperationTimeoutError(e))
-                    throw new TimeoutException($"Put operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
+                    throw new TimeoutException($"Get operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
                 if (IsKeyNotFoundError(e))
                     throw new BobKeyNotFoundException($"Record for key = {key} is not found in Bob", e);
                 
@@ -466,7 +466,7 @@ namespace Qoollo.BobClient
                 if (IsOperationCancelledError(e, token))
                     throw new OperationCanceledException(token);
                 if (IsOperationTimeoutError(e))
-                    throw new TimeoutException($"Put operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
+                    throw new TimeoutException($"Get operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
                 if (IsKeyNotFoundError(e))
                     throw new BobKeyNotFoundException($"Record for key = {key} is not found in Bob", e);
 
