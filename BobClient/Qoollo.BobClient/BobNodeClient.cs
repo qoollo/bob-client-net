@@ -706,7 +706,7 @@ namespace Qoollo.BobClient
         /// <summary>
         /// Cleans-up all resources
         /// </summary>
-        void IDisposable.Dispose()
+        public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
