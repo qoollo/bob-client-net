@@ -33,22 +33,16 @@
 
   <ItemGroup>
     <Folder Include="proto\" />
-    <!--<Protobuf Include="**/*.proto" OutputDir="%(RelativeDir)\..\grpc_tmp" />-->
+    <!-- <Protobuf Include="proto\bob.proto" GrpcServices="Client" Access="Internal" /> -->
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.10.0" />
-    <PackageReference Include="Grpc" Version="2.24.0" />
-    <PackageReference Include="Grpc.Core" Version="2.24.0" />
-    <PackageReference Include="Grpc.Core.Api" Version="2.24.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.24.0">
+    <PackageReference Include="Google.Protobuf" Version="3.17.2" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.37.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.38.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Protobuf Update="proto\bob.proto" GrpcServices="Client" />
   </ItemGroup>
 
 </Project>

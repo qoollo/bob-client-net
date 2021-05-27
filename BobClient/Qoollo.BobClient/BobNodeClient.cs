@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Resources;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,28 +58,6 @@ namespace Qoollo.BobClient
         }
 
         /// <summary>
-        /// Converts GRPC ChannelState into BobNodeClientState
-        /// </summary>
-        private static BobNodeClientState ConvertState(Grpc.Core.ChannelState state)
-        {
-            switch (state)
-            {
-                case Grpc.Core.ChannelState.Idle:
-                    return BobNodeClientState.Idle;
-                case Grpc.Core.ChannelState.Connecting:
-                    return BobNodeClientState.Connecting;
-                case Grpc.Core.ChannelState.Ready:
-                    return BobNodeClientState.Ready;
-                case Grpc.Core.ChannelState.TransientFailure:
-                    return BobNodeClientState.TransientFailure;
-                case Grpc.Core.ChannelState.Shutdown:
-                    return BobNodeClientState.Shutdown;
-                default:
-                    throw new ArgumentException($"Unexpected internal channel state: {state}");
-            }
-        }
-
-        /// <summary>
         /// Checks whether the exception is a KeyNotFound exception
         /// </summary>
         private static bool IsKeyNotFoundError(Grpc.Core.RpcException e)
@@ -105,9 +84,10 @@ namespace Qoollo.BobClient
         private readonly NodeAddress _nodeAddress;
         private readonly TimeSpan _operationTimeout;
 
-        private readonly Grpc.Core.Channel _rpcChannel;
+        private readonly Grpc.Net.Client.GrpcChannel _rpcChannel;
         private readonly BobStorage.BobApi.BobApiClient _rpcClient;
 
+        private volatile int _state;
         private volatile bool _isDisposed;
 
 
@@ -125,9 +105,10 @@ namespace Qoollo.BobClient
 
             _nodeAddress = nodeAddress;
             _operationTimeout = operationTimeout;
-            _rpcChannel = new Grpc.Core.Channel(nodeAddress.Address, Grpc.Core.ChannelCredentials.Insecure);
+            _rpcChannel = Grpc.Net.Client.GrpcChannel.ForAddress(nodeAddress.Address, new Grpc.Net.Client.GrpcChannelOptions() { Credentials = Grpc.Core.ChannelCredentials.Insecure });
             _rpcClient = new BobStorage.BobApi.BobApiClient(_rpcChannel);
 
+            _state = (int)BobNodeClientState.Idle;
             _isDisposed = false;
         }
         /// <summary>
@@ -151,7 +132,86 @@ namespace Qoollo.BobClient
         /// <summary>
         /// State of the client
         /// </summary>
-        public BobNodeClientState State { get { return ConvertState(_rpcChannel.State); } }
+        public BobNodeClientState State 
+        {
+            get { return (BobNodeClientState)_state; }
+            private set { _state = (int)value; }
+        }
+
+        /// <summary>
+        /// Attempts to atomically update State
+        /// </summary>
+        /// <param name="newState">New state</param>
+        /// <param name="expectedState">Expected current state</param>
+        /// <returns>Was state updated</returns>
+        private bool TryUpdateStateAtomic(BobNodeClientState newState, BobNodeClientState expectedState)
+        {
+            return Interlocked.CompareExchange(ref _state, (int)newState, (int)expectedState) == (int)expectedState;
+        }
+
+        /// <summary>
+        /// Notification about method running
+        /// </summary>
+        private void OnMethodRun()
+        {
+            SpinWait sw = new SpinWait();
+            BobNodeClientState curState = State;
+            while (curState == BobNodeClientState.Idle && !TryUpdateStateAtomic(BobNodeClientState.Connecting, curState))
+            {
+                sw.SpinOnce();
+                curState = State;
+            }
+        }
+        /// <summary>
+        /// Notification about method successful completion
+        /// </summary>
+        private void OnMethodSuccess()
+        {
+            SpinWait sw = new SpinWait();
+            BobNodeClientState curState = State;
+            while ((curState == BobNodeClientState.Idle || curState == BobNodeClientState.Connecting || curState == BobNodeClientState.TransientFailure)
+                    && !TryUpdateStateAtomic(BobNodeClientState.Ready, curState))
+            {
+                sw.SpinOnce();
+                curState = State;
+            }
+        }
+        /// <summary>
+        /// Notification about method failure
+        /// </summary>
+        private void OnMethodFailure()
+        {
+            SpinWait sw = new SpinWait();
+            BobNodeClientState curState = State;
+            while ((curState == BobNodeClientState.Idle || curState == BobNodeClientState.Connecting || curState == BobNodeClientState.Ready)
+                && !TryUpdateStateAtomic(BobNodeClientState.TransientFailure, curState))
+            {
+                sw.SpinOnce();
+                curState = State;
+            }
+        }
+        /// <summary>
+        /// Notification about method cancelling or timeout
+        /// </summary>
+        private void OnMethodCancelledTimeouted()
+        {
+            SpinWait sw = new SpinWait();
+            BobNodeClientState curState = State;
+            while (curState == BobNodeClientState.Connecting && !TryUpdateStateAtomic(BobNodeClientState.TransientFailure, curState))
+            {
+                sw.SpinOnce();
+                curState = State;
+            }
+        }
+        /// <summary>
+        /// Notification about client shoutdown
+        /// </summary>
+        private void OnShutdown()
+        {
+            State = BobNodeClientState.Shutdown;
+        }
+
+
 
         /// <summary>
         /// Explicitly opens connection to the Bob node
@@ -171,20 +231,30 @@ namespace Qoollo.BobClient
 
             try
             {
-                await _rpcChannel.ConnectAsync(GetDeadline(timeout));
+                OnMethodRun();
+                await _rpcClient.PingAsync(new BobStorage.Null(), deadline: GetDeadline(timeout));
+                OnMethodSuccess();
             }
             catch (TaskCanceledException tce)
             {
-                if (_rpcChannel.State == Grpc.Core.ChannelState.Shutdown)
-                    throw new BobOperationException($"Connection failed to node {_nodeAddress}", tce);
+                OnMethodCancelledTimeouted();
                 throw new TimeoutException($"Connection timeout reached (node: {_nodeAddress}, speciefied timeout: {timeout})", tce);
             }
             catch (Grpc.Core.RpcException rpce)
             {
                 if (IsOperationTimeoutError(rpce))
+                {
+                    OnMethodCancelledTimeouted();
                     throw new TimeoutException($"Connection timeout reached (node: {_nodeAddress}, speciefied timeout: {timeout})", rpce);
+                }
 
+                OnMethodFailure();
                 throw new BobOperationException($"Connection failed to node {_nodeAddress}", rpce);
+            }
+            catch
+            {
+                OnMethodFailure();
+                throw;
             }
         }
         /// <summary>
@@ -233,6 +303,7 @@ namespace Qoollo.BobClient
             {
                 await _rpcChannel.ShutdownAsync();
                 _isDisposed = true;
+                OnShutdown();
             }
             catch (Grpc.Core.RpcException rpce)
             {
@@ -271,18 +342,36 @@ namespace Qoollo.BobClient
 
             try
             {
+                OnMethodRun();
                 var answer = _rpcClient.Put(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
                 if (answer.Error != null)
+                {
+                    OnMethodFailure(); // Bob error is failure for the client too
                     throw new BobOperationException($"Put operation failed for key: {key}. Code: {answer.Error.Code}, Description: {answer.Error.Desc}");
+                }
+
+                OnMethodSuccess();
             }
             catch (Grpc.Core.RpcException e)
             {
                 if (IsOperationCancelledError(e, token))
+                {
+                    OnMethodCancelledTimeouted();
                     throw new OperationCanceledException(token);
+                }
                 if (IsOperationTimeoutError(e))
+                {
+                    OnMethodCancelledTimeouted();
                     throw new TimeoutException($"Put operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
+                }
 
+                OnMethodFailure();
                 throw new BobOperationException($"Put operation failed for key: {key}", e);
+            }
+            catch
+            {
+                OnMethodFailure();
+                throw;
             }
         }
 
@@ -323,18 +412,36 @@ namespace Qoollo.BobClient
 
             try
             {
+                OnMethodRun();
                 var answer = await _rpcClient.PutAsync(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
                 if (answer.Error != null)
+                {
+                    OnMethodFailure(); // Bob error is failure for the client too
                     throw new BobOperationException($"Put operation failed for key: {key}. Code: {answer.Error.Code}, Description: {answer.Error.Desc}");
+                }
+
+                OnMethodSuccess();
             }
             catch (Grpc.Core.RpcException e)
             {
                 if (IsOperationCancelledError(e, token))
+                {
+                    OnMethodCancelledTimeouted();
                     throw new OperationCanceledException(token);
+                }
                 if (IsOperationTimeoutError(e))
+                {
+                    OnMethodCancelledTimeouted();
                     throw new TimeoutException($"Put operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
+                }
 
+                OnMethodFailure();
                 throw new BobOperationException($"Put operation failed for key: {key}", e);
+            }
+            catch
+            {
+                OnMethodFailure();
+                throw;
             }
         }
 
@@ -375,19 +482,37 @@ namespace Qoollo.BobClient
 
             try
             {
+                OnMethodRun();
                 var answer = _rpcClient.Get(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
-                return answer.Data.ToByteArray();
+                var result = answer.Data.ToByteArray();
+                OnMethodSuccess();
+                return result;
             }
             catch (Grpc.Core.RpcException e)
             {
                 if (IsOperationCancelledError(e, token))
+                {
+                    OnMethodCancelledTimeouted();
                     throw new OperationCanceledException(token);
+                }
                 if (IsOperationTimeoutError(e))
+                {
+                    OnMethodCancelledTimeouted();
                     throw new TimeoutException($"Get operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
+                }
                 if (IsKeyNotFoundError(e))
+                {
+                    OnMethodSuccess(); // Key not found is not the problem of the network channel or the Bob
                     throw new BobKeyNotFoundException($"Record for key = {key} is not found in Bob", e);
-                
+                }
+
+                OnMethodFailure();
                 throw new BobOperationException($"Get operation failed for key: {key}", e);
+            }
+            catch
+            {
+                OnMethodFailure();
+                throw;
             }
         }
 
@@ -458,19 +583,37 @@ namespace Qoollo.BobClient
 
             try
             {
+                OnMethodRun();
                 var answer = await _rpcClient.GetAsync(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
-                return answer.Data.ToByteArray();
+                var result = answer.Data.ToByteArray();
+                OnMethodSuccess();
+                return result;
             }
             catch (Grpc.Core.RpcException e)
             {
                 if (IsOperationCancelledError(e, token))
+                {
+                    OnMethodCancelledTimeouted();
                     throw new OperationCanceledException(token);
+                }
                 if (IsOperationTimeoutError(e))
+                {
+                    OnMethodCancelledTimeouted();
                     throw new TimeoutException($"Get operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
+                }
                 if (IsKeyNotFoundError(e))
+                {
+                    OnMethodSuccess(); // Key not found is not the problem of the network channel or the Bob
                     throw new BobKeyNotFoundException($"Record for key = {key} is not found in Bob", e);
+                }
 
+                OnMethodFailure();
                 throw new BobOperationException($"Get operation failed for key: {key}", e);
+            }
+            catch
+            {
+                OnMethodFailure();
+                throw;
             }
         }
 

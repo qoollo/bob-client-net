@@ -41,11 +41,24 @@ namespace BobStorage
         public ExistRequest(IEnumerable<ulong> keys, bool fullGet = false)
         {
             keys_ = new Google.Protobuf.Collections.RepeatedField<BlobKey>();
-            keys_.AddRange(keys.Select(k => new BlobKey() { Key = k } ));
+            foreach (var k in keys)
+                keys_.Add(new BlobKey() { Key = k });
+
             Options = new GetOptions
             {
                 Source = fullGet ? GetSource.All : GetSource.Normal
             }; 
+        }
+        public ExistRequest(ulong[] keys, bool fullGet = false)
+        {
+            keys_ = new Google.Protobuf.Collections.RepeatedField<BlobKey>();
+            for (int i = 0; i < keys.Length; i++)
+                keys_.Add(new BlobKey() { Key = keys[i] });
+
+            Options = new GetOptions
+            {
+                Source = fullGet ? GetSource.All : GetSource.Normal
+            };
         }
     }
 }
