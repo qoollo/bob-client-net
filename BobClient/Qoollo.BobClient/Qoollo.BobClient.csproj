@@ -8,7 +8,7 @@
     <FileVersion>2.1.3</FileVersion>
     <InformationalVersion>2.1.3</InformationalVersion>
 
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net462;net5.0</TargetFrameworks>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
@@ -31,6 +31,24 @@
     <Copyright>Qoollo 2020</Copyright>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net462'">
+    <TargetFrameworkKind>netframework</TargetFrameworkKind>
+    <gRpcLib>gRPC_Legacy</gRpcLib>
+    <DefineConstants>$(DefineConstants);NETFRAMEWORK;GRPC_LEGACY</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <TargetFrameworkKind>netstandard</TargetFrameworkKind>
+    <gRpcLib>gRPC_Legacy</gRpcLib>
+    <DefineConstants>$(DefineConstants);GRPC_LEGACY</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net5.0'">
+    <TargetFrameworkKind>netcore</TargetFrameworkKind>
+    <gRpcLib>gRPC_NET</gRpcLib>
+    <DefineConstants>$(DefineConstants);GRPC_NET</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <Folder Include="proto\" />
     <!-- <Protobuf Include="proto\bob.proto" GrpcServices="Client" Access="Internal" /> -->
@@ -38,11 +56,19 @@
 
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.17.2" />
-    <PackageReference Include="Grpc.Net.Client" Version="2.37.0" />
     <PackageReference Include="Grpc.Tools" Version="2.38.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(gRpcLib)' == 'gRPC_Legacy'">
+    <PackageReference Include="Grpc.Core" Version="2.38.0" />
+    <PackageReference Include="Grpc.Core.Api" Version="2.38.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(gRpcLib)' == 'gRPC_NET'">
+    <PackageReference Include="Grpc.Net.Client" Version="2.37.0" />
   </ItemGroup>
 
 </Project>

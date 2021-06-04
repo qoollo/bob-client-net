@@ -85,7 +85,11 @@ namespace Qoollo.BobClient
         private readonly NodeAddress _nodeAddress;
         private readonly TimeSpan _operationTimeout;
 
+#if GRPC_NET
         private readonly Grpc.Net.Client.GrpcChannel _rpcChannel;
+#elif GRPC_LEGACY
+        private readonly Grpc.Core.Channel _rpcChannel;
+#endif
         private readonly BobStorage.BobApi.BobApiClient _rpcClient;
 
         private volatile int _state;
@@ -106,11 +110,17 @@ namespace Qoollo.BobClient
 
             _nodeAddress = nodeAddress;
             _operationTimeout = operationTimeout;
-            _rpcChannel = Grpc.Net.Client.GrpcChannel.ForAddress(nodeAddress.Address, 
+
+#if GRPC_NET
+            _rpcChannel = Grpc.Net.Client.GrpcChannel.ForAddress(nodeAddress.GetAddressAsUri(), 
                                                                  new Grpc.Net.Client.GrpcChannelOptions() 
                                                                  { 
                                                                     Credentials = Grpc.Core.ChannelCredentials.Insecure
                                                                  });
+#elif GRPC_LEGACY
+            _rpcChannel = new Grpc.Core.Channel(nodeAddress.Address, Grpc.Core.ChannelCredentials.Insecure);
+#endif
+
             _rpcClient = new BobStorage.BobApi.BobApiClient(_rpcChannel);
 
             _state = (int)BobNodeClientState.Idle;
@@ -132,6 +142,14 @@ namespace Qoollo.BobClient
         public BobNodeClient(string nodeAddress)
             : this(nodeAddress, DefaultOperationTimeout)
         {
+        }
+
+        /// <summary>
+        /// Address of the Node
+        /// </summary>
+        public NodeAddress NodeAddress
+        {
+            get { return _nodeAddress; }
         }
 
         /// <summary>
@@ -307,7 +325,9 @@ namespace Qoollo.BobClient
             try
             {
                 await _rpcChannel.ShutdownAsync();
+#if GRPC_NET
                 _rpcChannel.Dispose();
+#endif
                 _isDisposed = true;
                 OnShutdown();
             }
@@ -359,7 +379,7 @@ namespace Qoollo.BobClient
                 if (answer.Error != null)
                 {
                     OnMethodFailure(); // Bob error is failure for the client too
-                    throw new BobOperationException($"Put operation failed for key: {key}. Code: {answer.Error.Code}, Description: {answer.Error.Desc}");
+                    throw new BobOperationException($"Put operation failed for key: {key} on node: {_nodeAddress}. Code: {answer.Error.Code}, Description: {answer.Error.Desc}");
                 }
 
                 OnMethodSuccess();
@@ -378,7 +398,7 @@ namespace Qoollo.BobClient
                 }
 
                 OnMethodFailure();
-                throw new BobOperationException($"Put operation failed for key: {key}", e);
+                throw new BobOperationException($"Put operation failed for key: {key} on node: {_nodeAddress}", e);
             }
             catch
             {
@@ -429,7 +449,7 @@ namespace Qoollo.BobClient
                 if (answer.Error != null)
                 {
                     OnMethodFailure(); // Bob error is failure for the client too
-                    throw new BobOperationException($"Put operation failed for key: {key}. Code: {answer.Error.Code}, Description: {answer.Error.Desc}");
+                    throw new BobOperationException($"Put operation failed for key: {key} on node: {_nodeAddress}. Code: {answer.Error.Code}, Description: {answer.Error.Desc}");
                 }
 
                 OnMethodSuccess();
@@ -448,7 +468,7 @@ namespace Qoollo.BobClient
                 }
 
                 OnMethodFailure();
-                throw new BobOperationException($"Put operation failed for key: {key}", e);
+                throw new BobOperationException($"Put operation failed for key: {key} on node: {_nodeAddress}", e);
             }
             catch
             {
@@ -519,7 +539,7 @@ namespace Qoollo.BobClient
                 }
 
                 OnMethodFailure();
-                throw new BobOperationException($"Get operation failed for key: {key}", e);
+                throw new BobOperationException($"Get operation failed for key: {key} on node: {_nodeAddress}", e);
             }
             catch
             {
@@ -620,7 +640,7 @@ namespace Qoollo.BobClient
                 }
 
                 OnMethodFailure();
-                throw new BobOperationException($"Get operation failed for key: {key}", e);
+                throw new BobOperationException($"Get operation failed for key: {key} on node: {_nodeAddress}", e);
             }
             catch
             {
@@ -718,7 +738,7 @@ namespace Qoollo.BobClient
                 }
 
                 OnMethodFailure();
-                throw new BobOperationException($"Exists operation failed.", e);
+                throw new BobOperationException($"Exists operation failed on node: {_nodeAddress}.", e);
             }
             catch
             {
@@ -816,7 +836,7 @@ namespace Qoollo.BobClient
                 }
 
                 OnMethodFailure();
-                throw new BobOperationException($"Exists operation failed.", e);
+                throw new BobOperationException($"Exists operation failed on node: {_nodeAddress}.", e);
             }
             catch
             {
@@ -878,7 +898,15 @@ namespace Qoollo.BobClient
         {
             if (!_isDisposed)
             {
+#if GRPC_NET
                 _rpcChannel.Dispose();
+#else
+                try
+                {
+                    this.Close();
+                }
+                catch { }
+#endif
                 OnShutdown();
                 _isDisposed = true;
             }

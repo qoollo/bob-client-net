@@ -70,7 +70,7 @@ namespace Qoollo.BobClient.InteractiveTests
             //    .WithAdditionalNode("http://10.5.5.128:20000")
             //    .WithOperationTimeout(TimeSpan.FromSeconds(1))
             //    .Build())
-            using (var client = new BobNodeClient("http://10.5.5.127:20000/", TimeSpan.FromSeconds(10)))
+            using (var client = new BobNodeClient("10.5.5.127:20000", TimeSpan.FromSeconds(10)))
             {
                 client.Open();
 
