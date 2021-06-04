@@ -351,6 +351,7 @@ namespace Qoollo.BobClient
             CloseAsync().GetAwaiter().GetResult();
         }
 
+        #region ============ Put ============
 
         /// <summary>
         /// Writes data to Bob
@@ -492,6 +493,121 @@ namespace Qoollo.BobClient
             return PutAsync(key, data, new CancellationToken());
         }
 
+        #endregion
+
+        #region ============ Ping ============
+
+        /// <summary>
+        /// Sends Ping to Bob node
+        /// </summary>
+        /// <param name="token">Cancellation token</param>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        protected void Ping(CancellationToken token)
+        {
+            if (_isDisposed)
+                throw new ObjectDisposedException(this.GetType().Name);
+            try
+            {
+                OnMethodRun();
+                var answer = _rpcClient.Get(new BobStorage.GetRequest(), cancellationToken: token, deadline: GetDeadline(_operationTimeout));
+                OnMethodSuccess();
+            }
+            catch (Grpc.Core.RpcException e)
+            {
+                if (IsOperationCancelledError(e, token))
+                {
+                    OnMethodCancelledTimeouted();
+                    throw new OperationCanceledException(token);
+                }
+                if (IsOperationTimeoutError(e))
+                {
+                    OnMethodCancelledTimeouted();
+                    throw new TimeoutException($"Ping operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
+                }
+
+                OnMethodFailure();
+                throw new BobOperationException($"Ping operation failed on node: {_nodeAddress}", e);
+            }
+            catch
+            {
+                OnMethodFailure();
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Sends Ping to Bob node
+        /// </summary>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        protected void Ping()
+        {
+            Ping(new CancellationToken());
+        }
+
+
+        /// <summary>
+        /// Sends Ping to Bob node
+        /// </summary>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result Task</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        protected async Task PingAsync(CancellationToken token)
+        {
+            if (_isDisposed)
+                throw new ObjectDisposedException(this.GetType().Name);
+
+            try
+            {
+                OnMethodRun();
+                await _rpcClient.PingAsync(new BobStorage.Null(), cancellationToken: token, deadline: GetDeadline(_operationTimeout));
+                OnMethodSuccess();
+            }
+            catch (Grpc.Core.RpcException e)
+            {
+                if (IsOperationCancelledError(e, token))
+                {
+                    OnMethodCancelledTimeouted();
+                    throw new OperationCanceledException(token);
+                }
+                if (IsOperationTimeoutError(e))
+                {
+                    OnMethodCancelledTimeouted();
+                    throw new TimeoutException($"Ping operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
+                }
+
+                OnMethodFailure();
+                throw new BobOperationException($"Ping operation failed on node: {_nodeAddress}", e);
+            }
+            catch
+            {
+                OnMethodFailure();
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Sends Ping to Bob node
+        /// </summary>
+        /// <returns>Operation result Task</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        protected Task PingAsync()
+        {
+            return PingAsync(new CancellationToken());
+        }
+
+        #endregion
+
+        #region ============ Get ============
 
         /// <summary>
         /// Reads data from Bob
@@ -694,6 +810,10 @@ namespace Qoollo.BobClient
             return GetAsync(key, false, new CancellationToken());
         }
 
+        #endregion
+
+        #region ============ Exists ============
+
         /// <summary>
         /// Checks data presented in Bob
         /// </summary>
@@ -889,6 +1009,9 @@ namespace Qoollo.BobClient
         {
             return ExistsAsync(keys, false, new CancellationToken());
         }
+
+        #endregion
+
 
         /// <summary>
         ///  Cleans-up all resources
