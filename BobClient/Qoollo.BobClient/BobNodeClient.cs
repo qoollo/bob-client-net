@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Resources;
 using System.Text;
 using System.Threading;
@@ -105,7 +106,11 @@ namespace Qoollo.BobClient
 
             _nodeAddress = nodeAddress;
             _operationTimeout = operationTimeout;
-            _rpcChannel = Grpc.Net.Client.GrpcChannel.ForAddress(nodeAddress.Address, new Grpc.Net.Client.GrpcChannelOptions() { Credentials = Grpc.Core.ChannelCredentials.Insecure });
+            _rpcChannel = Grpc.Net.Client.GrpcChannel.ForAddress(nodeAddress.Address, 
+                                                                 new Grpc.Net.Client.GrpcChannelOptions() 
+                                                                 { 
+                                                                    Credentials = Grpc.Core.ChannelCredentials.Insecure
+                                                                 });
             _rpcClient = new BobStorage.BobApi.BobApiClient(_rpcChannel);
 
             _state = (int)BobNodeClientState.Idle;
@@ -302,12 +307,19 @@ namespace Qoollo.BobClient
             try
             {
                 await _rpcChannel.ShutdownAsync();
+                _rpcChannel.Dispose();
                 _isDisposed = true;
                 OnShutdown();
             }
             catch (Grpc.Core.RpcException rpce)
             {
+                OnMethodFailure();
                 throw new BobOperationException($"Client closing failed for node {_nodeAddress}", rpce);
+            }
+            catch
+            {
+                OnMethodFailure();
+                throw;
             }
         }
         /// <summary>
@@ -686,17 +698,32 @@ namespace Qoollo.BobClient
 
             try
             {
+                OnMethodRun();
                 var answer = _rpcClient.Exist(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
-                return answer.Exist.ToArray();
+                var result = answer.Exist.ToArray();
+                OnMethodSuccess();
+                return result;
             }
             catch (Grpc.Core.RpcException e)
             {
                 if (IsOperationCancelledError(e, token))
+                {
+                    OnMethodCancelledTimeouted();
                     throw new OperationCanceledException(token);
+                }
                 if (IsOperationTimeoutError(e))
+                {
+                    OnMethodCancelledTimeouted();
                     throw new TimeoutException($"Exists operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
-                
+                }
+
+                OnMethodFailure();
                 throw new BobOperationException($"Exists operation failed.", e);
+            }
+            catch
+            {
+                OnMethodFailure();
+                throw;
             }
         }
 
@@ -769,17 +796,32 @@ namespace Qoollo.BobClient
 
             try
             {
+                OnMethodRun();
                 var answer = await _rpcClient.ExistAsync(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
-                return answer.Exist.ToArray();
+                var result = answer.Exist.ToArray();
+                OnMethodSuccess();
+                return result;
             }
             catch (Grpc.Core.RpcException e)
             {
                 if (IsOperationCancelledError(e, token))
+                {
+                    OnMethodCancelledTimeouted();
                     throw new OperationCanceledException(token);
+                }
                 if (IsOperationTimeoutError(e))
+                {
+                    OnMethodCancelledTimeouted();
                     throw new TimeoutException($"Exists operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
-                
+                }
+
+                OnMethodFailure();
                 throw new BobOperationException($"Exists operation failed.", e);
+            }
+            catch
+            {
+                OnMethodFailure();
+                throw;
             }
         }
 
@@ -836,13 +878,9 @@ namespace Qoollo.BobClient
         {
             if (!_isDisposed)
             {
+                _rpcChannel.Dispose();
+                OnShutdown();
                 _isDisposed = true;
-
-                try
-                {
-                    this.Close();
-                }
-                catch { }
             }
         }
 
