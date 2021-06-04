@@ -49,19 +49,19 @@ namespace BobStorage {
             "dG9yYWdlLkV4aXN0UmVzcG9uc2UiAGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::BobStorage.GetSource), }, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.Null), global::BobStorage.Null.Parser, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.PutRequest), global::BobStorage.PutRequest.Parser, new[]{ "Key", "Data", "Options" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.GetRequest), global::BobStorage.GetRequest.Parser, new[]{ "Key", "Options" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.ExistRequest), global::BobStorage.ExistRequest.Parser, new[]{ "Keys", "Options" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.BlobKey), global::BobStorage.BlobKey.Parser, new[]{ "Key" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.Blob), global::BobStorage.Blob.Parser, new[]{ "Data", "Meta" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.BlobMeta), global::BobStorage.BlobMeta.Parser, new[]{ "Timestamp" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.OpStatus), global::BobStorage.OpStatus.Parser, new[]{ "Error" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.ExistResponse), global::BobStorage.ExistResponse.Parser, new[]{ "Exist" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.PutOptions), global::BobStorage.PutOptions.Parser, new[]{ "RemoteNodes", "ForceNode", "Overwrite" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.GetOptions), global::BobStorage.GetOptions.Parser, new[]{ "ForceNode", "Source" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.BobError), global::BobStorage.BobError.Parser, new[]{ "Code", "Desc" }, null, null, null)
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::BobStorage.GetSource), }, null, new pbr::GeneratedClrTypeInfo[] {
+            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.Null), global::BobStorage.Null.Parser, null, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.PutRequest), global::BobStorage.PutRequest.Parser, new[]{ "Key", "Data", "Options" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.GetRequest), global::BobStorage.GetRequest.Parser, new[]{ "Key", "Options" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.ExistRequest), global::BobStorage.ExistRequest.Parser, new[]{ "Keys", "Options" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.BlobKey), global::BobStorage.BlobKey.Parser, new[]{ "Key" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.Blob), global::BobStorage.Blob.Parser, new[]{ "Data", "Meta" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.BlobMeta), global::BobStorage.BlobMeta.Parser, new[]{ "Timestamp" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.OpStatus), global::BobStorage.OpStatus.Parser, new[]{ "Error" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.ExistResponse), global::BobStorage.ExistResponse.Parser, new[]{ "Exist" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.PutOptions), global::BobStorage.PutOptions.Parser, new[]{ "RemoteNodes", "ForceNode", "Overwrite" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.GetOptions), global::BobStorage.GetOptions.Parser, new[]{ "ForceNode", "Source" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::BobStorage.BobError), global::BobStorage.BobError.Parser, new[]{ "Code", "Desc" }, null, null, null, null)
           }));
     }
     #endregion
@@ -74,10 +74,14 @@ namespace BobStorage {
     [pbr::OriginalName("ALIEN")] Alien = 2,
   }
 
-    #endregion
+  #endregion
 
-    #region Messages
-    internal sealed partial class Null : pb::IMessage<Null> {
+  #region Messages
+  internal sealed partial class Null : pb::IMessage<Null>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<Null> _parser = new pb::MessageParser<Null>(() => new Null());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -142,10 +146,23 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -166,6 +183,9 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -174,14 +194,33 @@ namespace BobStorage {
             break;
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+        }
+      }
+    }
+    #endif
 
   }
 
-    /// <summary>
-    /// Put operation parameters
-    /// </summary>
-    internal sealed partial class PutRequest : pb::IMessage<PutRequest> {
+  /// <summary>
+  /// Put operation parameters
+  /// </summary>
+  internal sealed partial class PutRequest : pb::IMessage<PutRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<PutRequest> _parser = new pb::MessageParser<PutRequest>(() => new PutRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -297,6 +336,9 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (key_ != null) {
         output.WriteRawTag(10);
         output.WriteMessage(Key);
@@ -312,7 +354,29 @@ namespace BobStorage {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (key_ != null) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Key);
+      }
+      if (data_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(Data);
+      }
+      if (options_ != null) {
+        output.WriteRawTag(26);
+        output.WriteMessage(Options);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -360,6 +424,9 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -389,14 +456,54 @@ namespace BobStorage {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            if (key_ == null) {
+              Key = new global::BobStorage.BlobKey();
+            }
+            input.ReadMessage(Key);
+            break;
+          }
+          case 18: {
+            if (data_ == null) {
+              Data = new global::BobStorage.Blob();
+            }
+            input.ReadMessage(Data);
+            break;
+          }
+          case 26: {
+            if (options_ == null) {
+              Options = new global::BobStorage.PutOptions();
+            }
+            input.ReadMessage(Options);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-    /// <summary>
-    /// Get operation parameters
-    /// </summary>
-    internal sealed partial class GetRequest : pb::IMessage<GetRequest> {
+  /// <summary>
+  /// Get operation parameters
+  /// </summary>
+  internal sealed partial class GetRequest : pb::IMessage<GetRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<GetRequest> _parser = new pb::MessageParser<GetRequest>(() => new GetRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -495,6 +602,9 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (key_ != null) {
         output.WriteRawTag(10);
         output.WriteMessage(Key);
@@ -506,7 +616,25 @@ namespace BobStorage {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (key_ != null) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Key);
+      }
+      if (options_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(Options);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -545,6 +673,9 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -567,14 +698,47 @@ namespace BobStorage {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            if (key_ == null) {
+              Key = new global::BobStorage.BlobKey();
+            }
+            input.ReadMessage(Key);
+            break;
+          }
+          case 18: {
+            if (options_ == null) {
+              Options = new global::BobStorage.GetOptions();
+            }
+            input.ReadMessage(Options);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-    /// <summary>
-    /// Exist operation parameters
-    /// </summary>
-    internal sealed partial class ExistRequest : pb::IMessage<ExistRequest> {
+  /// <summary>
+  /// Exist operation parameters
+  /// </summary>
+  internal sealed partial class ExistRequest : pb::IMessage<ExistRequest>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ExistRequest> _parser = new pb::MessageParser<ExistRequest>(() => new ExistRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -672,6 +836,9 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       keys_.WriteTo(output, _repeated_keys_codec);
       if (options_ != null) {
         output.WriteRawTag(18);
@@ -680,7 +847,22 @@ namespace BobStorage {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      keys_.WriteTo(ref output, _repeated_keys_codec);
+      if (options_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(Options);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -712,6 +894,9 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -731,14 +916,44 @@ namespace BobStorage {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            keys_.AddEntriesFrom(ref input, _repeated_keys_codec);
+            break;
+          }
+          case 18: {
+            if (options_ == null) {
+              Options = new global::BobStorage.GetOptions();
+            }
+            input.ReadMessage(Options);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-    /// <summary>
-    /// Blob id
-    /// </summary>
-    internal sealed partial class BlobKey : pb::IMessage<BlobKey> {
+  /// <summary>
+  /// Blob id
+  /// </summary>
+  internal sealed partial class BlobKey : pb::IMessage<BlobKey>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<BlobKey> _parser = new pb::MessageParser<BlobKey>(() => new BlobKey());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -820,6 +1035,9 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Key != 0UL) {
         output.WriteRawTag(8);
         output.WriteUInt64(Key);
@@ -827,7 +1045,21 @@ namespace BobStorage {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Key != 0UL) {
+        output.WriteRawTag(8);
+        output.WriteUInt64(Key);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -854,6 +1086,9 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -866,14 +1101,37 @@ namespace BobStorage {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Key = input.ReadUInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-    /// <summary>
-    /// Data blob
-    /// </summary>
-    internal sealed partial class Blob : pb::IMessage<Blob> {
+  /// <summary>
+  /// Data blob
+  /// </summary>
+  internal sealed partial class Blob : pb::IMessage<Blob>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<Blob> _parser = new pb::MessageParser<Blob>(() => new Blob());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -972,6 +1230,9 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Data.Length != 0) {
         output.WriteRawTag(10);
         output.WriteBytes(Data);
@@ -983,7 +1244,25 @@ namespace BobStorage {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Data.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(Data);
+      }
+      if (meta_ != null) {
+        output.WriteRawTag(18);
+        output.WriteMessage(Meta);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -1019,6 +1298,9 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1038,14 +1320,44 @@ namespace BobStorage {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            Data = input.ReadBytes();
+            break;
+          }
+          case 18: {
+            if (meta_ == null) {
+              Meta = new global::BobStorage.BlobMeta();
+            }
+            input.ReadMessage(Meta);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-    /// <summary>
-    /// Blob metadata
-    /// </summary>
-    internal sealed partial class BlobMeta : pb::IMessage<BlobMeta> {
+  /// <summary>
+  /// Blob metadata
+  /// </summary>
+  internal sealed partial class BlobMeta : pb::IMessage<BlobMeta>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<BlobMeta> _parser = new pb::MessageParser<BlobMeta>(() => new BlobMeta());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1127,6 +1439,9 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Timestamp != 0L) {
         output.WriteRawTag(8);
         output.WriteInt64(Timestamp);
@@ -1134,7 +1449,21 @@ namespace BobStorage {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Timestamp != 0L) {
+        output.WriteRawTag(8);
+        output.WriteInt64(Timestamp);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -1161,6 +1490,9 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1173,14 +1505,37 @@ namespace BobStorage {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Timestamp = input.ReadInt64();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-    /// <summary>
-    /// Operation status
-    /// </summary>
-    internal sealed partial class OpStatus : pb::IMessage<OpStatus> {
+  /// <summary>
+  /// Operation status
+  /// </summary>
+  internal sealed partial class OpStatus : pb::IMessage<OpStatus>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<OpStatus> _parser = new pb::MessageParser<OpStatus>(() => new OpStatus());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1262,6 +1617,9 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (error_ != null) {
         output.WriteRawTag(10);
         output.WriteMessage(Error);
@@ -1269,7 +1627,21 @@ namespace BobStorage {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (error_ != null) {
+        output.WriteRawTag(10);
+        output.WriteMessage(Error);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -1299,6 +1671,9 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1314,11 +1689,37 @@ namespace BobStorage {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            if (error_ == null) {
+              Error = new global::BobStorage.BobError();
+            }
+            input.ReadMessage(Error);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-    internal sealed partial class ExistResponse : pb::IMessage<ExistResponse> {
+  internal sealed partial class ExistResponse : pb::IMessage<ExistResponse>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<ExistResponse> _parser = new pb::MessageParser<ExistResponse>(() => new ExistResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1396,11 +1797,25 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       exist_.WriteTo(output, _repeated_exist_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      exist_.WriteTo(ref output, _repeated_exist_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -1423,6 +1838,9 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1436,14 +1854,38 @@ namespace BobStorage {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10:
+          case 8: {
+            exist_.AddEntriesFrom(ref input, _repeated_exist_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-    /// <summary>
-    /// Put operation options
-    /// </summary>
-    internal sealed partial class PutOptions : pb::IMessage<PutOptions> {
+  /// <summary>
+  /// Put operation options
+  /// </summary>
+  internal sealed partial class PutOptions : pb::IMessage<PutOptions>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<PutOptions> _parser = new pb::MessageParser<PutOptions>(() => new PutOptions());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1555,6 +1997,9 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       remoteNodes_.WriteTo(output, _repeated_remoteNodes_codec);
       if (ForceNode != false) {
         output.WriteRawTag(16);
@@ -1567,7 +2012,26 @@ namespace BobStorage {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      remoteNodes_.WriteTo(ref output, _repeated_remoteNodes_codec);
+      if (ForceNode != false) {
+        output.WriteRawTag(16);
+        output.WriteBool(ForceNode);
+      }
+      if (Overwrite != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(Overwrite);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -1602,6 +2066,9 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1622,14 +2089,45 @@ namespace BobStorage {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            remoteNodes_.AddEntriesFrom(ref input, _repeated_remoteNodes_codec);
+            break;
+          }
+          case 16: {
+            ForceNode = input.ReadBool();
+            break;
+          }
+          case 24: {
+            Overwrite = input.ReadBool();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-    /// <summary>
-    /// Get operation options
-    /// </summary>
-    internal sealed partial class GetOptions : pb::IMessage<GetOptions> {
+  /// <summary>
+  /// Get operation options
+  /// </summary>
+  internal sealed partial class GetOptions : pb::IMessage<GetOptions>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<GetOptions> _parser = new pb::MessageParser<GetOptions>(() => new GetOptions());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1680,7 +2178,7 @@ namespace BobStorage {
 
     /// <summary>Field number for the "source" field.</summary>
     public const int SourceFieldNumber = 2;
-    private global::BobStorage.GetSource source_ = 0;
+    private global::BobStorage.GetSource source_ = global::BobStorage.GetSource.All;
     /// <summary>
     /// Set source for data reading
     /// </summary>
@@ -1714,7 +2212,7 @@ namespace BobStorage {
     public override int GetHashCode() {
       int hash = 1;
       if (ForceNode != false) hash ^= ForceNode.GetHashCode();
-      if (Source != 0) hash ^= Source.GetHashCode();
+      if (Source != global::BobStorage.GetSource.All) hash ^= Source.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -1728,18 +2226,39 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (ForceNode != false) {
         output.WriteRawTag(8);
         output.WriteBool(ForceNode);
       }
-      if (Source != 0) {
+      if (Source != global::BobStorage.GetSource.All) {
         output.WriteRawTag(16);
         output.WriteEnum((int) Source);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (ForceNode != false) {
+        output.WriteRawTag(8);
+        output.WriteBool(ForceNode);
+      }
+      if (Source != global::BobStorage.GetSource.All) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) Source);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -1747,7 +2266,7 @@ namespace BobStorage {
       if (ForceNode != false) {
         size += 1 + 1;
       }
-      if (Source != 0) {
+      if (Source != global::BobStorage.GetSource.All) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Source);
       }
       if (_unknownFields != null) {
@@ -1764,7 +2283,7 @@ namespace BobStorage {
       if (other.ForceNode != false) {
         ForceNode = other.ForceNode;
       }
-      if (other.Source != 0) {
+      if (other.Source != global::BobStorage.GetSource.All) {
         Source = other.Source;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
@@ -1772,6 +2291,9 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1788,11 +2310,38 @@ namespace BobStorage {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            ForceNode = input.ReadBool();
+            break;
+          }
+          case 16: {
+            Source = (global::BobStorage.GetSource) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
-    internal sealed partial class BobError : pb::IMessage<BobError> {
+  internal sealed partial class BobError : pb::IMessage<BobError>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
     private static readonly pb::MessageParser<BobError> _parser = new pb::MessageParser<BobError>(() => new BobError());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1891,6 +2440,9 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
       if (Code != 0) {
         output.WriteRawTag(8);
         output.WriteInt32(Code);
@@ -1902,7 +2454,25 @@ namespace BobStorage {
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Code != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Code);
+      }
+      if (Desc.Length != 0) {
+        output.WriteRawTag(18);
+        output.WriteString(Desc);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
@@ -1935,6 +2505,9 @@ namespace BobStorage {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
         switch(tag) {
@@ -1951,11 +2524,35 @@ namespace BobStorage {
           }
         }
       }
+    #endif
     }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            Code = input.ReadInt32();
+            break;
+          }
+          case 18: {
+            Desc = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+    #endif
 
   }
 
   #endregion
+
 }
 
 #endregion Designer generated code

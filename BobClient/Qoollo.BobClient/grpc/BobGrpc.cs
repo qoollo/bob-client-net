@@ -15,13 +15,43 @@ namespace BobStorage {
   {
     static readonly string __ServiceName = "bob_storage.BobApi";
 
-    static readonly grpc::Marshaller<global::BobStorage.PutRequest> __Marshaller_bob_storage_PutRequest = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::BobStorage.PutRequest.Parser.ParseFrom);
-    static readonly grpc::Marshaller<global::BobStorage.OpStatus> __Marshaller_bob_storage_OpStatus = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::BobStorage.OpStatus.Parser.ParseFrom);
-    static readonly grpc::Marshaller<global::BobStorage.GetRequest> __Marshaller_bob_storage_GetRequest = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::BobStorage.GetRequest.Parser.ParseFrom);
-    static readonly grpc::Marshaller<global::BobStorage.Blob> __Marshaller_bob_storage_Blob = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::BobStorage.Blob.Parser.ParseFrom);
-    static readonly grpc::Marshaller<global::BobStorage.Null> __Marshaller_bob_storage_Null = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::BobStorage.Null.Parser.ParseFrom);
-    static readonly grpc::Marshaller<global::BobStorage.ExistRequest> __Marshaller_bob_storage_ExistRequest = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::BobStorage.ExistRequest.Parser.ParseFrom);
-    static readonly grpc::Marshaller<global::BobStorage.ExistResponse> __Marshaller_bob_storage_ExistResponse = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::BobStorage.ExistResponse.Parser.ParseFrom);
+    static void __Helper_SerializeMessage(global::Google.Protobuf.IMessage message, grpc::SerializationContext context)
+    {
+      #if !GRPC_DISABLE_PROTOBUF_BUFFER_SERIALIZATION
+      if (message is global::Google.Protobuf.IBufferMessage)
+      {
+        context.SetPayloadLength(message.CalculateSize());
+        global::Google.Protobuf.MessageExtensions.WriteTo(message, context.GetBufferWriter());
+        context.Complete();
+        return;
+      }
+      #endif
+      context.Complete(global::Google.Protobuf.MessageExtensions.ToByteArray(message));
+    }
+
+    static class __Helper_MessageCache<T>
+    {
+      public static readonly bool IsBufferMessage = global::System.Reflection.IntrospectionExtensions.GetTypeInfo(typeof(global::Google.Protobuf.IBufferMessage)).IsAssignableFrom(typeof(T));
+    }
+
+    static T __Helper_DeserializeMessage<T>(grpc::DeserializationContext context, global::Google.Protobuf.MessageParser<T> parser) where T : global::Google.Protobuf.IMessage<T>
+    {
+      #if !GRPC_DISABLE_PROTOBUF_BUFFER_SERIALIZATION
+      if (__Helper_MessageCache<T>.IsBufferMessage)
+      {
+        return parser.ParseFrom(context.PayloadAsReadOnlySequence());
+      }
+      #endif
+      return parser.ParseFrom(context.PayloadAsNewBuffer());
+    }
+
+    static readonly grpc::Marshaller<global::BobStorage.PutRequest> __Marshaller_bob_storage_PutRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::BobStorage.PutRequest.Parser));
+    static readonly grpc::Marshaller<global::BobStorage.OpStatus> __Marshaller_bob_storage_OpStatus = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::BobStorage.OpStatus.Parser));
+    static readonly grpc::Marshaller<global::BobStorage.GetRequest> __Marshaller_bob_storage_GetRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::BobStorage.GetRequest.Parser));
+    static readonly grpc::Marshaller<global::BobStorage.Blob> __Marshaller_bob_storage_Blob = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::BobStorage.Blob.Parser));
+    static readonly grpc::Marshaller<global::BobStorage.Null> __Marshaller_bob_storage_Null = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::BobStorage.Null.Parser));
+    static readonly grpc::Marshaller<global::BobStorage.ExistRequest> __Marshaller_bob_storage_ExistRequest = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::BobStorage.ExistRequest.Parser));
+    static readonly grpc::Marshaller<global::BobStorage.ExistResponse> __Marshaller_bob_storage_ExistResponse = grpc::Marshallers.Create(__Helper_SerializeMessage, context => __Helper_DeserializeMessage(context, global::BobStorage.ExistResponse.Parser));
 
     static readonly grpc::Method<global::BobStorage.PutRequest, global::BobStorage.OpStatus> __Method_Put = new grpc::Method<global::BobStorage.PutRequest, global::BobStorage.OpStatus>(
         grpc::MethodType.Unary,
