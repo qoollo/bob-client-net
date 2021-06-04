@@ -60,5 +60,16 @@ namespace BobStorage
                 Source = fullGet ? GetSource.All : GetSource.Normal
             };
         }
+        public ExistRequest(IReadOnlyList<ulong> keys, bool fullGet = false)
+        {
+            keys_ = new Google.Protobuf.Collections.RepeatedField<BlobKey>();
+            for (int i = 0; i < keys.Count; i++)
+                keys_.Add(new BlobKey() { Key = keys[i] });
+
+            Options = new GetOptions
+            {
+                Source = fullGet ? GetSource.All : GetSource.Normal
+            };
+        }
     }
 }

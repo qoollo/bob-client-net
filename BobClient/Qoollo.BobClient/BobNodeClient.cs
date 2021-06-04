@@ -147,7 +147,7 @@ namespace Qoollo.BobClient
         /// <summary>
         /// Address of the Node
         /// </summary>
-        public NodeAddress NodeAddress
+        public NodeAddress Address
         {
             get { return _nodeAddress; }
         }
@@ -814,11 +814,11 @@ namespace Qoollo.BobClient
 
         #region ============ Exists ============
 
+
         /// <summary>
         /// Checks data presented in Bob
         /// </summary>
-        /// <param name="keys">Keys array</param>
-        /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <param name="request">Prepared request</param>
         /// <param name="token">Cancellation token</param>
         /// /// <returns>Operation result</returns>
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
@@ -826,15 +826,10 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        public bool[] Exists(ulong[] keys, bool fullGet, CancellationToken token)
+        private bool[] Exists(BobStorage.ExistRequest request, CancellationToken token)
         {
-            if (keys == null)
-                throw new ArgumentNullException(nameof(keys), "keys should not be null");
-
-            if (_isDisposed)
-                throw new ObjectDisposedException(GetType().Name);
-
-            var request = new BobStorage.ExistRequest(keys, fullGet);
+            System.Diagnostics.Debug.Assert(request != null);
+            System.Diagnostics.Debug.Assert(!_isDisposed);
 
             try
             {
@@ -865,6 +860,29 @@ namespace Qoollo.BobClient
                 OnMethodFailure();
                 throw;
             }
+        }
+
+
+        /// <summary>
+        /// Checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <param name="token">Cancellation token</param>
+        /// /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public bool[] Exists(ulong[] keys, bool fullGet, CancellationToken token)
+        {
+            if (keys == null)
+                throw new ArgumentNullException(nameof(keys), "keys should not be null");
+            if (_isDisposed)
+                throw new ObjectDisposedException(GetType().Name);
+
+            return Exists(new BobStorage.ExistRequest(keys, fullGet), token);
         }
 
         /// <summary>
@@ -912,11 +930,80 @@ namespace Qoollo.BobClient
             return Exists(keys, false, new CancellationToken());
         }
 
+
         /// <summary>
-        /// Asynchronously checks data presented in Bob
+        /// Checks data presented in Bob
         /// </summary>
         /// <param name="keys">Keys array</param>
         /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <param name="token">Cancellation token</param>
+        /// /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public bool[] Exists(IReadOnlyList<ulong> keys, bool fullGet, CancellationToken token)
+        {
+            if (keys == null)
+                throw new ArgumentNullException(nameof(keys), "keys should not be null");
+            if (_isDisposed)
+                throw new ObjectDisposedException(GetType().Name);
+
+            return Exists(new BobStorage.ExistRequest(keys, fullGet), token);
+        }
+
+        /// <summary>
+        /// Checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public bool[] Exists(IReadOnlyList<ulong> keys, CancellationToken token)
+        {
+            return Exists(keys, false, token);
+        }
+
+        /// <summary>
+        /// Checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public bool[] Exists(IReadOnlyList<ulong> keys, bool fullGet)
+        {
+            return Exists(keys, fullGet, new CancellationToken());
+        }
+
+        /// <summary>
+        /// Checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public bool[] Exists(IReadOnlyList<ulong> keys)
+        {
+            return Exists(keys, false, new CancellationToken());
+        }
+
+
+
+        /// <summary>
+        /// Asynchronously checks data presented in Bob
+        /// </summary>
+        /// <param name="request">Prepared request</param>
         /// <param name="token">Cancellation token</param>
         /// <returns>Operation result</returns>
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
@@ -924,15 +1011,10 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        public async Task<bool[]> ExistsAsync(ulong[] keys, bool fullGet, CancellationToken token)
+        private async Task<bool[]> ExistsAsync(BobStorage.ExistRequest request, CancellationToken token)
         {
-            if (keys == null)
-                throw new ArgumentNullException(nameof(keys), "keys should not be null");
-
-            if (_isDisposed)
-                throw new ObjectDisposedException(GetType().Name);
-
-            var request = new BobStorage.ExistRequest(keys, fullGet);
+            System.Diagnostics.Debug.Assert(request != null);
+            System.Diagnostics.Debug.Assert(!_isDisposed);
 
             try
             {
@@ -963,6 +1045,28 @@ namespace Qoollo.BobClient
                 OnMethodFailure();
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Asynchronously checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public async Task<bool[]> ExistsAsync(ulong[] keys, bool fullGet, CancellationToken token)
+        {
+            if (keys == null)
+                throw new ArgumentNullException(nameof(keys), "keys should not be null");
+            if (_isDisposed)
+                throw new ObjectDisposedException(GetType().Name);
+
+            return await ExistsAsync(new BobStorage.ExistRequest(keys, fullGet), token);
         }
 
         /// <summary>
@@ -1006,6 +1110,74 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
         public Task<bool[]> ExistsAsync(ulong[] keys)
+        {
+            return ExistsAsync(keys, false, new CancellationToken());
+        }
+
+
+        /// <summary>
+        /// Asynchronously checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public async Task<bool[]> ExistsAsync(IReadOnlyList<ulong> keys, bool fullGet, CancellationToken token)
+        {
+            if (keys == null)
+                throw new ArgumentNullException(nameof(keys), "keys should not be null");
+            if (_isDisposed)
+                throw new ObjectDisposedException(GetType().Name);
+
+            return await ExistsAsync(new BobStorage.ExistRequest(keys, fullGet), token);
+        }
+
+        /// <summary>
+        /// Asynchronously checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public Task<bool[]> ExistsAsync(IReadOnlyList<ulong> keys, CancellationToken token)
+        {
+            return ExistsAsync(keys, false, token);
+        }
+
+        /// <summary>
+        /// Asynchronously checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public Task<bool[]> ExistsAsync(IReadOnlyList<ulong> keys, bool fullGet)
+        {
+            return ExistsAsync(keys, fullGet, new CancellationToken());
+        }
+
+        /// <summary>
+        /// Asynchronously checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public Task<bool[]> ExistsAsync(IReadOnlyList<ulong> keys)
         {
             return ExistsAsync(keys, false, new CancellationToken());
         }
