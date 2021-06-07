@@ -7,6 +7,7 @@ namespace Qoollo.BobClient
     /// <summary>
     /// Single node describtion
     /// </summary>
+    [System.Diagnostics.DebuggerDisplay("[Address: {Address}]")]
     public class NodeAddress
     {
         /// <summary>
@@ -56,7 +57,7 @@ namespace Qoollo.BobClient
         /// <returns>String representation of NodeAddress</returns>
         public override string ToString()
         {
-            return $"[Address: {Address}]";
+            return Address;
         }
     }
 }

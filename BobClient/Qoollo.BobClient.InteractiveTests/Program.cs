@@ -16,9 +16,16 @@ namespace Qoollo.BobClient.InteractiveTests
             Stopwatch sw = Stopwatch.StartNew();
             for (int i = 0; i < count; i++)
             {
-                client.Put(startId + (ulong)i, _sampleData, default(CancellationToken));
-                if (i % 100 == 0)
-                    Console.WriteLine($"Put {startId + (ulong)i}: Ok");
+                try
+                {
+                    client.Put(startId + (ulong)i, _sampleData, default(CancellationToken));
+                    if (i % 100 == 0)
+                        Console.WriteLine($"Put {startId + (ulong)i}: Ok");
+                }
+                catch
+                {
+                    Console.WriteLine($"Put {startId + (ulong)i}: Error");
+                }
             }
 
             Console.WriteLine($"Put finished in {sw.ElapsedMilliseconds}ms. Rps: {(double)(1000 * count) / sw.ElapsedMilliseconds}");

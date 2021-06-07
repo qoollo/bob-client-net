@@ -80,6 +80,39 @@ namespace Qoollo.BobClient
             return e.StatusCode == Grpc.Core.StatusCode.Cancelled && suppliedToken.IsCancellationRequested;
         }
 
+        /// <summary>
+        /// Combines BobNodeClientState and SequentialErrorCount into single int
+        /// </summary>
+        /// <param name="state">State value</param>
+        /// <param name="sequentialErrorCount">SequentialErrorCount value</param>
+        /// <returns>Combined value</returns>
+        private static int PackStateErrorCount(BobNodeClientState state, int sequentialErrorCount)
+        {
+            System.Diagnostics.Debug.Assert(sequentialErrorCount >= 0);
+            if (sequentialErrorCount > short.MaxValue)
+                sequentialErrorCount = short.MaxValue;
+
+            return (sequentialErrorCount << 16) | (int)state;
+        }
+        /// <summary>
+        /// Extracts BobNodeClientState from combined StateErrorCount
+        /// </summary>
+        /// <param name="stateErrorCount">Combined StateErrorCount</param>
+        /// <returns>Extracted BobNodeClientState</returns>
+        private static BobNodeClientState ExtractState(int stateErrorCount)
+        {
+            return (BobNodeClientState)(stateErrorCount & byte.MaxValue);
+        }
+        /// <summary>
+        /// Extracts sequential error count from combined StateErrorCount
+        /// </summary>
+        /// <param name="stateErrorCount">Combined StateErrorCount</param>
+        /// <returns>Extracted sequential error count</returns>
+        private static int ExtractSequentialErrorCount(int stateErrorCount)
+        {
+            return stateErrorCount >> 16;
+        }
+
         // =========
 
         private readonly NodeAddress _nodeAddress;
@@ -92,7 +125,7 @@ namespace Qoollo.BobClient
 #endif
         private readonly BobStorage.BobApi.BobApiClient _rpcClient;
 
-        private volatile int _state;
+        private volatile int _stateErrorCountCombination;
         private volatile bool _isDisposed;
 
 
@@ -123,7 +156,7 @@ namespace Qoollo.BobClient
 
             _rpcClient = new BobStorage.BobApi.BobApiClient(_rpcChannel);
 
-            _state = (int)BobNodeClientState.Idle;
+            _stateErrorCountCombination = PackStateErrorCount(BobNodeClientState.Idle, 0);
             _isDisposed = false;
         }
         /// <summary>
@@ -157,19 +190,27 @@ namespace Qoollo.BobClient
         /// </summary>
         public BobNodeClientState State 
         {
-            get { return (BobNodeClientState)_state; }
-            private set { _state = (int)value; }
+            get { return ExtractState(_stateErrorCountCombination); }
+        }
+
+        /// <summary>
+        /// Number of sequential errors
+        /// </summary>
+        public int SequentialErrorCount
+        {
+            get { return ExtractSequentialErrorCount(_stateErrorCountCombination); }
         }
 
         /// <summary>
         /// Attempts to atomically update State
         /// </summary>
         /// <param name="newState">New state</param>
-        /// <param name="expectedState">Expected current state</param>
+        /// <param name="newSequentialErrorCount">New sequential error count value</param>
+        /// <param name="expectedStateErrorCount">Expected combined StateErrorCount</param>
         /// <returns>Was state updated</returns>
-        private bool TryUpdateStateAtomic(BobNodeClientState newState, BobNodeClientState expectedState)
+        private bool TryUpdateStateErrorCountAtomic(BobNodeClientState newState, int newSequentialErrorCount, int expectedStateErrorCount)
         {
-            return Interlocked.CompareExchange(ref _state, (int)newState, (int)expectedState) == (int)expectedState;
+            return Interlocked.CompareExchange(ref _stateErrorCountCombination, PackStateErrorCount(newState, newSequentialErrorCount), expectedStateErrorCount) == expectedStateErrorCount;
         }
 
         /// <summary>
@@ -178,11 +219,13 @@ namespace Qoollo.BobClient
         private void OnMethodRun()
         {
             SpinWait sw = new SpinWait();
-            BobNodeClientState curState = State;
-            while (curState == BobNodeClientState.Idle && !TryUpdateStateAtomic(BobNodeClientState.Connecting, curState))
+            int curStateErrorCount = _stateErrorCountCombination;
+            BobNodeClientState curState = ExtractState(curStateErrorCount);
+            while (curState == BobNodeClientState.Idle && !TryUpdateStateErrorCountAtomic(BobNodeClientState.Connecting, 0, curStateErrorCount))
             {
                 sw.SpinOnce();
-                curState = State;
+                curStateErrorCount = _stateErrorCountCombination;
+                curState = ExtractState(curStateErrorCount);
             }
         }
         /// <summary>
@@ -191,12 +234,14 @@ namespace Qoollo.BobClient
         private void OnMethodSuccess()
         {
             SpinWait sw = new SpinWait();
-            BobNodeClientState curState = State;
+            int curStateErrorCount = _stateErrorCountCombination;
+            BobNodeClientState curState = ExtractState(curStateErrorCount);
             while ((curState == BobNodeClientState.Idle || curState == BobNodeClientState.Connecting || curState == BobNodeClientState.TransientFailure)
-                    && !TryUpdateStateAtomic(BobNodeClientState.Ready, curState))
+                    && !TryUpdateStateErrorCountAtomic(BobNodeClientState.Ready, 0, curStateErrorCount))
             {
                 sw.SpinOnce();
-                curState = State;
+                curStateErrorCount = _stateErrorCountCombination;
+                curState = ExtractState(curStateErrorCount);
             }
         }
         /// <summary>
@@ -205,12 +250,14 @@ namespace Qoollo.BobClient
         private void OnMethodFailure()
         {
             SpinWait sw = new SpinWait();
-            BobNodeClientState curState = State;
-            while ((curState == BobNodeClientState.Idle || curState == BobNodeClientState.Connecting || curState == BobNodeClientState.Ready)
-                && !TryUpdateStateAtomic(BobNodeClientState.TransientFailure, curState))
+            int curStateErrorCount = _stateErrorCountCombination;
+            BobNodeClientState curState = ExtractState(curStateErrorCount);
+            while ((curState == BobNodeClientState.Idle || curState == BobNodeClientState.Connecting || curState == BobNodeClientState.Ready || curState == BobNodeClientState.TransientFailure)
+                && !TryUpdateStateErrorCountAtomic(BobNodeClientState.TransientFailure, ExtractSequentialErrorCount(curStateErrorCount) + 1, curStateErrorCount))
             {
                 sw.SpinOnce();
-                curState = State;
+                curStateErrorCount = _stateErrorCountCombination;
+                curState = ExtractState(curStateErrorCount);
             }
         }
         /// <summary>
@@ -219,11 +266,14 @@ namespace Qoollo.BobClient
         private void OnMethodCancelledTimeouted()
         {
             SpinWait sw = new SpinWait();
-            BobNodeClientState curState = State;
-            while (curState == BobNodeClientState.Connecting && !TryUpdateStateAtomic(BobNodeClientState.TransientFailure, curState))
+            int curStateErrorCount = _stateErrorCountCombination;
+            BobNodeClientState curState = ExtractState(curStateErrorCount);
+            while (curState == BobNodeClientState.Connecting 
+                && !TryUpdateStateErrorCountAtomic(BobNodeClientState.TransientFailure, 0, curStateErrorCount))
             {
                 sw.SpinOnce();
-                curState = State;
+                curStateErrorCount = _stateErrorCountCombination;
+                curState = ExtractState(curStateErrorCount);
             }
         }
         /// <summary>
@@ -231,7 +281,7 @@ namespace Qoollo.BobClient
         /// </summary>
         private void OnShutdown()
         {
-            State = BobNodeClientState.Shutdown;
+            _stateErrorCountCombination = PackStateErrorCount(BobNodeClientState.Shutdown, 0);
         }
 
 
@@ -829,7 +879,6 @@ namespace Qoollo.BobClient
         private bool[] Exists(BobStorage.ExistRequest request, CancellationToken token)
         {
             System.Diagnostics.Debug.Assert(request != null);
-            System.Diagnostics.Debug.Assert(!_isDisposed);
 
             try
             {
@@ -1014,7 +1063,6 @@ namespace Qoollo.BobClient
         private async Task<bool[]> ExistsAsync(BobStorage.ExistRequest request, CancellationToken token)
         {
             System.Diagnostics.Debug.Assert(request != null);
-            System.Diagnostics.Debug.Assert(!_isDisposed);
 
             try
             {
