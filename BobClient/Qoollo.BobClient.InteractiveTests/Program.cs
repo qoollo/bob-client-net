@@ -9,7 +9,7 @@ namespace Qoollo.BobClient.InteractiveTests
 {
     class Program
     {
-        private static readonly byte[] _sampleData = new byte[] { 0, 1, 2, 3 };
+        private static readonly byte[] _sampleData = Enumerable.Range(0, 1024).Select(o => (byte)(o % byte.MaxValue)).ToArray();
 
         static void PutTest(IBobApi client, ulong startId, int count)
         {
@@ -36,11 +36,22 @@ namespace Qoollo.BobClient.InteractiveTests
             Stopwatch sw = Stopwatch.StartNew();
             for (int i = 0; i < count; i++)
             {
-                var result = client.Get(startId + (ulong)i, fullGet: false, token: default(CancellationToken));
-                if (result.Length != _sampleData.Length)
-                    Console.WriteLine("Result length mismatch");
-                if (i % 100 == 0)
-                    Console.WriteLine($"Get {startId + (ulong)i}: Ok");
+                try
+                {
+                    var result = client.Get(startId + (ulong)i, fullGet: false, token: default(CancellationToken));
+                    if (result.Length != _sampleData.Length)
+                        Console.WriteLine("Result length mismatch");
+                    if (i % 100 == 0)
+                        Console.WriteLine($"Get {startId + (ulong)i}: Ok");
+                }
+                catch (BobKeyNotFoundException)
+                {
+                    Console.WriteLine($"Get {startId + (ulong)i}: Key not found");
+                }
+                catch
+                {
+                    Console.WriteLine($"Get {startId + (ulong)i}: Error");
+                }
             }
 
             Console.WriteLine($"Get finished in {sw.ElapsedMilliseconds}ms. Rps: {(double)(1000 * count) / sw.ElapsedMilliseconds}");
@@ -58,16 +69,20 @@ namespace Qoollo.BobClient.InteractiveTests
                 for (int j = 0; j < ids.Length; j++)
                     ids[j] = startId + (ulong)i + (ulong)j;
 
-                var result = client.Exists(ids, fullGet: false, token: default(CancellationToken));
-                if (result.Any(o => o == false))
-                    Console.WriteLine("Some id is not exist");
-
-                Console.WriteLine($"Exists {startId + (ulong)i}");
+                try
+                {
+                    var result = client.Exists(ids, fullGet: false, token: default(CancellationToken));
+                    int existedCount = result.Count(o => o == true);
+                    Console.WriteLine($"Exists {startId + (ulong)i} - {startId + (ulong)i + (ulong)ids.Length}: {existedCount}/{ids.Length}");
+                }
+                catch
+                {
+                    Console.WriteLine($"Exists {startId + (ulong)i} - {startId + (ulong)i + (ulong)ids.Length}: Error");
+                }
             }
 
             Console.WriteLine($"Exists finished in {sw.ElapsedMilliseconds}ms. Rps: {(double)(1000 * count) / sw.ElapsedMilliseconds}");
         }
-
 
 
         static void Main(string[] args)
@@ -81,9 +96,9 @@ namespace Qoollo.BobClient.InteractiveTests
             {
                 client.Open();
 
-                PutTest(client, 8000, 1000);
-                GetTest(client, 8000, 1000);
-                ExistsTest(client, 8000, 1000);
+                PutTest(client, 10000, 1000);
+                GetTest(client, 10000, 1000);
+                ExistsTest(client, 10000, 1000);
 
                 client.Close();
             }

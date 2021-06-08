@@ -40,12 +40,23 @@ namespace Qoollo.BobClient
     /// <summary>
     /// Client for a single Bob node
     /// </summary>
+    [System.Diagnostics.DebuggerDisplay("[Bob Node: {Address.Address}, State: {State}]")]
     public class BobNodeClient: IBobApi, IDisposable
     {
         /// <summary>
         /// Default operation timeout
         /// </summary>
         public static readonly TimeSpan DefaultOperationTimeout = TimeSpan.FromMinutes(2);
+
+        /// <summary>
+        /// Returns timestamp in milliseconds
+        /// </summary>
+        /// <returns>Timestamp value</returns>
+        private static int GetTimeStamp()
+        {
+            return Environment.TickCount;
+        }
+
 
         /// <summary>
         /// Calculates deadline value for GRPC
@@ -126,6 +137,7 @@ namespace Qoollo.BobClient
         private readonly BobStorage.BobApi.BobApiClient _rpcClient;
 
         private volatile int _stateErrorCountCombination;
+        private volatile int _lastOperationTimeStamp;
         private volatile bool _isDisposed;
 
 
@@ -157,6 +169,7 @@ namespace Qoollo.BobClient
             _rpcClient = new BobStorage.BobApi.BobApiClient(_rpcChannel);
 
             _stateErrorCountCombination = PackStateErrorCount(BobNodeClientState.Idle, 0);
+            _lastOperationTimeStamp = GetTimeStamp();
             _isDisposed = false;
         }
         /// <summary>
@@ -202,6 +215,18 @@ namespace Qoollo.BobClient
         }
 
         /// <summary>
+        /// Time elapsed since the last operation started (in milliseconds)
+        /// </summary>
+        public int TimeSinceLastOperationMs
+        {
+            get
+            {
+                int result = unchecked(GetTimeStamp() - _lastOperationTimeStamp);
+                return result >= 0 ? result : int.MaxValue;
+            }
+        }
+
+        /// <summary>
         /// Attempts to atomically update State
         /// </summary>
         /// <param name="newState">New state</param>
@@ -227,6 +252,8 @@ namespace Qoollo.BobClient
                 curStateErrorCount = _stateErrorCountCombination;
                 curState = ExtractState(curStateErrorCount);
             }
+
+            _lastOperationTimeStamp = GetTimeStamp();
         }
         /// <summary>
         /// Notification about method successful completion
