@@ -38,7 +38,7 @@ namespace Qoollo.BobClient.InteractiveTests
             {
                 try
                 {
-                    var result = client.Get(startId + (ulong)i, fullGet: false, token: default(CancellationToken));
+                    var result = client.Get(startId + (ulong)i, token: default(CancellationToken));
                     if (result.Length != _sampleData.Length)
                         Console.WriteLine("Result length mismatch");
                     if (i % 100 == 0)
@@ -71,7 +71,7 @@ namespace Qoollo.BobClient.InteractiveTests
 
                 try
                 {
-                    var result = client.Exists(ids, fullGet: false, token: default(CancellationToken));
+                    var result = client.Exists(ids, token: default(CancellationToken));
                     int existedCount = result.Count(o => o == true);
                     Console.WriteLine($"Exists {startId + (ulong)i} - {startId + (ulong)i + (ulong)ids.Length}: {existedCount}/{ids.Length}");
                 }
