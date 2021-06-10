@@ -87,14 +87,15 @@ namespace Qoollo.BobClient.InteractiveTests
 
         static void Main(string[] args)
         {
-            //using (var client = new BobClusterBuilder()
-            //    .WithAdditionalNode("http://10.5.5.127:20000")
-            //    .WithAdditionalNode("http://10.5.5.128:20000")
-            //    .WithOperationTimeout(TimeSpan.FromSeconds(1))
-            //    .Build())
-            using (var client = new BobNodeClient("10.5.5.127:20000", TimeSpan.FromSeconds(10)))
+            using (var client = new BobClusterBuilder()
+                .WithAdditionalNode("10.5.5.127:20000")
+                .WithAdditionalNode("10.5.5.128:20000")
+                .WithOperationTimeout(TimeSpan.FromSeconds(1))
+                .WithNodeSelectionPolicy(new SequentialNodeSelectionPolicy())
+                .Build())
+            //using (var client = new BobNodeClient("10.5.5.127:20000", TimeSpan.FromSeconds(10)))
             {
-                client.Open();
+                client.Open(TimeSpan.FromSeconds(1));
 
                 PutTest(client, 10000, 1000);
                 GetTest(client, 10000, 1000);

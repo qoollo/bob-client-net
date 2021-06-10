@@ -55,6 +55,24 @@ namespace Qoollo.BobClient
         /// <param name="nodeAddress">List of nodes addresses</param>
         /// <param name="operationTimeout">Operation timeout for every created node client</param>
         /// <param name="selectionPolicy">Node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
+        public BobClusterClient(IEnumerable<NodeAddress> nodeAddress, BobNodeSelectionPolicy selectionPolicy, TimeSpan operationTimeout)
+            : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), selectionPolicy)
+        {
+        }
+        /// <summary>
+        /// <see cref="BobClusterClient"/> constructor
+        /// </summary>
+        /// <param name="nodeAddress">List of nodes addresses</param>
+        public BobClusterClient(IEnumerable<NodeAddress> nodeAddress)
+            : this(nodeAddress, null, BobNodeClient.DefaultOperationTimeout)
+        {
+        }
+        /// <summary>
+        /// <see cref="BobClusterClient"/> constructor
+        /// </summary>
+        /// <param name="nodeAddress">List of nodes addresses</param>
+        /// <param name="operationTimeout">Operation timeout for every created node client</param>
+        /// <param name="selectionPolicy">Node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
         public BobClusterClient(IEnumerable<string> nodeAddress, BobNodeSelectionPolicy selectionPolicy, TimeSpan operationTimeout)
             : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), selectionPolicy)
         {
@@ -93,9 +111,10 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Connection was not opened</exception>
         /// <exception cref="TimeoutException">Specified timeout reached</exception>
         /// <exception cref="ObjectDisposedException">Client was disposed</exception>
-        public Task OpenAsync()
+        public async Task OpenAsync()
         {
-            return OpenAsync(BobNodeClient.DefaultOperationTimeout);
+            for (int i = 0; i < _clients.Length; i++)
+                await _clients[i].OpenAsync();
         }
         /// <summary>
         /// Explicitly opens connection to every Bob node in cluster
@@ -121,7 +140,8 @@ namespace Qoollo.BobClient
         /// <exception cref="ObjectDisposedException">Client was disposed</exception>
         public void Open()
         {
-            Open(BobNodeClient.DefaultOperationTimeout);
+            for (int i = 0; i < _clients.Length; i++)
+                _clients[i].Open();
         }
 
 
@@ -144,21 +164,6 @@ namespace Qoollo.BobClient
             for (int i = 0; i < _clients.Length; i++)
                 _clients[i].Close();
         }
-        /// <summary>
-        /// Closes connections to every Bob node in cluster. Ignores exceptions
-        /// </summary>
-        private void CloseSkipExceptions()
-        {
-            for (int i = 0; i < _clients.Length; i++)
-            {
-                try
-                {
-                    _clients[i].Close();
-                }
-                catch (BobOperationException) { }
-            }
-        }
-
 
 
         /// <summary>
@@ -430,13 +435,15 @@ namespace Qoollo.BobClient
             return client.ExistsAsync(keys);
         }
 
+
         /// <summary>
         ///  Cleans-up all resources
         /// </summary>
         /// <param name="isUserCall">Was called by user</param>
         protected virtual void Dispose(bool isUserCall)
         {
-            CloseSkipExceptions();
+            for (int i = 0; i < _clients.Length; i++)
+                _clients[i].Dispose();
         }
 
         /// <summary>
