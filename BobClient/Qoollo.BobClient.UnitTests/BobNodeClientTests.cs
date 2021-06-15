@@ -12,6 +12,14 @@ namespace Qoollo.BobClient.UnitTests
 {
     public class BobNodeClientTests
     {
+        private class MockClientBehaviour
+        {
+            public int DelayMs { get; set; } = 0;
+            public ManualResetEventSlim Pause { get; } = new ManualResetEventSlim(true);
+            public Grpc.Core.Status ErrorStatus { get; set; } = Grpc.Core.Status.DefaultSuccess;
+            public string PutTextError { get; set; } = null;
+        }
+
         private BobNodeClient CreateMockedClient(Mock<BobStorage.BobApi.BobApiClient> rpcClientMock)
         {
             var result = new BobNodeClient("127.0.0.1", TimeSpan.FromSeconds(16));
@@ -49,7 +57,7 @@ namespace Qoollo.BobClient.UnitTests
 
             return mock;
         }
-        private Mock<BobStorage.BobApi.BobApiClient> CreateDataAccessMockedBobApiClient(Dictionary<ulong, byte[]> data,
+        private Mock<BobStorage.BobApi.BobApiClient> CreateDataAccessMockedBobApiClient(Dictionary<ulong, byte[]> data, MockClientBehaviour behaviour,
             Func<BobStorage.Null, Grpc.Core.CallOptions, BobStorage.Null> pingFunc = null,
             Func<BobStorage.GetRequest, Grpc.Core.CallOptions, BobStorage.Blob> getFunc = null,
             Func<BobStorage.PutRequest, Grpc.Core.CallOptions, BobStorage.OpStatus> putFunc = null,
@@ -57,12 +65,25 @@ namespace Qoollo.BobClient.UnitTests
         {
             pingFunc = pingFunc ?? ((request, callOptions) =>
             {
+                if (behaviour.DelayMs > 0)
+                    Thread.Sleep(behaviour.DelayMs);
+                behaviour.Pause.Wait(TimeSpan.FromMinutes(15));
+                if (behaviour.ErrorStatus.StatusCode != Grpc.Core.StatusCode.OK)
+                    throw new Grpc.Core.RpcException(behaviour.ErrorStatus);
+
                 return new BobStorage.Null();
             });
 
             getFunc = getFunc ?? ((request, callOptions) =>
             {
                 callOptions.CancellationToken.ThrowIfCancellationRequested();
+
+                if (behaviour.DelayMs > 0)
+                    Thread.Sleep(behaviour.DelayMs);
+                behaviour.Pause.Wait(TimeSpan.FromMinutes(15));
+                if (behaviour.ErrorStatus.StatusCode != Grpc.Core.StatusCode.OK)
+                    throw new Grpc.Core.RpcException(behaviour.ErrorStatus);
+
                 if (data.TryGetValue(request.Key.Key, out byte[] val))
                 {
                     return new BobStorage.Blob()
@@ -80,19 +101,41 @@ namespace Qoollo.BobClient.UnitTests
                 }
             });
 
-            putFunc = putFunc ?? ((request, callOptions) =>
+            putFunc = putFunc ?? new Func<BobStorage.PutRequest, Grpc.Core.CallOptions, BobStorage.OpStatus>((request, callOptions) =>
             {
                 callOptions.CancellationToken.ThrowIfCancellationRequested();
-                data[request.Key.Key] = request.Data.Data.ToByteArray();
-                return new BobStorage.OpStatus()
+
+                if (behaviour.DelayMs > 0)
+                    Thread.Sleep(behaviour.DelayMs);
+                behaviour.Pause.Wait(TimeSpan.FromMinutes(15));
+                if (behaviour.ErrorStatus.StatusCode != Grpc.Core.StatusCode.OK)
+                    throw new Grpc.Core.RpcException(behaviour.ErrorStatus);
+
+                BobStorage.OpStatus result = null;
+
+                if (!string.IsNullOrEmpty(behaviour.PutTextError))
                 {
-                    Error = null
-                };
+                    result = new BobStorage.OpStatus() { Error = new BobStorage.BobError() { Code = -1, Desc = behaviour.PutTextError } };
+                }
+                else
+                {
+                    data[request.Key.Key] = request.Data.Data.ToByteArray();
+                    result = new BobStorage.OpStatus() { Error = null };
+                }
+
+                return result;
             });
 
             existsFunc = existsFunc ?? ((request, callOptions) =>
             {
                 callOptions.CancellationToken.ThrowIfCancellationRequested();
+
+                if (behaviour.DelayMs > 0)
+                    Thread.Sleep(behaviour.DelayMs);
+                behaviour.Pause.Wait(TimeSpan.FromMinutes(15));
+                if (behaviour.ErrorStatus.StatusCode != Grpc.Core.StatusCode.OK)
+                    throw new Grpc.Core.RpcException(behaviour.ErrorStatus);
+
                 var result = new BobStorage.ExistResponse();
                 result.Exist.AddRange(request.Keys.Select(o => data.ContainsKey(o.Key)));
                 return result;
@@ -101,9 +144,9 @@ namespace Qoollo.BobClient.UnitTests
 
             return CreateMockedBobApiClient(pingFunc, getFunc, putFunc, existsFunc);
         }
-        private BobNodeClient CreateMockedClientWithData(Dictionary<ulong, byte[]> data)
+        private BobNodeClient CreateMockedClientWithData(Dictionary<ulong, byte[]> data, MockClientBehaviour behaviour = null)
         {
-            return CreateMockedClient(CreateDataAccessMockedBobApiClient(data));
+            return CreateMockedClient(CreateDataAccessMockedBobApiClient(data, behaviour ?? new MockClientBehaviour()));
         }
 
         // ==================
@@ -187,6 +230,33 @@ namespace Qoollo.BobClient.UnitTests
                 await client.CloseAsync();
                 Assert.Equal(BobNodeClientState.Shutdown, client.State);
                 Assert.Equal(0, client.SequentialErrorCount);
+            }
+        }
+
+        [Fact]
+        public void ConnectingStateTest()
+        {
+            var data = new Dictionary<ulong, byte[]>
+            {
+                { 1, new byte[] { 1, 2, 3 } }
+            };
+            var behaviour = new MockClientBehaviour();
+
+            using (var client = CreateMockedClientWithData(data, behaviour))
+            {
+                Assert.Equal(BobNodeClientState.Idle, client.State);
+
+                behaviour.Pause.Reset();
+
+                Task asyncOp = Task.Run(() => client.Open());
+
+                Thread.Sleep(10);
+                Assert.Equal(BobNodeClientState.Connecting, client.State);
+
+                behaviour.Pause.Set();
+                asyncOp.Wait();
+
+                Assert.Equal(BobNodeClientState.Ready, client.State);
             }
         }
     }
