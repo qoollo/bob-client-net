@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Qoollo.BobClient.NodeSelectionPolicies;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +14,7 @@ namespace Qoollo.BobClient
     {
         private readonly List<NodeAddress> _nodeAddresses;
         private TimeSpan _operationTimeout;
-        private BobNodeSelectionPolicy _nodeSelectionPolicy;
+        private BobNodeSelectionPolicyFactory _nodeSelectionPolicyFactory;
 
         /// <summary>
         /// Builder constructor
@@ -22,7 +23,7 @@ namespace Qoollo.BobClient
         {
             _nodeAddresses = new List<NodeAddress>();
             _operationTimeout = BobNodeClient.DefaultOperationTimeout;
-            _nodeSelectionPolicy = null;
+            _nodeSelectionPolicyFactory = null;
         }
 
         /// <summary>
@@ -84,14 +85,14 @@ namespace Qoollo.BobClient
         /// <summary>
         /// Specifies a node selection policy for opertions on cluster
         /// </summary>
-        /// <param name="policy">Policy instatnce</param>
+        /// <param name="policyFactory">Factory to create node selection policy</param>
         /// <returns>The reference to the current builder instatnce</returns>
-        public BobClusterBuilder WithNodeSelectionPolicy(BobNodeSelectionPolicy policy)
+        public BobClusterBuilder WithNodeSelectionPolicy(BobNodeSelectionPolicyFactory policyFactory)
         {
-            if (policy == null)
-                throw new ArgumentNullException(nameof(policy));
+            if (policyFactory == null)
+                throw new ArgumentNullException(nameof(policyFactory));
 
-            _nodeSelectionPolicy = policy;
+            _nodeSelectionPolicyFactory = policyFactory;
             return this;
         }
 
@@ -104,7 +105,7 @@ namespace Qoollo.BobClient
             if (_nodeAddresses.Count == 0)
                 throw new InvalidOperationException("At least one node shoulde be added to cluster");
 
-            return new BobClusterClient(_nodeAddresses.Select(o => new BobNodeClient(o, _operationTimeout)).ToList(), _nodeSelectionPolicy);
+            return new BobClusterClient(_nodeAddresses.Select(o => new BobNodeClient(o, _operationTimeout)).ToList(), _nodeSelectionPolicyFactory);
         }
     }
 }

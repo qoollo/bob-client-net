@@ -41,7 +41,7 @@ namespace Qoollo.BobClient
     /// Client for a single Bob node
     /// </summary>
     [System.Diagnostics.DebuggerDisplay("[Bob Node: {Address.Address}, State: {State}]")]
-    public class BobNodeClient: IBobApi, IDisposable
+    public class BobNodeClient: IBobApi, IBobNodeClientStatus, IDisposable
     {
         /// <summary>
         /// Default operation timeout
@@ -582,7 +582,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        protected void Ping(CancellationToken token)
+        protected internal void Ping(CancellationToken token)
         {
             if (_isDisposed)
                 throw new ObjectDisposedException(this.GetType().Name);
@@ -621,7 +621,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        protected void Ping()
+        protected internal void Ping()
         {
             Ping(new CancellationToken());
         }
@@ -636,7 +636,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        protected async Task PingAsync(CancellationToken token)
+        protected internal async Task PingAsync(CancellationToken token)
         {
             if (_isDisposed)
                 throw new ObjectDisposedException(this.GetType().Name);
@@ -677,7 +677,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        protected Task PingAsync()
+        protected internal Task PingAsync()
         {
             return PingAsync(new CancellationToken());
         }

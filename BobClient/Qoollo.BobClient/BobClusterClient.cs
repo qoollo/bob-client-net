@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Qoollo.BobClient.NodeSelectionPolicies;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,34 +21,38 @@ namespace Qoollo.BobClient
         /// <see cref="BobClusterClient"/> constructor
         /// </summary>
         /// <param name="clients">List of clients for every bob node</param>
-        /// <param name="selectionPolicy">Node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
-        public BobClusterClient(IEnumerable<BobNodeClient> clients, BobNodeSelectionPolicy selectionPolicy)
+        /// <param name="nodeSelectionPolicyFactory">Factory to create node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
+        public BobClusterClient(IEnumerable<BobNodeClient> clients, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory)
         {
             if (clients == null)
                 throw new ArgumentNullException(nameof(clients));
 
             _clients = clients.ToArray();
-            _selectionPolicy = selectionPolicy;
-
-            if (selectionPolicy == null)
-            {
-                if (_clients.Length == 1)
-                    _selectionPolicy = FirstNodeSelectionPolicy.Instance;
-                else
-                    _selectionPolicy = new SequentialNodeSelectionPolicy();
-            }
 
             if (_clients.Length == 0)
                 throw new ArgumentException("Clients list cannot be empty", nameof(clients));
-            if (_clients.Any(o => o == null))
-                throw new ArgumentException("Client inside clients array cannot be null", nameof(clients));
+            for (int i = 0; i < _clients.Length; i++)
+                if (_clients[i] == null)
+                    throw new ArgumentNullException($"{nameof(clients)}[{i}]", "Client inside clients array cannot be null");
+
+            if (nodeSelectionPolicyFactory == null)
+            {
+                if (_clients.Length == 1)
+                    _selectionPolicy = new FirstNodeSelectionPolicy(_clients);
+                else
+                    _selectionPolicy = new SequentialNodeSelectionPolicy(_clients);
+            }
+            else
+            {
+                _selectionPolicy = nodeSelectionPolicyFactory.Create(_clients);
+            }
         }
         /// <summary>
         /// <see cref="BobClusterClient"/> constructor
         /// </summary>
         /// <param name="clients">List of clients for every bob node</param>
         public BobClusterClient(IEnumerable<BobNodeClient> clients)
-            : this(clients, new SequentialNodeSelectionPolicy())
+            : this(clients, (BobNodeSelectionPolicyFactory)null)
         {
         }
         /// <summary>
@@ -54,9 +60,9 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="nodeAddress">List of nodes addresses</param>
         /// <param name="operationTimeout">Operation timeout for every created node client</param>
-        /// <param name="selectionPolicy">Node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
-        public BobClusterClient(IEnumerable<NodeAddress> nodeAddress, BobNodeSelectionPolicy selectionPolicy, TimeSpan operationTimeout)
-            : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), selectionPolicy)
+        /// <param name="nodeSelectionPolicyFactory">Factory to create node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
+        public BobClusterClient(IEnumerable<NodeAddress> nodeAddress, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, TimeSpan operationTimeout)
+            : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), nodeSelectionPolicyFactory)
         {
         }
         /// <summary>
@@ -64,7 +70,7 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="nodeAddress">List of nodes addresses</param>
         public BobClusterClient(IEnumerable<NodeAddress> nodeAddress)
-            : this(nodeAddress, null, BobNodeClient.DefaultOperationTimeout)
+            : this(nodeAddress, (BobNodeSelectionPolicyFactory)null, BobNodeClient.DefaultOperationTimeout)
         {
         }
         /// <summary>
@@ -72,9 +78,9 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="nodeAddress">List of nodes addresses</param>
         /// <param name="operationTimeout">Operation timeout for every created node client</param>
-        /// <param name="selectionPolicy">Node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
-        public BobClusterClient(IEnumerable<string> nodeAddress, BobNodeSelectionPolicy selectionPolicy, TimeSpan operationTimeout)
-            : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), selectionPolicy)
+        /// <param name="nodeSelectionPolicyFactory">Factory to create node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
+        public BobClusterClient(IEnumerable<string> nodeAddress, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, TimeSpan operationTimeout)
+            : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), nodeSelectionPolicyFactory)
         {
         }
         /// <summary>
@@ -82,7 +88,7 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="nodeAddress">List of nodes addresses</param>
         public BobClusterClient(IEnumerable<string> nodeAddress)
-            : this(nodeAddress, null, BobNodeClient.DefaultOperationTimeout)
+            : this(nodeAddress, (BobNodeSelectionPolicyFactory)null, BobNodeClient.DefaultOperationTimeout)
         {
         }
 
@@ -165,6 +171,27 @@ namespace Qoollo.BobClient
                 _clients[i].Close();
         }
 
+        /// <summary>
+        /// Throws IndexOutOfRangeException when client index is incorrect
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void ThrowSelectedIndexOutOfRange(int index, int clientsCount)
+        {
+            throw new IndexOutOfRangeException($"NodeSelectionPolicy returned node index that is out of range (index: {index}, number of clients: {clientsCount}");
+        }
+
+        /// <summary>
+        /// Selects next client
+        /// </summary>
+        /// <returns>Selected client</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private BobNodeClient SelectClient()
+        {
+            int clientIndex = _selectionPolicy.SelectNextNodeIndex();
+            if (clientIndex < 0 || clientIndex > _clients.Length)
+                ThrowSelectedIndexOutOfRange(clientIndex, _clients.Length);
+            return _clients[clientIndex];
+        }
 
         /// <summary>
         /// Writes data to Bob
@@ -179,8 +206,7 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Other operation errors</exception>
         public void Put(ulong key, byte[] data, CancellationToken token)
         {
-            var client = _selectionPolicy.Select(_clients);
-            client.Put(key, data, token);
+            SelectClient().Put(key, data, token);
         }
 
         /// <summary>
@@ -194,8 +220,7 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Other operation errors</exception>
         public void Put(ulong key, byte[] data)
         {
-            var client = _selectionPolicy.Select(_clients);
-            client.Put(key, data);
+            SelectClient().Put(key, data);
         }
 
         /// <summary>
@@ -212,8 +237,7 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Other operation errors</exception>
         public Task PutAsync(ulong key, byte[] data, CancellationToken token)
         {
-            var client = _selectionPolicy.Select(_clients);
-            return client.PutAsync(key, data, token);
+            return SelectClient().PutAsync(key, data, token);
         }
 
         /// <summary>
@@ -228,8 +252,7 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Other operation errors</exception>
         public Task PutAsync(ulong key, byte[] data)
         {
-            var client = _selectionPolicy.Select(_clients);
-            return client.PutAsync(key, data);
+            return SelectClient().PutAsync(key, data);
         }
 
 
@@ -247,8 +270,7 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Other operation errors</exception>
         protected internal byte[] Get(ulong key, bool fullGet, CancellationToken token)
         {
-            var client = _selectionPolicy.Select(_clients);
-            return client.Get(key, fullGet, token);
+            return SelectClient().Get(key, fullGet, token);
         }
 
         /// <summary>
@@ -264,8 +286,7 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Other operation errors</exception>
         public byte[] Get(ulong key, CancellationToken token)
         {
-            var client = _selectionPolicy.Select(_clients);
-            return client.Get(key, token);
+            return SelectClient().Get(key, token);
         }
 
         /// <summary>
@@ -279,8 +300,7 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Other operation errors</exception>
         public byte[] Get(ulong key)
         {
-            var client = _selectionPolicy.Select(_clients);
-            return client.Get(key);
+            return SelectClient().Get(key);
         }
 
 
@@ -298,8 +318,7 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Other operation errors</exception>
         protected internal Task<byte[]> GetAsync(ulong key, bool fullGet, CancellationToken token)
         {
-            var client = _selectionPolicy.Select(_clients);
-            return client.GetAsync(key, fullGet, token);
+            return SelectClient().GetAsync(key, fullGet, token);
         }
 
         /// <summary>
@@ -315,8 +334,7 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Other operation errors</exception>
         public Task<byte[]> GetAsync(ulong key, CancellationToken token)
         {
-            var client = _selectionPolicy.Select(_clients);
-            return client.GetAsync(key, token);
+            return SelectClient().GetAsync(key, token);
         }
 
         /// <summary>
@@ -330,8 +348,7 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Other operation errors</exception>
         public Task<byte[]> GetAsync(ulong key)
         {
-            var client = _selectionPolicy.Select(_clients);
-            return client.GetAsync(key);
+            return SelectClient().GetAsync(key);
         }
 
         /// <summary>
@@ -348,8 +365,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ArgumentNullException">keys is null</exception>
         protected internal bool[] Exists(ulong[] keys, bool fullGet, CancellationToken token)
         {
-            var client = _selectionPolicy.Select(_clients);
-            return client.Exists(keys, fullGet, token);
+            return SelectClient().Exists(keys, fullGet, token);
         }
 
         /// <summary>
@@ -365,8 +381,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ArgumentNullException">keys is null</exception>
         public bool[] Exists(ulong[] keys, CancellationToken token)
         {
-            var client = _selectionPolicy.Select(_clients);
-            return client.Exists(keys, token);
+            return SelectClient().Exists(keys, token);
         }
 
         /// <summary>
@@ -380,8 +395,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ArgumentNullException">keys is null</exception>
         public bool[] Exists(ulong[] keys)
         {
-            var client = _selectionPolicy.Select(_clients);
-            return client.Exists(keys);
+            return SelectClient().Exists(keys);
         }
 
         /// <summary>
@@ -398,8 +412,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ArgumentNullException">keys is null</exception>
         protected internal Task<bool[]> ExistsAsync(ulong[] keys, bool fullGet, CancellationToken token)
         {
-            var client = _selectionPolicy.Select(_clients);
-            return client.ExistsAsync(keys, fullGet, token);
+            return SelectClient().ExistsAsync(keys, fullGet, token);
         }
 
         /// <summary>
@@ -415,8 +428,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ArgumentNullException">keys is null</exception>
         public Task<bool[]> ExistsAsync(ulong[] keys, CancellationToken token)
         {
-            var client = _selectionPolicy.Select(_clients);
-            return client.ExistsAsync(keys, token);
+            return SelectClient().ExistsAsync(keys, token);
         }
 
         /// <summary>
@@ -431,8 +443,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ArgumentNullException">keys is null</exception>
         public Task<bool[]> ExistsAsync(ulong[] keys)
         {
-            var client = _selectionPolicy.Select(_clients);
-            return client.ExistsAsync(keys);
+            return SelectClient().ExistsAsync(keys);
         }
 
 

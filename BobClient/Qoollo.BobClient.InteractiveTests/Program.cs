@@ -1,4 +1,5 @@
 ﻿using Qoollo.BobClient;
+using Qoollo.BobClient.NodeSelectionPolicies;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -91,7 +92,7 @@ namespace Qoollo.BobClient.InteractiveTests
                 .WithAdditionalNode("10.5.5.127:20000")
                 .WithAdditionalNode("10.5.5.128:20000")
                 .WithOperationTimeout(TimeSpan.FromSeconds(1))
-                .WithNodeSelectionPolicy(new SequentialNodeSelectionPolicy())
+                .WithNodeSelectionPolicy(SequentialNodeSelectionPolicy.Factory)
                 .Build())
             //using (var client = new BobNodeClient("10.5.5.127:20000", TimeSpan.FromSeconds(10)))
             {
