@@ -123,11 +123,19 @@ namespace Qoollo.BobClient.NodeSelectionPolicies
             if (nodes.Count == 1)
                 return 0;
 
-            for (int repCnt = 0; repCnt < nodes.Count; repCnt++)
+            int indexRawValue = Interlocked.Increment(ref _index);
+            int index = (indexRawValue & int.MaxValue) % nodes.Count;
+            if (CanBeUsed(nodes[index]))
+                return index;
+
+            for (int repCnt = 1; repCnt < nodes.Count; repCnt++)
             {
-                int index = Interlocked.Increment(ref _index) & int.MaxValue;
-                if (CanBeUsed(nodes[index % nodes.Count]))
-                    return index % nodes.Count;
+                index = (index + 1) % nodes.Count;
+                if (CanBeUsed(nodes[index]))
+                {
+                    Interlocked.CompareExchange(ref _index, index, indexRawValue);
+                    return index;
+                }
             }
 
             int fallback_index = Interlocked.Increment(ref _index) & int.MaxValue;
