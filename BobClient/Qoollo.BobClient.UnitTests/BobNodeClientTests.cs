@@ -20,9 +20,9 @@ namespace Qoollo.BobClient.UnitTests
             public string PutTextError { get; set; } = null;
         }
 
-        private BobNodeClient CreateMockedClient(Mock<BobStorage.BobApi.BobApiClient> rpcClientMock)
+        private BobNodeClient CreateMockedClient(Mock<BobStorage.BobApi.BobApiClient> rpcClientMock, TimeSpan? timeout = null)
         {
-            var result = new BobNodeClient("127.0.0.1", TimeSpan.FromSeconds(16));
+            var result = new BobNodeClient("127.0.0.1", timeout ?? TimeSpan.FromSeconds(16));
             var rpcClientField = result.GetType().GetField("_rpcClient", BindingFlags.NonPublic | BindingFlags.Instance);
             rpcClientField.SetValue(result, rpcClientMock.Object);
             return result;
@@ -65,6 +65,8 @@ namespace Qoollo.BobClient.UnitTests
         {
             pingFunc = pingFunc ?? ((request, callOptions) =>
             {
+                if (callOptions.CancellationToken.IsCancellationRequested)
+                    throw new Grpc.Core.RpcException(new Grpc.Core.Status(Grpc.Core.StatusCode.Cancelled, "Cancelled"));
                 if (behaviour.DelayMs > 0)
                     Thread.Sleep(behaviour.DelayMs);
                 behaviour.Pause.Wait(TimeSpan.FromMinutes(15));
@@ -76,8 +78,8 @@ namespace Qoollo.BobClient.UnitTests
 
             getFunc = getFunc ?? ((request, callOptions) =>
             {
-                callOptions.CancellationToken.ThrowIfCancellationRequested();
-
+                if (callOptions.CancellationToken.IsCancellationRequested)
+                    throw new Grpc.Core.RpcException(new Grpc.Core.Status(Grpc.Core.StatusCode.Cancelled, "Cancelled"));
                 if (behaviour.DelayMs > 0)
                     Thread.Sleep(behaviour.DelayMs);
                 behaviour.Pause.Wait(TimeSpan.FromMinutes(15));
@@ -103,8 +105,8 @@ namespace Qoollo.BobClient.UnitTests
 
             putFunc = putFunc ?? new Func<BobStorage.PutRequest, Grpc.Core.CallOptions, BobStorage.OpStatus>((request, callOptions) =>
             {
-                callOptions.CancellationToken.ThrowIfCancellationRequested();
-
+                if (callOptions.CancellationToken.IsCancellationRequested)
+                    throw new Grpc.Core.RpcException(new Grpc.Core.Status(Grpc.Core.StatusCode.Cancelled, "Cancelled"));
                 if (behaviour.DelayMs > 0)
                     Thread.Sleep(behaviour.DelayMs);
                 behaviour.Pause.Wait(TimeSpan.FromMinutes(15));
@@ -128,8 +130,8 @@ namespace Qoollo.BobClient.UnitTests
 
             existsFunc = existsFunc ?? ((request, callOptions) =>
             {
-                callOptions.CancellationToken.ThrowIfCancellationRequested();
-
+                if (callOptions.CancellationToken.IsCancellationRequested)
+                    throw new Grpc.Core.RpcException(new Grpc.Core.Status(Grpc.Core.StatusCode.Cancelled, "Cancelled"));
                 if (behaviour.DelayMs > 0)
                     Thread.Sleep(behaviour.DelayMs);
                 behaviour.Pause.Wait(TimeSpan.FromMinutes(15));
@@ -144,9 +146,9 @@ namespace Qoollo.BobClient.UnitTests
 
             return CreateMockedBobApiClient(pingFunc, getFunc, putFunc, existsFunc);
         }
-        private BobNodeClient CreateMockedClientWithData(Dictionary<ulong, byte[]> data, MockClientBehaviour behaviour = null)
+        private BobNodeClient CreateMockedClientWithData(Dictionary<ulong, byte[]> data, MockClientBehaviour behaviour = null, TimeSpan? timeout = null)
         {
-            return CreateMockedClient(CreateDataAccessMockedBobApiClient(data, behaviour ?? new MockClientBehaviour()));
+            return CreateMockedClient(CreateDataAccessMockedBobApiClient(data, behaviour ?? new MockClientBehaviour()), timeout);
         }
 
         // ==================
@@ -257,6 +259,234 @@ namespace Qoollo.BobClient.UnitTests
                 asyncOp.Wait();
 
                 Assert.Equal(BobNodeClientState.Ready, client.State);
+            }
+        }
+
+        [Fact]
+        public void ConnectingToFailedStateTest()
+        {
+            var data = new Dictionary<ulong, byte[]>
+            {
+                { 1, new byte[] { 1, 2, 3 } }
+            };
+            var behaviour = new MockClientBehaviour();
+
+            using (var client = CreateMockedClientWithData(data, behaviour))
+            {
+                Assert.Equal(BobNodeClientState.Idle, client.State);
+
+                behaviour.Pause.Reset();
+                behaviour.ErrorStatus = new Grpc.Core.Status(Grpc.Core.StatusCode.Internal, "Internal error");
+
+                Task asyncOp = Task.Run(() =>
+                {
+                    try { client.Open(); }
+                    catch { }
+                });
+
+                Thread.Sleep(10);
+                Assert.Equal(BobNodeClientState.Connecting, client.State);
+
+                behaviour.Pause.Set();
+                asyncOp.Wait();
+
+                Assert.Equal(BobNodeClientState.TransientFailure, client.State);
+            }
+        }
+
+        [Fact]
+        public void KeyNotFoundIsNotCountingAsErrors()
+        {
+            var data = new Dictionary<ulong, byte[]>
+            {
+                { 1, new byte[] { 1, 2, 3 } }
+            };
+            var behaviour = new MockClientBehaviour();
+
+            using (var client = CreateMockedClientWithData(data, behaviour, TimeSpan.FromSeconds(1)))
+            {
+                client.Open();
+                Assert.Equal(BobNodeClientState.Ready, client.State);
+                Assert.Equal(0, client.SequentialErrorCount);
+
+                try
+                {
+                    client.Get(100);
+                }
+                catch (BobKeyNotFoundException)
+                {
+                }
+
+                Assert.Equal(BobNodeClientState.Ready, client.State);
+                Assert.Equal(0, client.SequentialErrorCount);
+            }
+        }
+
+        [Fact]
+        public void CancellationIsNotCountingAsErrors()
+        {
+            var data = new Dictionary<ulong, byte[]>
+            {
+                { 1, new byte[] { 1, 2, 3 } }
+            };
+            var behaviour = new MockClientBehaviour();
+
+            using (var client = CreateMockedClientWithData(data, behaviour, TimeSpan.FromSeconds(1)))
+            {
+                client.Open();
+                Assert.Equal(BobNodeClientState.Ready, client.State);
+                Assert.Equal(0, client.SequentialErrorCount);
+
+                try
+                {
+                    CancellationTokenSource cancelled = new CancellationTokenSource();
+                    cancelled.Cancel();
+                    client.Get(1, cancelled.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                }
+
+                Assert.Equal(BobNodeClientState.Ready, client.State);
+                Assert.Equal(0, client.SequentialErrorCount);
+            }
+        }
+
+        [Fact]
+        public void TimeoutIsNotCountingAsErrors()
+        {
+            var data = new Dictionary<ulong, byte[]>
+            {
+                { 1, new byte[] { 1, 2, 3 } }
+            };
+            var behaviour = new MockClientBehaviour();
+
+            using (var client = CreateMockedClientWithData(data, behaviour, TimeSpan.FromSeconds(1)))
+            {
+                client.Open();
+                Assert.Equal(BobNodeClientState.Ready, client.State);
+                Assert.Equal(0, client.SequentialErrorCount);
+
+                try
+                {
+                    behaviour.ErrorStatus = new Grpc.Core.Status(Grpc.Core.StatusCode.DeadlineExceeded, "Deadline");
+                    client.Get(1);
+                }
+                catch (TimeoutException)
+                {
+                }
+
+                Assert.Equal(BobNodeClientState.Ready, client.State);
+                Assert.Equal(0, client.SequentialErrorCount);
+            }
+        }
+
+
+        [Fact]
+        public void RecoveryAfterFailTest()
+        {
+            var data = new Dictionary<ulong, byte[]>
+            {
+                { 1, new byte[] { 1, 2, 3 } }
+            };
+            var behaviour = new MockClientBehaviour();
+
+            using (var client = CreateMockedClientWithData(data, behaviour, TimeSpan.FromSeconds(1)))
+            {
+                client.Open();
+                Assert.Equal(BobNodeClientState.Ready, client.State);
+                Assert.Equal(0, client.SequentialErrorCount);
+
+                client.Get(1);
+                Assert.Equal(BobNodeClientState.Ready, client.State);
+                Assert.Equal(0, client.SequentialErrorCount);
+
+                try
+                {
+                    behaviour.ErrorStatus = new Grpc.Core.Status(Grpc.Core.StatusCode.Internal, "Internal error");
+                    client.Get(1);
+                }
+                catch (BobOperationException)
+                {
+                }
+
+                Assert.Equal(BobNodeClientState.TransientFailure, client.State);
+                Assert.Equal(1, client.SequentialErrorCount);
+
+                behaviour.ErrorStatus = Grpc.Core.Status.DefaultSuccess;
+
+                client.Get(1);
+                Assert.Equal(BobNodeClientState.Ready, client.State);
+                Assert.Equal(0, client.SequentialErrorCount);
+            }
+        }
+
+
+        [Fact]
+        public void SequentialErrorCountTest()
+        {
+            var data = new Dictionary<ulong, byte[]>
+            {
+                { 1, new byte[] { 1, 2, 3 } }
+            };
+            var behaviour = new MockClientBehaviour();
+
+            using (var client = CreateMockedClientWithData(data, behaviour, TimeSpan.FromSeconds(1)))
+            {
+                client.Open();
+                Assert.Equal(BobNodeClientState.Ready, client.State);
+                Assert.Equal(0, client.SequentialErrorCount);
+
+                behaviour.ErrorStatus = new Grpc.Core.Status(Grpc.Core.StatusCode.Internal, "Internal error");
+
+                for (int i = 1; i <= 100; i++)
+                {
+                    try
+                    {
+                        client.Get(1);
+                    }
+                    catch (BobOperationException)
+                    {
+                    }
+
+                    Assert.Equal(BobNodeClientState.TransientFailure, client.State);
+                    Assert.Equal(i, client.SequentialErrorCount);
+                }
+
+                behaviour.ErrorStatus = Grpc.Core.Status.DefaultSuccess;
+
+                client.Get(1);
+                Assert.Equal(BobNodeClientState.Ready, client.State);
+                Assert.Equal(0, client.SequentialErrorCount);
+            }
+        }
+
+
+        [Fact]
+        public void TimeSinceLastOperationTest()
+        {
+            var data = new Dictionary<ulong, byte[]>
+            {
+                { 1, new byte[] { 1, 2, 3 } }
+            };
+            var behaviour = new MockClientBehaviour();
+
+            using (var client = CreateMockedClientWithData(data, behaviour, TimeSpan.FromSeconds(1)))
+            {
+                client.Open();
+
+                client.Put(10, new byte[] { 1, 2, 3 });
+
+                int startTick = Environment.TickCount;
+                for (int i = 0; i < 100; i++)
+                {
+                    Thread.Sleep(10);
+                    int elapsed = unchecked(Environment.TickCount - startTick);
+                    Assert.InRange(client.TimeSinceLastOperationMs, elapsed - 10, elapsed + 100);
+                }
+
+                client.Get(10);
+                Assert.True(client.TimeSinceLastOperationMs < 100);
             }
         }
     }

@@ -95,7 +95,7 @@ namespace Qoollo.BobClient.InteractiveTests
                 .Build())
             //using (var client = new BobNodeClient("10.5.5.127:20000", TimeSpan.FromSeconds(10)))
             {
-                client.Open(TimeSpan.FromSeconds(1));
+                client.Open(TimeSpan.FromSeconds(5));
 
                 PutTest(client, 10000, 1000);
                 GetTest(client, 10000, 1000);
