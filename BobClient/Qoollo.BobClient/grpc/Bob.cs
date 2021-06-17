@@ -32,9 +32,9 @@ namespace BobStorage {
             "ASgLMhcuYm9iX3N0b3JhZ2UuR2V0T3B0aW9ucyJcCgxFeGlzdFJlcXVlc3QS",
             "IgoEa2V5cxgBIAMoCzIULmJvYl9zdG9yYWdlLkJsb2JLZXkSKAoHb3B0aW9u",
             "cxgCIAEoCzIXLmJvYl9zdG9yYWdlLkdldE9wdGlvbnMiFgoHQmxvYktleRIL",
-            "CgNrZXkYASABKAQiOQoEQmxvYhIMCgRkYXRhGAEgASgMEiMKBG1ldGEYAiAB",
+            "CgNrZXkYASABKAwiOQoEQmxvYhIMCgRkYXRhGAEgASgMEiMKBG1ldGEYAiAB",
             "KAsyFS5ib2Jfc3RvcmFnZS5CbG9iTWV0YSIdCghCbG9iTWV0YRIRCgl0aW1l",
-            "c3RhbXAYASABKAMiMAoIT3BTdGF0dXMSJAoFZXJyb3IYASABKAsyFS5ib2Jf",
+            "c3RhbXAYASABKAQiMAoIT3BTdGF0dXMSJAoFZXJyb3IYASABKAsyFS5ib2Jf",
             "c3RvcmFnZS5Cb2JFcnJvciIeCg1FeGlzdFJlc3BvbnNlEg0KBWV4aXN0GAEg",
             "AygIIkkKClB1dE9wdGlvbnMSFAoMcmVtb3RlX25vZGVzGAEgAygJEhIKCmZv",
             "cmNlX25vZGUYAiABKAgSEQoJb3ZlcndyaXRlGAMgASgIIkgKCkdldE9wdGlv",
@@ -989,15 +989,15 @@ namespace BobStorage {
 
     /// <summary>Field number for the "key" field.</summary>
     public const int KeyFieldNumber = 1;
-    private ulong key_;
+    private pb::ByteString key_ = pb::ByteString.Empty;
     /// <summary>
     ///Inner id representation
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public ulong Key {
+    public pb::ByteString Key {
       get { return key_; }
       set {
-        key_ = value;
+        key_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
     }
 
@@ -1021,7 +1021,7 @@ namespace BobStorage {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (Key != 0UL) hash ^= Key.GetHashCode();
+      if (Key.Length != 0) hash ^= Key.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -1038,9 +1038,9 @@ namespace BobStorage {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      if (Key != 0UL) {
-        output.WriteRawTag(8);
-        output.WriteUInt64(Key);
+      if (Key.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(Key);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -1051,9 +1051,9 @@ namespace BobStorage {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (Key != 0UL) {
-        output.WriteRawTag(8);
-        output.WriteUInt64(Key);
+      if (Key.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteBytes(Key);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
@@ -1064,8 +1064,8 @@ namespace BobStorage {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (Key != 0UL) {
-        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(Key);
+      if (Key.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeBytesSize(Key);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -1078,7 +1078,7 @@ namespace BobStorage {
       if (other == null) {
         return;
       }
-      if (other.Key != 0UL) {
+      if (other.Key.Length != 0) {
         Key = other.Key;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
@@ -1095,8 +1095,8 @@ namespace BobStorage {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
-          case 8: {
-            Key = input.ReadUInt64();
+          case 10: {
+            Key = input.ReadBytes();
             break;
           }
         }
@@ -1113,8 +1113,8 @@ namespace BobStorage {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
-          case 8: {
-            Key = input.ReadUInt64();
+          case 10: {
+            Key = input.ReadBytes();
             break;
           }
         }
@@ -1393,12 +1393,12 @@ namespace BobStorage {
 
     /// <summary>Field number for the "timestamp" field.</summary>
     public const int TimestampFieldNumber = 1;
-    private long timestamp_;
+    private ulong timestamp_;
     /// <summary>
     /// timestamp for data version
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public long Timestamp {
+    public ulong Timestamp {
       get { return timestamp_; }
       set {
         timestamp_ = value;
@@ -1425,7 +1425,7 @@ namespace BobStorage {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (Timestamp != 0L) hash ^= Timestamp.GetHashCode();
+      if (Timestamp != 0UL) hash ^= Timestamp.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -1442,9 +1442,9 @@ namespace BobStorage {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      if (Timestamp != 0L) {
+      if (Timestamp != 0UL) {
         output.WriteRawTag(8);
-        output.WriteInt64(Timestamp);
+        output.WriteUInt64(Timestamp);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -1455,9 +1455,9 @@ namespace BobStorage {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (Timestamp != 0L) {
+      if (Timestamp != 0UL) {
         output.WriteRawTag(8);
-        output.WriteInt64(Timestamp);
+        output.WriteUInt64(Timestamp);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
@@ -1468,8 +1468,8 @@ namespace BobStorage {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (Timestamp != 0L) {
-        size += 1 + pb::CodedOutputStream.ComputeInt64Size(Timestamp);
+      if (Timestamp != 0UL) {
+        size += 1 + pb::CodedOutputStream.ComputeUInt64Size(Timestamp);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -1482,7 +1482,7 @@ namespace BobStorage {
       if (other == null) {
         return;
       }
-      if (other.Timestamp != 0L) {
+      if (other.Timestamp != 0UL) {
         Timestamp = other.Timestamp;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
@@ -1500,7 +1500,7 @@ namespace BobStorage {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 8: {
-            Timestamp = input.ReadInt64();
+            Timestamp = input.ReadUInt64();
             break;
           }
         }
@@ -1518,7 +1518,7 @@ namespace BobStorage {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
           case 8: {
-            Timestamp = input.ReadInt64();
+            Timestamp = input.ReadUInt64();
             break;
           }
         }
