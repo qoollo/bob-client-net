@@ -436,13 +436,16 @@ namespace Qoollo.BobClient
         /// <param name="key">Key</param>
         /// <param name="data">Binary data</param>
         /// <param name="token">Cancellation token</param>
+        /// <exception cref="ArgumentException">key is not specified</exception>
         /// <exception cref="ArgumentNullException">Data is null</exception>
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public void Put(ulong key, byte[] data, CancellationToken token)
+        public void Put(BobKey key, byte[] data, CancellationToken token)
         {
+            if (!key.IsInitialized)
+                throw new ArgumentException("Key should be sepecified", nameof(key));
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
             if (_isDisposed)
@@ -490,11 +493,12 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="key">Key</param>
         /// <param name="data">Binary data</param>
+        /// <exception cref="ArgumentException">key is not specified</exception>
         /// <exception cref="ArgumentNullException">Data is null</exception>
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public void Put(ulong key, byte[] data)
+        public void Put(BobKey key, byte[] data)
         {
             Put(key, data, new CancellationToken());
         }
@@ -506,13 +510,16 @@ namespace Qoollo.BobClient
         /// <param name="data">Binary data</param>
         /// <param name="token">Cancellation token</param>
         /// <returns>Operation result</returns>
+        /// <exception cref="ArgumentException">key is not specified</exception>
         /// <exception cref="ArgumentNullException">Data is null</exception>
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public async Task PutAsync(ulong key, byte[] data, CancellationToken token)
+        public async Task PutAsync(BobKey key, byte[] data, CancellationToken token)
         {
+            if (!key.IsInitialized)
+                throw new ArgumentException("Key should be sepecified", nameof(key));
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
             if (_isDisposed)
@@ -561,11 +568,12 @@ namespace Qoollo.BobClient
         /// <param name="key">Key</param>
         /// <param name="data">Binary data</param>
         /// <returns>Operation result</returns>
+        /// <exception cref="ArgumentException">key is not specified</exception>
         /// <exception cref="ArgumentNullException">Data is null</exception>
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task PutAsync(ulong key, byte[] data)
+        public Task PutAsync(BobKey key, byte[] data)
         {
             return PutAsync(key, data, new CancellationToken());
         }
@@ -693,13 +701,16 @@ namespace Qoollo.BobClient
         /// <param name="token">Cancellation token</param>
         /// /// <param name="fullGet">Try read data from sup nodes</param>
         /// <returns>Operation result</returns>
+        /// <exception cref="ArgumentException">key is not specified</exception>
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        protected internal byte[] Get(ulong key, bool fullGet, CancellationToken token)
+        protected internal byte[] Get(BobKey key, bool fullGet, CancellationToken token)
         {
+            if (!key.IsInitialized)
+                throw new ArgumentException("Key should be sepecified", nameof(key));
             if (_isDisposed)
                 throw new ObjectDisposedException(this.GetType().Name);
 
@@ -709,7 +720,7 @@ namespace Qoollo.BobClient
             {
                 OnMethodRun();
                 var answer = _rpcClient.Get(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
-                var result = answer.Data.ToByteArray();
+                var result = answer.ExtractData();
                 OnMethodSuccess();
                 return result;
             }
@@ -747,12 +758,13 @@ namespace Qoollo.BobClient
         /// <param name="key">Key</param>
         /// <param name="token">Cancellation token</param>
         /// <returns>Operation result</returns>
+        /// <exception cref="ArgumentException">key is not specified</exception>
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public byte[] Get(ulong key, CancellationToken token)
+        public byte[] Get(BobKey key, CancellationToken token)
         {
             return Get(key, false, token);
         }
@@ -762,11 +774,12 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="key">Key</param>
         /// <returns>Operation result</returns>
+        /// <exception cref="ArgumentException">key is not specified</exception>
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public byte[] Get(ulong key)
+        public byte[] Get(BobKey key)
         {
             return Get(key, false, new CancellationToken());
         }
@@ -779,13 +792,16 @@ namespace Qoollo.BobClient
         /// <param name="token">Cancellation token</param>
         /// <param name="fullGet">Try read data from sup nodes</param>
         /// <returns>Operation result with data</returns>
+        /// <exception cref="ArgumentException">key is not specified</exception>
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        protected internal async Task<byte[]> GetAsync(ulong key, bool fullGet, CancellationToken token)
+        protected internal async Task<byte[]> GetAsync(BobKey key, bool fullGet, CancellationToken token)
         {
+            if (!key.IsInitialized)
+                throw new ArgumentException("Key should be sepecified", nameof(key));
             if (_isDisposed)
                 throw new ObjectDisposedException(this.GetType().Name);
 
@@ -795,7 +811,7 @@ namespace Qoollo.BobClient
             {
                 OnMethodRun();
                 var answer = await _rpcClient.GetAsync(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
-                var result = answer.Data.ToByteArray();
+                var result = answer.ExtractData();
                 OnMethodSuccess();
                 return result;
             }
@@ -833,12 +849,13 @@ namespace Qoollo.BobClient
         /// <param name="key">Key</param>
         /// <param name="token">Cancellation token</param>
         /// <returns>Operation result with data</returns>
+        /// <exception cref="ArgumentException">key is not specified</exception>
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task<byte[]> GetAsync(ulong key, CancellationToken token)
+        public Task<byte[]> GetAsync(BobKey key, CancellationToken token)
         {
             return GetAsync(key, false, token);
         }
@@ -848,11 +865,12 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="key">Key</param>
         /// <returns>Operation result with data</returns>
+        /// <exception cref="ArgumentException">key is not specified</exception>
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task<byte[]> GetAsync(ulong key)
+        public Task<byte[]> GetAsync(BobKey key)
         {
             return GetAsync(key, false, new CancellationToken());
         }
@@ -881,7 +899,7 @@ namespace Qoollo.BobClient
             {
                 OnMethodRun();
                 var answer = _rpcClient.Exist(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
-                var result = answer.Exist.ToArray();
+                var result = answer.ExtractExistResults();
                 OnMethodSuccess();
                 return result;
             }
@@ -921,10 +939,14 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        protected internal bool[] Exists(ulong[] keys, bool fullGet, CancellationToken token)
+        /// <exception cref="ArgumentException">At least one key in <paramref name="keys"/> array is not specified</exception>
+        protected internal bool[] Exists(BobKey[] keys, bool fullGet, CancellationToken token)
         {
             if (keys == null)
                 throw new ArgumentNullException(nameof(keys), "keys should not be null");
+            for (int i = 0; i < keys.Length; i++)
+                if (!keys[i].IsInitialized)
+                    throw new ArgumentException("Key should be sepecified", $"{nameof(keys)}[{i}]");
             if (_isDisposed)
                 throw new ObjectDisposedException(GetType().Name);
 
@@ -942,7 +964,8 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        public bool[] Exists(ulong[] keys, CancellationToken token)
+        /// <exception cref="ArgumentException">At least one key in <paramref name="keys"/> array is not specified</exception>
+        public bool[] Exists(BobKey[] keys, CancellationToken token)
         {
             return Exists(keys, false, token);
         }
@@ -955,8 +978,8 @@ namespace Qoollo.BobClient
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        /// <exception cref="ArgumentNullException">keys is null</exception>
-        public bool[] Exists(ulong[] keys)
+        /// <exception cref="ArgumentException">At least one key in <paramref name="keys"/> array is not specified</exception>
+        public bool[] Exists(BobKey[] keys)
         {
             return Exists(keys, false, new CancellationToken());
         }
@@ -974,10 +997,14 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        protected internal bool[] Exists(IReadOnlyList<ulong> keys, bool fullGet, CancellationToken token)
+        /// <exception cref="ArgumentException">At least one key in <paramref name="keys"/> array is not specified</exception>
+        protected internal bool[] Exists(IReadOnlyList<BobKey> keys, bool fullGet, CancellationToken token)
         {
             if (keys == null)
                 throw new ArgumentNullException(nameof(keys), "keys should not be null");
+            for (int i = 0; i < keys.Count; i++)
+                if (!keys[i].IsInitialized)
+                    throw new ArgumentException("Key should be sepecified", $"{nameof(keys)}[{i}]");
             if (_isDisposed)
                 throw new ObjectDisposedException(GetType().Name);
 
@@ -995,7 +1022,8 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        public bool[] Exists(IReadOnlyList<ulong> keys, CancellationToken token)
+        /// <exception cref="ArgumentException">At least one key in <paramref name="keys"/> array is not specified</exception>
+        public bool[] Exists(IReadOnlyList<BobKey> keys, CancellationToken token)
         {
             return Exists(keys, false, token);
         }
@@ -1009,7 +1037,8 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        public bool[] Exists(IReadOnlyList<ulong> keys)
+        /// <exception cref="ArgumentException">At least one key in <paramref name="keys"/> array is not specified</exception>
+        public bool[] Exists(IReadOnlyList<BobKey> keys)
         {
             return Exists(keys, false, new CancellationToken());
         }
@@ -1035,7 +1064,7 @@ namespace Qoollo.BobClient
             {
                 OnMethodRun();
                 var answer = await _rpcClient.ExistAsync(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
-                var result = answer.Exist.ToArray();
+                var result = answer.ExtractExistResults();
                 OnMethodSuccess();
                 return result;
             }
@@ -1074,10 +1103,14 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        protected internal async Task<bool[]> ExistsAsync(ulong[] keys, bool fullGet, CancellationToken token)
+        /// <exception cref="ArgumentException">At least one key in <paramref name="keys"/> array is not specified</exception>
+        protected internal async Task<bool[]> ExistsAsync(BobKey[] keys, bool fullGet, CancellationToken token)
         {
             if (keys == null)
                 throw new ArgumentNullException(nameof(keys), "keys should not be null");
+            for (int i = 0; i < keys.Length; i++)
+                if (!keys[i].IsInitialized)
+                    throw new ArgumentException("Key should be sepecified", $"{nameof(keys)}[{i}]");
             if (_isDisposed)
                 throw new ObjectDisposedException(GetType().Name);
 
@@ -1095,7 +1128,8 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        public Task<bool[]> ExistsAsync(ulong[] keys, CancellationToken token)
+        /// <exception cref="ArgumentException">At least one key in <paramref name="keys"/> array is not specified</exception>
+        public Task<bool[]> ExistsAsync(BobKey[] keys, CancellationToken token)
         {
             return ExistsAsync(keys, false, token);
         }
@@ -1109,7 +1143,8 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        public Task<bool[]> ExistsAsync(ulong[] keys)
+        /// <exception cref="ArgumentException">At least one key in <paramref name="keys"/> array is not specified</exception>
+        public Task<bool[]> ExistsAsync(BobKey[] keys)
         {
             return ExistsAsync(keys, false, new CancellationToken());
         }
@@ -1126,10 +1161,14 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        protected internal async Task<bool[]> ExistsAsync(IReadOnlyList<ulong> keys, bool fullGet, CancellationToken token)
+        /// <exception cref="ArgumentException">At least one key in <paramref name="keys"/> array is not specified</exception>
+        protected internal async Task<bool[]> ExistsAsync(IReadOnlyList<BobKey> keys, bool fullGet, CancellationToken token)
         {
             if (keys == null)
                 throw new ArgumentNullException(nameof(keys), "keys should not be null");
+            for (int i = 0; i < keys.Count; i++)
+                if (!keys[i].IsInitialized)
+                    throw new ArgumentException("Key should be sepecified", $"{nameof(keys)}[{i}]");
             if (_isDisposed)
                 throw new ObjectDisposedException(GetType().Name);
 
@@ -1147,7 +1186,8 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        public Task<bool[]> ExistsAsync(IReadOnlyList<ulong> keys, CancellationToken token)
+        /// <exception cref="ArgumentException">At least one key in <paramref name="keys"/> array is not specified</exception>
+        public Task<bool[]> ExistsAsync(IReadOnlyList<BobKey> keys, CancellationToken token)
         {
             return ExistsAsync(keys, false, token);
         }
@@ -1161,7 +1201,8 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        public Task<bool[]> ExistsAsync(IReadOnlyList<ulong> keys)
+        /// <exception cref="ArgumentException">At least one key in <paramref name="keys"/> array is not specified</exception>
+        public Task<bool[]> ExistsAsync(IReadOnlyList<BobKey> keys)
         {
             return ExistsAsync(keys, false, new CancellationToken());
         }

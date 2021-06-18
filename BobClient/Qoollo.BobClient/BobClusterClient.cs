@@ -204,7 +204,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public void Put(ulong key, byte[] data, CancellationToken token)
+        public void Put(BobKey key, byte[] data, CancellationToken token)
         {
             SelectClient().Put(key, data, token);
         }
@@ -218,7 +218,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public void Put(ulong key, byte[] data)
+        public void Put(BobKey key, byte[] data)
         {
             SelectClient().Put(key, data);
         }
@@ -235,7 +235,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task PutAsync(ulong key, byte[] data, CancellationToken token)
+        public Task PutAsync(BobKey key, byte[] data, CancellationToken token)
         {
             return SelectClient().PutAsync(key, data, token);
         }
@@ -250,7 +250,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task PutAsync(ulong key, byte[] data)
+        public Task PutAsync(BobKey key, byte[] data)
         {
             return SelectClient().PutAsync(key, data);
         }
@@ -268,7 +268,7 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        protected internal byte[] Get(ulong key, bool fullGet, CancellationToken token)
+        protected internal byte[] Get(BobKey key, bool fullGet, CancellationToken token)
         {
             return SelectClient().Get(key, fullGet, token);
         }
@@ -284,7 +284,7 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public byte[] Get(ulong key, CancellationToken token)
+        public byte[] Get(BobKey key, CancellationToken token)
         {
             return SelectClient().Get(key, token);
         }
@@ -298,7 +298,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public byte[] Get(ulong key)
+        public byte[] Get(BobKey key)
         {
             return SelectClient().Get(key);
         }
@@ -316,7 +316,7 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        protected internal Task<byte[]> GetAsync(ulong key, bool fullGet, CancellationToken token)
+        protected internal Task<byte[]> GetAsync(BobKey key, bool fullGet, CancellationToken token)
         {
             return SelectClient().GetAsync(key, fullGet, token);
         }
@@ -332,7 +332,7 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task<byte[]> GetAsync(ulong key, CancellationToken token)
+        public Task<byte[]> GetAsync(BobKey key, CancellationToken token)
         {
             return SelectClient().GetAsync(key, token);
         }
@@ -346,7 +346,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task<byte[]> GetAsync(ulong key)
+        public Task<byte[]> GetAsync(BobKey key)
         {
             return SelectClient().GetAsync(key);
         }
@@ -363,7 +363,7 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        protected internal bool[] Exists(ulong[] keys, bool fullGet, CancellationToken token)
+        protected internal bool[] Exists(BobKey[] keys, bool fullGet, CancellationToken token)
         {
             return SelectClient().Exists(keys, fullGet, token);
         }
@@ -379,7 +379,7 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        public bool[] Exists(ulong[] keys, CancellationToken token)
+        public bool[] Exists(BobKey[] keys, CancellationToken token)
         {
             return SelectClient().Exists(keys, token);
         }
@@ -393,7 +393,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        public bool[] Exists(ulong[] keys)
+        public bool[] Exists(BobKey[] keys)
         {
             return SelectClient().Exists(keys);
         }
@@ -410,7 +410,7 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        protected internal Task<bool[]> ExistsAsync(ulong[] keys, bool fullGet, CancellationToken token)
+        protected internal Task<bool[]> ExistsAsync(BobKey[] keys, bool fullGet, CancellationToken token)
         {
             return SelectClient().ExistsAsync(keys, fullGet, token);
         }
@@ -426,7 +426,7 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        public Task<bool[]> ExistsAsync(ulong[] keys, CancellationToken token)
+        public Task<bool[]> ExistsAsync(BobKey[] keys, CancellationToken token)
         {
             return SelectClient().ExistsAsync(keys, token);
         }
@@ -441,7 +441,7 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        public Task<bool[]> ExistsAsync(ulong[] keys)
+        public Task<bool[]> ExistsAsync(BobKey[] keys)
         {
             return SelectClient().ExistsAsync(keys);
         }

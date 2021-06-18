@@ -7,27 +7,30 @@ namespace BobStorage
 {
     internal sealed partial class PutRequest
     {
-        public PutRequest(ulong key, byte[] data)
+        public PutRequest(Qoollo.BobClient.BobKey key, byte[] data)
         {
             Key = new BlobKey
             {
-                Key = key
+                // TODO: avoid data copy
+                Key = ByteString.CopyFrom(key.GetKeyBytes())
             };
             Data = new Blob
             {
+                // TODO: avoid data array copy
                 Data = ByteString.CopyFrom(data),
-                Meta = new BlobMeta { Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds() }
+                Meta = new BlobMeta { Timestamp = unchecked((ulong)DateTimeOffset.UtcNow.ToUnixTimeSeconds()) }
             };
         }
     }
 
     internal sealed partial class GetRequest
     {
-        public GetRequest(ulong key, bool fullGet = false)
+        public GetRequest(Qoollo.BobClient.BobKey key, bool fullGet = false)
         {
             Key = new BlobKey
             {
-                Key = key
+                // TODO: avoid data copy
+                Key = ByteString.CopyFrom(key.GetKeyBytes())
             };
             Options = new GetOptions
             {
@@ -36,40 +39,58 @@ namespace BobStorage
         }
     }
 
+    internal sealed partial class Blob
+    {
+        public byte[] ExtractData()
+        {
+            // TODO: avoid data copy
+            return this.Data.ToByteArray();
+        }
+    }
+
     internal sealed partial class ExistRequest
     {
-        public ExistRequest(IEnumerable<ulong> keys, bool fullGet = false)
+        public ExistRequest(IEnumerable<Qoollo.BobClient.BobKey> keys, bool fullGet = false)
         {
-            keys_ = new Google.Protobuf.Collections.RepeatedField<BlobKey>();
             foreach (var k in keys)
-                keys_.Add(new BlobKey() { Key = k });
+                Keys.Add(new BlobKey() { Key = ByteString.CopyFrom(k.GetKeyBytes()) });
 
             Options = new GetOptions
             {
                 Source = fullGet ? GetSource.All : GetSource.Normal
             }; 
         }
-        public ExistRequest(ulong[] keys, bool fullGet = false)
+        public ExistRequest(Qoollo.BobClient.BobKey[] keys, bool fullGet = false)
         {
-            keys_ = new Google.Protobuf.Collections.RepeatedField<BlobKey>();
+            Keys.Capacity = keys.Length;
             for (int i = 0; i < keys.Length; i++)
-                keys_.Add(new BlobKey() { Key = keys[i] });
+                Keys.Add(new BlobKey() { Key = ByteString.CopyFrom(keys[i].GetKeyBytes()) });
 
             Options = new GetOptions
             {
                 Source = fullGet ? GetSource.All : GetSource.Normal
             };
         }
-        public ExistRequest(IReadOnlyList<ulong> keys, bool fullGet = false)
+        public ExistRequest(IReadOnlyList<Qoollo.BobClient.BobKey> keys, bool fullGet = false)
         {
-            keys_ = new Google.Protobuf.Collections.RepeatedField<BlobKey>();
+            Keys.Capacity = keys.Count;
             for (int i = 0; i < keys.Count; i++)
-                keys_.Add(new BlobKey() { Key = keys[i] });
+                Keys.Add(new BlobKey() { Key = ByteString.CopyFrom(keys[i].GetKeyBytes()) });
 
             Options = new GetOptions
             {
                 Source = fullGet ? GetSource.All : GetSource.Normal
             };
+        }
+    }
+
+    internal sealed partial class ExistResponse
+    {
+        public bool[] ExtractExistResults()
+        {
+            bool[] result = new bool[this.Exist.Count];
+            this.Exist.CopyTo(result, 0);
+            return result;
         }
     }
 }

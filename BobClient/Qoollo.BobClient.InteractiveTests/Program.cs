@@ -19,7 +19,7 @@ namespace Qoollo.BobClient.InteractiveTests
             {
                 try
                 {
-                    client.Put(startId + (ulong)i, _sampleData, default(CancellationToken));
+                    client.Put(BobKey.FromUInt64(startId + (ulong)i), _sampleData, default(CancellationToken));
                     if (i % 100 == 0)
                         Console.WriteLine($"Put {startId + (ulong)i}: Ok");
                 }
@@ -39,7 +39,7 @@ namespace Qoollo.BobClient.InteractiveTests
             {
                 try
                 {
-                    var result = client.Get(startId + (ulong)i, token: default(CancellationToken));
+                    var result = client.Get(BobKey.FromUInt64(startId + (ulong)i), token: default(CancellationToken));
                     if (result.Length != _sampleData.Length)
                         Console.WriteLine("Result length mismatch");
                     if (i % 100 == 0)
@@ -66,9 +66,9 @@ namespace Qoollo.BobClient.InteractiveTests
 
             for (int i = 0; i < count; i += packageSize)
             {
-                ulong[] ids = new ulong[Math.Min(packageSize, count - i)];
+                BobKey[] ids = new BobKey[Math.Min(packageSize, count - i)];
                 for (int j = 0; j < ids.Length; j++)
-                    ids[j] = startId + (ulong)i + (ulong)j;
+                    ids[j] = BobKey.FromUInt64(startId + (ulong)i + (ulong)j);
 
                 try
                 {

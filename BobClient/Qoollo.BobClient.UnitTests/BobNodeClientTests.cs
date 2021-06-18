@@ -57,7 +57,7 @@ namespace Qoollo.BobClient.UnitTests
 
             return mock;
         }
-        private Mock<BobStorage.BobApi.BobApiClient> CreateDataAccessMockedBobApiClient(Dictionary<ulong, byte[]> data, MockClientBehaviour behaviour,
+        private Mock<BobStorage.BobApi.BobApiClient> CreateDataAccessMockedBobApiClient(Dictionary<BobKey, byte[]> data, MockClientBehaviour behaviour,
             Func<BobStorage.Null, Grpc.Core.CallOptions, BobStorage.Null> pingFunc = null,
             Func<BobStorage.GetRequest, Grpc.Core.CallOptions, BobStorage.Blob> getFunc = null,
             Func<BobStorage.PutRequest, Grpc.Core.CallOptions, BobStorage.OpStatus> putFunc = null,
@@ -86,7 +86,7 @@ namespace Qoollo.BobClient.UnitTests
                 if (behaviour.ErrorStatus.StatusCode != Grpc.Core.StatusCode.OK)
                     throw new Grpc.Core.RpcException(behaviour.ErrorStatus);
 
-                if (data.TryGetValue(request.Key.Key, out byte[] val))
+                if (data.TryGetValue(new BobKey(request.Key.Key.ToByteArray()), out byte[] val))
                 {
                     return new BobStorage.Blob()
                     {
@@ -121,7 +121,7 @@ namespace Qoollo.BobClient.UnitTests
                 }
                 else
                 {
-                    data[request.Key.Key] = request.Data.Data.ToByteArray();
+                    data[new BobKey(request.Key.Key.ToByteArray())] = request.Data.Data.ToByteArray();
                     result = new BobStorage.OpStatus() { Error = null };
                 }
 
@@ -139,14 +139,14 @@ namespace Qoollo.BobClient.UnitTests
                     throw new Grpc.Core.RpcException(behaviour.ErrorStatus);
 
                 var result = new BobStorage.ExistResponse();
-                result.Exist.AddRange(request.Keys.Select(o => data.ContainsKey(o.Key)));
+                result.Exist.AddRange(request.Keys.Select(o => data.ContainsKey(new BobKey(o.Key.ToByteArray()))));
                 return result;
             });
 
 
             return CreateMockedBobApiClient(pingFunc, getFunc, putFunc, existsFunc);
         }
-        private BobNodeClient CreateMockedClientWithData(Dictionary<ulong, byte[]> data, MockClientBehaviour behaviour = null, TimeSpan? timeout = null)
+        private BobNodeClient CreateMockedClientWithData(Dictionary<BobKey, byte[]> data, MockClientBehaviour behaviour = null, TimeSpan? timeout = null)
         {
             return CreateMockedClient(CreateDataAccessMockedBobApiClient(data, behaviour ?? new MockClientBehaviour()), timeout);
         }
@@ -156,9 +156,9 @@ namespace Qoollo.BobClient.UnitTests
         [Fact]
         public void BasicStateTransitionTest()
         {
-            var data = new Dictionary<ulong, byte[]>
+            var data = new Dictionary<BobKey, byte[]>
             {
-                { 1, new byte[] { 1, 2, 3 } }
+                { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
             };
 
             using (var client = CreateMockedClientWithData(data))
@@ -171,18 +171,18 @@ namespace Qoollo.BobClient.UnitTests
                 Assert.Equal(0, client.SequentialErrorCount);
                 Assert.True(client.TimeSinceLastOperationMs < 10000);
 
-                client.Put(2, new byte[] { 1, 2, 3 });
+                client.Put(BobKey.FromUInt64(2), new byte[] { 1, 2, 3 });
                 Assert.Equal(BobNodeClientState.Ready, client.State);
                 Assert.Equal(0, client.SequentialErrorCount);
                 Assert.True(client.TimeSinceLastOperationMs < 10000);
 
-                var testDataArray = client.Get(2);
+                var testDataArray = client.Get(BobKey.FromUInt64(2));
                 Assert.Equal(new byte[] { 1, 2, 3 }, testDataArray);
                 Assert.Equal(BobNodeClientState.Ready, client.State);
                 Assert.Equal(0, client.SequentialErrorCount);
                 Assert.True(client.TimeSinceLastOperationMs < 10000);
 
-                var existsResult = client.Exists(new ulong[] { 1, 2, 3 });
+                var existsResult = client.Exists(new BobKey[] { BobKey.FromUInt64(1), BobKey.FromUInt64(2), BobKey.FromUInt64(3) });
                 Assert.Equal(new bool[] { true, true, false }, existsResult);
                 Assert.Equal(BobNodeClientState.Ready, client.State);
                 Assert.Equal(0, client.SequentialErrorCount);
@@ -197,9 +197,9 @@ namespace Qoollo.BobClient.UnitTests
         [Fact]
         public async Task BasicStateTransitionTestAsync()
         {
-            var data = new Dictionary<ulong, byte[]>
+            var data = new Dictionary<BobKey, byte[]>
             {
-                { 1, new byte[] { 1, 2, 3 } }
+                { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
             };
 
             using (var client = CreateMockedClientWithData(data))
@@ -212,18 +212,18 @@ namespace Qoollo.BobClient.UnitTests
                 Assert.Equal(0, client.SequentialErrorCount);
                 Assert.True(client.TimeSinceLastOperationMs < 10000);
 
-                await client.PutAsync(2, new byte[] { 1, 2, 3 });
+                await client.PutAsync(BobKey.FromUInt64(2), new byte[] { 1, 2, 3 });
                 Assert.Equal(BobNodeClientState.Ready, client.State);
                 Assert.Equal(0, client.SequentialErrorCount);
                 Assert.True(client.TimeSinceLastOperationMs < 10000);
 
-                var testDataArray = await client.GetAsync(2);
+                var testDataArray = await client.GetAsync(BobKey.FromUInt64(2));
                 Assert.Equal(new byte[] { 1, 2, 3 }, testDataArray);
                 Assert.Equal(BobNodeClientState.Ready, client.State);
                 Assert.Equal(0, client.SequentialErrorCount);
                 Assert.True(client.TimeSinceLastOperationMs < 10000);
 
-                var existsResult = await client.ExistsAsync(new ulong[] { 1, 2, 3 });
+                var existsResult = await client.ExistsAsync(new BobKey[] { BobKey.FromUInt64(1), BobKey.FromUInt64(2), BobKey.FromUInt64(3) });
                 Assert.Equal(new bool[] { true, true, false }, existsResult);
                 Assert.Equal(BobNodeClientState.Ready, client.State);
                 Assert.Equal(0, client.SequentialErrorCount);
@@ -238,9 +238,9 @@ namespace Qoollo.BobClient.UnitTests
         [Fact]
         public void ConnectingStateTest()
         {
-            var data = new Dictionary<ulong, byte[]>
+            var data = new Dictionary<BobKey, byte[]>
             {
-                { 1, new byte[] { 1, 2, 3 } }
+                { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
             };
             var behaviour = new MockClientBehaviour();
 
@@ -265,9 +265,9 @@ namespace Qoollo.BobClient.UnitTests
         [Fact]
         public void ConnectingToFailedStateTest()
         {
-            var data = new Dictionary<ulong, byte[]>
+            var data = new Dictionary<BobKey, byte[]>
             {
-                { 1, new byte[] { 1, 2, 3 } }
+                { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
             };
             var behaviour = new MockClientBehaviour();
 
@@ -297,9 +297,9 @@ namespace Qoollo.BobClient.UnitTests
         [Fact]
         public void KeyNotFoundIsNotCountingAsErrors()
         {
-            var data = new Dictionary<ulong, byte[]>
+            var data = new Dictionary<BobKey, byte[]>
             {
-                { 1, new byte[] { 1, 2, 3 } }
+                { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
             };
             var behaviour = new MockClientBehaviour();
 
@@ -311,7 +311,7 @@ namespace Qoollo.BobClient.UnitTests
 
                 try
                 {
-                    client.Get(100);
+                    client.Get(BobKey.FromUInt64(100));
                 }
                 catch (BobKeyNotFoundException)
                 {
@@ -325,9 +325,9 @@ namespace Qoollo.BobClient.UnitTests
         [Fact]
         public void CancellationIsNotCountingAsErrors()
         {
-            var data = new Dictionary<ulong, byte[]>
+            var data = new Dictionary<BobKey, byte[]>
             {
-                { 1, new byte[] { 1, 2, 3 } }
+                { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
             };
             var behaviour = new MockClientBehaviour();
 
@@ -341,7 +341,7 @@ namespace Qoollo.BobClient.UnitTests
                 {
                     CancellationTokenSource cancelled = new CancellationTokenSource();
                     cancelled.Cancel();
-                    client.Get(1, cancelled.Token);
+                    client.Get(BobKey.FromUInt64(1), cancelled.Token);
                 }
                 catch (OperationCanceledException)
                 {
@@ -355,9 +355,9 @@ namespace Qoollo.BobClient.UnitTests
         [Fact]
         public void TimeoutIsNotCountingAsErrors()
         {
-            var data = new Dictionary<ulong, byte[]>
+            var data = new Dictionary<BobKey, byte[]>
             {
-                { 1, new byte[] { 1, 2, 3 } }
+                { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
             };
             var behaviour = new MockClientBehaviour();
 
@@ -370,7 +370,7 @@ namespace Qoollo.BobClient.UnitTests
                 try
                 {
                     behaviour.ErrorStatus = new Grpc.Core.Status(Grpc.Core.StatusCode.DeadlineExceeded, "Deadline");
-                    client.Get(1);
+                    client.Get(BobKey.FromUInt64(1));
                 }
                 catch (TimeoutException)
                 {
@@ -385,9 +385,9 @@ namespace Qoollo.BobClient.UnitTests
         [Fact]
         public void RecoveryAfterFailTest()
         {
-            var data = new Dictionary<ulong, byte[]>
+            var data = new Dictionary<BobKey, byte[]>
             {
-                { 1, new byte[] { 1, 2, 3 } }
+                { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
             };
             var behaviour = new MockClientBehaviour();
 
@@ -397,14 +397,14 @@ namespace Qoollo.BobClient.UnitTests
                 Assert.Equal(BobNodeClientState.Ready, client.State);
                 Assert.Equal(0, client.SequentialErrorCount);
 
-                client.Get(1);
+                client.Get(BobKey.FromUInt64(1));
                 Assert.Equal(BobNodeClientState.Ready, client.State);
                 Assert.Equal(0, client.SequentialErrorCount);
 
                 try
                 {
                     behaviour.ErrorStatus = new Grpc.Core.Status(Grpc.Core.StatusCode.Internal, "Internal error");
-                    client.Get(1);
+                    client.Get(BobKey.FromUInt64(1));
                 }
                 catch (BobOperationException)
                 {
@@ -415,7 +415,7 @@ namespace Qoollo.BobClient.UnitTests
 
                 behaviour.ErrorStatus = Grpc.Core.Status.DefaultSuccess;
 
-                client.Get(1);
+                client.Get(BobKey.FromUInt64(1));
                 Assert.Equal(BobNodeClientState.Ready, client.State);
                 Assert.Equal(0, client.SequentialErrorCount);
             }
@@ -425,9 +425,9 @@ namespace Qoollo.BobClient.UnitTests
         [Fact]
         public void SequentialErrorCountTest()
         {
-            var data = new Dictionary<ulong, byte[]>
+            var data = new Dictionary<BobKey, byte[]>
             {
-                { 1, new byte[] { 1, 2, 3 } }
+                { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
             };
             var behaviour = new MockClientBehaviour();
 
@@ -443,7 +443,7 @@ namespace Qoollo.BobClient.UnitTests
                 {
                     try
                     {
-                        client.Get(1);
+                        client.Get(BobKey.FromUInt64(1));
                     }
                     catch (BobOperationException)
                     {
@@ -455,7 +455,7 @@ namespace Qoollo.BobClient.UnitTests
 
                 behaviour.ErrorStatus = Grpc.Core.Status.DefaultSuccess;
 
-                client.Get(1);
+                client.Get(BobKey.FromUInt64(1));
                 Assert.Equal(BobNodeClientState.Ready, client.State);
                 Assert.Equal(0, client.SequentialErrorCount);
             }
@@ -465,9 +465,9 @@ namespace Qoollo.BobClient.UnitTests
         [Fact]
         public void TimeSinceLastOperationTest()
         {
-            var data = new Dictionary<ulong, byte[]>
+            var data = new Dictionary<BobKey, byte[]>
             {
-                { 1, new byte[] { 1, 2, 3 } }
+                { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
             };
             var behaviour = new MockClientBehaviour();
 
@@ -475,7 +475,7 @@ namespace Qoollo.BobClient.UnitTests
             {
                 client.Open();
 
-                client.Put(10, new byte[] { 1, 2, 3 });
+                client.Put(BobKey.FromUInt64(10), new byte[] { 1, 2, 3 });
 
                 int startTick = Environment.TickCount;
                 for (int i = 0; i < 100; i++)
@@ -485,7 +485,7 @@ namespace Qoollo.BobClient.UnitTests
                     Assert.InRange(client.TimeSinceLastOperationMs, elapsed - 10, elapsed + 100);
                 }
 
-                client.Get(10);
+                client.Get(BobKey.FromUInt64(10));
                 Assert.True(client.TimeSinceLastOperationMs < 100);
             }
         }
