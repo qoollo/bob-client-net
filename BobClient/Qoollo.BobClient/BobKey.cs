@@ -18,7 +18,17 @@ namespace Qoollo.BobClient
         /// <returns>Created BobKey</returns>
         public static BobKey FromUInt64(ulong value)
         {
-            return new BobKey(BitConverter.GetBytes(value));
+            var bytes = BitConverter.GetBytes(value);
+            if (!BitConverter.IsLittleEndian)
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    byte tmp = bytes[0];
+                    bytes[0] = bytes[7 - i];
+                    bytes[7 - i] = tmp;
+                }
+            }
+            return new BobKey(bytes);
         }
 
         // ================
@@ -65,6 +75,30 @@ namespace Qoollo.BobClient
         internal byte[] GetKeyBytes()
         {
             return _keyBytes;
+        }
+
+        /// <summary>
+        /// Calculates the remainder of a division
+        /// </summary>
+        /// <param name="divisor">Divisor</param>
+        /// <returns>Remainder</returns>
+        internal int Remainder(int divisor)
+        {
+            if (divisor == 0)
+                throw new DivideByZeroException();
+
+            if (_keyBytes == null)
+                return 0;
+
+            long rem = 0;
+            long byteMaxRem = 1;
+            for (int i = 0; i < _keyBytes.Length; i++)
+            {
+                rem = (rem + _keyBytes[i] * byteMaxRem) % divisor;
+                byteMaxRem = (byteMaxRem * 256) % divisor;
+            }
+
+            return (int)rem;
         }
 
         /// <summary>

@@ -51,5 +51,17 @@ namespace Qoollo.BobClient.UnitTests
             Assert.Equal(4, new BobKey(new byte[] { 1, 2, 3, 4 }).Length);
             Assert.Equal(0, default(BobKey).Length);
         }
+
+        [Theory]
+        [InlineData(123, 3)]
+        [InlineData(100500, 101)]
+        [InlineData(100500, 100)]
+        [InlineData(1457, -33)]
+        [InlineData(10403248134, 54523)]
+        [InlineData(96333534, 1241)]
+        public void RemainderTest(ulong key, int divisor)
+        {
+            Assert.Equal((long)key % divisor, BobKey.FromUInt64(key).Remainder(divisor));
+        }
     }
 }
