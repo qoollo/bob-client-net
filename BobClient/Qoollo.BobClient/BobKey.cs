@@ -186,8 +186,8 @@ namespace Qoollo.BobClient
 
             for (int i = 0; i < _keyBytes.Length; i++)
             {
-                result[i + 2] = _hexTable[_keyBytes[i] >> 4];
-                result[i + 3] = _hexTable[_keyBytes[i] & 15];
+                result[2 * i + 2] = _hexTable[_keyBytes[i] >> 4];
+                result[2 * i + 3] = _hexTable[_keyBytes[i] & 15];
             }
 
             return new string(result);
