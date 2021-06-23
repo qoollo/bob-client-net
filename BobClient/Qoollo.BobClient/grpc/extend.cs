@@ -50,7 +50,7 @@ namespace BobStorage
 
     internal sealed partial class ExistRequest
     {
-        public ExistRequest(IEnumerable<Qoollo.BobClient.BobKey> keys, bool fullGet = false)
+        public ExistRequest(IEnumerable<Qoollo.BobClient.BobKey> keys, bool fullGet)
         {
             foreach (var k in keys)
                 Keys.Add(new BlobKey() { Key = ByteString.CopyFrom(k.GetKeyBytes()) });
@@ -60,7 +60,7 @@ namespace BobStorage
                 Source = fullGet ? GetSource.All : GetSource.Normal
             }; 
         }
-        public ExistRequest(Qoollo.BobClient.BobKey[] keys, bool fullGet = false)
+        public ExistRequest(Qoollo.BobClient.BobKey[] keys, bool fullGet)
         {
             Keys.Capacity = keys.Length;
             for (int i = 0; i < keys.Length; i++)
@@ -71,7 +71,7 @@ namespace BobStorage
                 Source = fullGet ? GetSource.All : GetSource.Normal
             };
         }
-        public ExistRequest(IReadOnlyList<Qoollo.BobClient.BobKey> keys, bool fullGet = false)
+        public ExistRequest(IReadOnlyList<Qoollo.BobClient.BobKey> keys, bool fullGet)
         {
             Keys.Capacity = keys.Count;
             for (int i = 0; i < keys.Count; i++)

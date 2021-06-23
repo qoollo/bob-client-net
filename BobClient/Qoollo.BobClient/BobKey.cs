@@ -23,8 +23,8 @@ namespace Qoollo.BobClient
             {
                 for (int i = 0; i < 4; i++)
                 {
-                    byte tmp = bytes[0];
-                    bytes[0] = bytes[7 - i];
+                    byte tmp = bytes[i];
+                    bytes[i] = bytes[7 - i];
                     bytes[7 - i] = tmp;
                 }
             }

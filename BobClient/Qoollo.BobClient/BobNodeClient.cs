@@ -881,7 +881,7 @@ namespace Qoollo.BobClient
 
 
         /// <summary>
-        /// Checks data presented in Bob
+        /// Checks data presented in Bob (only for internal usage)
         /// </summary>
         /// <param name="request">Prepared request</param>
         /// <param name="token">Cancellation token</param>
@@ -893,6 +893,9 @@ namespace Qoollo.BobClient
         /// <exception cref="ArgumentNullException">keys is null</exception>
         private bool[] Exists(BobStorage.ExistRequest request, CancellationToken token)
         {
+            if (_isDisposed)
+                throw new ObjectDisposedException(GetType().Name);
+
             System.Diagnostics.Debug.Assert(request != null);
 
             try
@@ -1046,7 +1049,7 @@ namespace Qoollo.BobClient
 
 
         /// <summary>
-        /// Asynchronously checks data presented in Bob
+        /// Asynchronously checks data presented in Bob (only for internal usage)
         /// </summary>
         /// <param name="request">Prepared request</param>
         /// <param name="token">Cancellation token</param>
@@ -1058,6 +1061,9 @@ namespace Qoollo.BobClient
         /// <exception cref="ArgumentNullException">keys is null</exception>
         private async Task<bool[]> ExistsAsync(BobStorage.ExistRequest request, CancellationToken token)
         {
+            if (_isDisposed)
+                throw new ObjectDisposedException(GetType().Name);
+
             System.Diagnostics.Debug.Assert(request != null);
 
             try

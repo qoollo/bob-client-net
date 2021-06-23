@@ -59,6 +59,7 @@ namespace Qoollo.BobClient.UnitTests
         [InlineData(1457, -33)]
         [InlineData(10403248134, 54523)]
         [InlineData(96333534, 1241)]
+        [InlineData(14124554, int.MaxValue)]
         public void RemainderTest(ulong key, int divisor)
         {
             Assert.Equal((long)key % divisor, BobKey.FromUInt64(key).Remainder(divisor));
