@@ -10,7 +10,7 @@ namespace Qoollo.BobClient.UnitTests
     public class BobNodeClient_TKey_Tests
     {
         [Fact]
-        public void PutGetExistOperationTest()
+        public void PutGetExistOperationUInt64Test()
         {
             byte[] defaultData = new byte[] { 1, 2, 3 };
             var data = new Dictionary<BobKey, byte[]>
@@ -52,7 +52,7 @@ namespace Qoollo.BobClient.UnitTests
 
 
         [Fact]
-        public async Task PutGetExistOperationTestAsync()
+        public async Task PutGetExistOperationUInt64TestAsync()
         {
             byte[] defaultData = new byte[] { 1, 2, 3 };
             var data = new Dictionary<BobKey, byte[]>
@@ -88,6 +88,92 @@ namespace Qoollo.BobClient.UnitTests
                 for (ulong i = uint.MaxValue; i < (ulong)uint.MaxValue + 1000; i++)
                 {
                     Assert.Equal(defaultData, await client.GetAsync(i));
+                }
+            }
+        }
+
+
+        [Fact]
+        public void PutGetExistOperationInt64Test()
+        {
+            byte[] defaultData = new byte[] { 1, 2, 3 };
+            var data = new Dictionary<BobKey, byte[]>
+            {
+            };
+
+            using (var client = new BobNodeClient<long>(BobNodeClientMockHelper.CreateMockedClientWithData(data), null))
+            {
+                client.Put(1, defaultData);
+                client.Put(long.MaxValue, defaultData);
+
+                Assert.Equal(defaultData, client.Get(1));
+                Assert.Equal(defaultData, client.Get(long.MaxValue));
+                Assert.Throws<BobKeyNotFoundException>(() => client.Get(2));
+
+                Assert.Equal(new bool[] { true, false }, client.Exists(new long[] { 1, 2 }));
+
+                for (long i = 100; i < 10000; i++)
+                {
+                    client.Put(i, defaultData);
+                }
+                for (long i = 100; i < 10000; i++)
+                {
+                    Assert.Equal(defaultData, client.Get(i));
+                }
+                Assert.All(client.Exists(Enumerable.Range(100, 10000 - 100).Select(o => (long)o).ToArray()), res => Assert.True(res));
+                Assert.All(client.Exists(Enumerable.Range(20000, 1000).Select(o => (long)o).ToArray()), res => Assert.False(res));
+
+
+                for (long i = uint.MaxValue; i < (long)uint.MaxValue + 1000; i++)
+                {
+                    client.Put(i, defaultData);
+                }
+                for (long i = uint.MaxValue; i < (long)uint.MaxValue + 1000; i++)
+                {
+                    Assert.Equal(defaultData, client.Get(i));
+                }
+            }
+        }
+
+
+        [Fact]
+        public void PutGetExistOperationInt32Test()
+        {
+            byte[] defaultData = new byte[] { 1, 2, 3 };
+            var data = new Dictionary<BobKey, byte[]>
+            {
+            };
+
+            using (var client = new BobNodeClient<int>(BobNodeClientMockHelper.CreateMockedClientWithData(data), null))
+            {
+                client.Put(1, defaultData);
+                client.Put(int.MaxValue, defaultData);
+
+                Assert.Equal(defaultData, client.Get(1));
+                Assert.Equal(defaultData, client.Get(int.MaxValue));
+                Assert.Throws<BobKeyNotFoundException>(() => client.Get(2));
+
+                Assert.Equal(new bool[] { true, false }, client.Exists(new int[] { 1, 2 }));
+
+                for (int i = 100; i < 10000; i++)
+                {
+                    client.Put(i, defaultData);
+                }
+                for (int i = 100; i < 10000; i++)
+                {
+                    Assert.Equal(defaultData, client.Get(i));
+                }
+                Assert.All(client.Exists(Enumerable.Range(100, 10000 - 100).Select(o => (int)o).ToArray()), res => Assert.True(res));
+                Assert.All(client.Exists(Enumerable.Range(20000, 1000).Select(o => (int)o).ToArray()), res => Assert.False(res));
+
+
+                for (int i = int.MaxValue - 1000; i < int.MaxValue - 1; i++)
+                {
+                    client.Put(i, defaultData);
+                }
+                for (int i = int.MaxValue - 1000; i < int.MaxValue - 1; i++)
+                {
+                    Assert.Equal(defaultData, client.Get(i));
                 }
             }
         }

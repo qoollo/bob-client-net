@@ -11,7 +11,10 @@ namespace Qoollo.BobClient.KeySerializers
     {
         private static readonly Dictionary<Type, object> _serializers = new Dictionary<Type, object>()
         {
-            { typeof(ulong), UInt64BobKeySerializer.Instance }
+            { typeof(ulong), UInt64BobKeySerializer.Instance },
+            { typeof(long), Int64BobKeySerializer.Instance },
+            { typeof(uint), UInt32BobKeySerializer.Instance },
+            { typeof(int), Int32BobKeySerializer.Instance }
         };
 
         /// <summary>

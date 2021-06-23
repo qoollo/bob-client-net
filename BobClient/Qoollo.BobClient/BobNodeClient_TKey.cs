@@ -40,7 +40,7 @@ namespace Qoollo.BobClient
             _keySerializer = keySerializer;
 
             if (keySerializer == null && !BobDefaultKeySerializers.TryGetKeySerializer<TKey>(out _keySerializer))
-                throw new ArgumentException($"KeySerializer is null and no default key serializer found for key type {typeof(TKey).Name}", nameof(keySerializer));
+                throw new ArgumentException($"KeySerializer is null and no default key serializer found for key type '{typeof(TKey).Name}'", nameof(keySerializer));
         }
 
         /// <summary>
