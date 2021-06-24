@@ -177,5 +177,41 @@ namespace Qoollo.BobClient.UnitTests
                 }
             }
         }
+
+
+        [Fact]
+        public void PutGetExistOperationGuidTest()
+        {
+            byte[] defaultData = new byte[] { 1, 2, 3 };
+            var data = new Dictionary<BobKey, byte[]>
+            {
+            };
+
+            Guid guid1 = Guid.NewGuid();
+            Guid guid2 = Guid.NewGuid();
+
+            Guid[] guidArray = Enumerable.Range(0, 1000).Select(o => Guid.NewGuid()).ToArray();
+
+            using (var client = new BobNodeClient<Guid>(BobNodeClientMockHelper.CreateMockedClientWithData(data), null))
+            {
+                client.Put(guid1, defaultData);
+
+                Assert.Equal(defaultData, client.Get(guid1));
+                Assert.Throws<BobKeyNotFoundException>(() => client.Get(guid2));
+
+                Assert.Equal(new bool[] { true, false }, client.Exists(new Guid[] { guid1, guid2 }));
+
+                for (int i = 0; i < guidArray.Length; i++)
+                {
+                    client.Put(guidArray[i], defaultData);
+                }
+                for (int i = 0; i < guidArray.Length; i++)
+                {
+                    Assert.Equal(defaultData, client.Get(guidArray[i]));
+                }
+                Assert.All(client.Exists(guidArray), res => Assert.True(res));
+                Assert.All(client.Exists(Enumerable.Range(0, 100).Select(o => Guid.NewGuid()).ToArray()), res => Assert.False(res));
+            }
+        }
     }
 }

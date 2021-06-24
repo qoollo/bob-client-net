@@ -14,7 +14,8 @@ namespace Qoollo.BobClient.KeySerializers
             { typeof(ulong), UInt64BobKeySerializer.Instance },
             { typeof(long), Int64BobKeySerializer.Instance },
             { typeof(uint), UInt32BobKeySerializer.Instance },
-            { typeof(int), Int32BobKeySerializer.Instance }
+            { typeof(int), Int32BobKeySerializer.Instance },
+            { typeof(Guid), GuidBobKeySerializer.Instance }
         };
 
         /// <summary>

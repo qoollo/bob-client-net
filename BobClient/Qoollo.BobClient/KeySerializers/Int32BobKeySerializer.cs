@@ -62,14 +62,10 @@ namespace Qoollo.BobClient.KeySerializers
             if (byteArray.Length != sizeof(int))
                 throw new ArgumentException("Passed byte array has incorrect length", nameof(byteArray));
 
-#if !NETFRAMEWORK
-            // NETFRAMEWORK always runs on LittleEndian architecture
-
             if (!BitConverter.IsLittleEndian)
             {
                 return unchecked((int)(((uint)byteArray[0] << 24) | ((uint)byteArray[1] << 16) | ((uint)byteArray[2] << 8) | ((uint)byteArray[3])));
             }
-#endif
 
             return System.Runtime.CompilerServices.Unsafe.As<byte, int>(ref byteArray[0]);
         }
