@@ -4,9 +4,9 @@
     <Title>Qoollo.BobClient</Title>
     <AssemblyName>Qoollo.BobClient</AssemblyName>
     <RootNamespace>Qoollo.BobClient</RootNamespace>
-    <AssemblyVersion>2.1.3</AssemblyVersion>
-    <FileVersion>2.1.3</FileVersion>
-    <InformationalVersion>2.1.3</InformationalVersion>
+    <AssemblyVersion>3.0.0</AssemblyVersion>
+    <FileVersion>3.0.0</FileVersion>
+    <InformationalVersion>3.0.0-alpha</InformationalVersion>
 
     <TargetFrameworks>netstandard2.0;net462;net5.0</TargetFrameworks>
 
@@ -15,7 +15,7 @@
 
   <PropertyGroup>
     <PackageId>Qoollo.BobClient</PackageId>
-    <PackageVersion>2.1.3</PackageVersion>
+    <PackageVersion>3.0.0-alpha</PackageVersion>
     <Company>Qoollo</Company>
     <Authors>Qoollo</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -24,9 +24,11 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>.NET client library for Bob (distributed key-value stroage)</Description>
     <PackageTags>Bob, Distributed, KeyValue, Storage</PackageTags>
-    <PackageReleaseNotes>v2.1.3 (05.10.2020)
-      - Put, Get, Exists operations supported
-      - Single node and cluster clients implemented
+    <PackageReleaseNotes>v3.0.0-alpha (25.06.2021)
+      - Use gRPC.NET on .NET 5.0
+      - Support for different key types (new Bob protocol)
+      - BobNodeClient have additional metrics to perform balancing
+      - Node selection plicy refactored
     </PackageReleaseNotes>
     <Copyright>Qoollo 2020</Copyright>
   </PropertyGroup>
