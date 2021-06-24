@@ -1,4 +1,5 @@
-﻿using Qoollo.BobClient.NodeSelectionPolicies;
+﻿using Qoollo.BobClient.KeySerializers;
+using Qoollo.BobClient.NodeSelectionPolicies;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,11 +11,13 @@ namespace Qoollo.BobClient
     /// <summary>
     /// Bob cluster builder
     /// </summary>
-    public class BobClusterBuilder
+    /// <typeparam name="TKey">Type of the Key for Cluster</typeparam>
+    public class BobClusterBuilder<TKey>
     {
         private readonly List<NodeAddress> _nodeAddresses;
         private TimeSpan _operationTimeout;
         private BobNodeSelectionPolicyFactory _nodeSelectionPolicyFactory;
+        private BobKeySerializer<TKey> _keySerializer;
 
         /// <summary>
         /// Builder constructor
@@ -24,6 +27,7 @@ namespace Qoollo.BobClient
             _nodeAddresses = new List<NodeAddress>();
             _operationTimeout = BobNodeClient.DefaultOperationTimeout;
             _nodeSelectionPolicyFactory = null;
+            _keySerializer = null;
         }
 
         /// <summary>
@@ -31,7 +35,7 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="address">Address of a node</param>
         /// <returns>The reference to the current builder instatnce</returns>
-        public BobClusterBuilder WithAdditionalNode(NodeAddress address)
+        public BobClusterBuilder<TKey> WithAdditionalNode(NodeAddress address)
         {
             if (address == null)
                 throw new ArgumentNullException(nameof(address));
@@ -45,7 +49,7 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="nodeAddress">Address of a node</param>
         /// <returns>The reference to the current builder instatnce</returns>
-        public BobClusterBuilder WithAdditionalNode(string nodeAddress)
+        public BobClusterBuilder<TKey> WithAdditionalNode(string nodeAddress)
         {
             if (nodeAddress == null)
                 throw new ArgumentNullException(nameof(nodeAddress));
@@ -59,7 +63,7 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="timeout">Timeout value (can be <see cref="Timeout.InfiniteTimeSpan"/>)</param>
         /// <returns>The reference to the current builder instatnce</returns>
-        public BobClusterBuilder WithOperationTimeout(TimeSpan timeout)
+        public BobClusterBuilder<TKey> WithOperationTimeout(TimeSpan timeout)
         {
             if (timeout < TimeSpan.Zero && timeout != Timeout.InfiniteTimeSpan)
                 throw new ArgumentOutOfRangeException(nameof(timeout));
@@ -73,7 +77,7 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="timeoutMs">Timeout value in milliseconds (can be <see cref="Timeout.Infinite"/>)</param>
         /// <returns>The reference to the current builder instatnce</returns>
-        public BobClusterBuilder WithOperationTimeout(int timeoutMs)
+        public BobClusterBuilder<TKey> WithOperationTimeout(int timeoutMs)
         {
             if (timeoutMs < 0 && timeoutMs != Timeout.Infinite)
                 throw new ArgumentOutOfRangeException(nameof(timeoutMs));
@@ -87,7 +91,7 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="policyFactory">Factory to create node selection policy</param>
         /// <returns>The reference to the current builder instatnce</returns>
-        public BobClusterBuilder WithNodeSelectionPolicy(BobNodeSelectionPolicyFactory policyFactory)
+        public BobClusterBuilder<TKey> WithNodeSelectionPolicy(BobNodeSelectionPolicyFactory policyFactory)
         {
             if (policyFactory == null)
                 throw new ArgumentNullException(nameof(policyFactory));
@@ -97,15 +101,29 @@ namespace Qoollo.BobClient
         }
 
         /// <summary>
-        /// Builds <see cref="BobClusterClient"/>
+        /// Specifies key serializer to convert <typeparamref name="TKey"/> into byte array
+        /// </summary>
+        /// <param name="keySerializer">Key serializer for <typeparamref name="TKey"/></param>
+        /// <returns>The reference to the current builder instatnce</returns>
+        public BobClusterBuilder<TKey> WithKeySerializer(BobKeySerializer<TKey> keySerializer)
+        {
+            if (keySerializer == null)
+                throw new ArgumentNullException(nameof(keySerializer));
+
+            _keySerializer = keySerializer;
+            return this;
+        }
+
+        /// <summary>
+        /// Builds <see cref="BobClusterClient{TKey}"/>
         /// </summary>
         /// <returns>Created cluster</returns>
-        public BobClusterClient Build()
+        public BobClusterClient<TKey> Build()
         {
             if (_nodeAddresses.Count == 0)
-                throw new InvalidOperationException("At least one node shoulde be added to cluster");
+                throw new InvalidOperationException("At least one node should be added to cluster");
 
-            return new BobClusterClient(_nodeAddresses.Select(o => new BobNodeClient(o, _operationTimeout)).ToList(), _nodeSelectionPolicyFactory);
+            return new BobClusterClient<TKey>(_nodeAddresses.Select(o => new BobNodeClient(o, _operationTimeout)).ToList(), _nodeSelectionPolicyFactory, _keySerializer);
         }
     }
 }

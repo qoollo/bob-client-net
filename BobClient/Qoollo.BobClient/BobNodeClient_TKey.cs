@@ -30,7 +30,7 @@ namespace Qoollo.BobClient
         /// <see cref="BobNodeClient"/> constructor
         /// </summary>
         /// <param name="innerClient">Low-level BobNodeClient</param>
-        /// <param name="keySerializer">Serializer for <typeparamref name="TKey"/></param>
+        /// <param name="keySerializer">Serializer for <typeparamref name="TKey"/>  (null for default serializer)</param>
         protected internal BobNodeClient(BobNodeClient innerClient, BobKeySerializer<TKey> keySerializer)
         {
             if (innerClient == null)
@@ -48,7 +48,7 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="nodeAddress">Address of a Bob node</param>
         /// <param name="operationTimeout">Timeout for every operation</param>
-        /// <param name="keySerializer">Serializer for <typeparamref name="TKey"/></param>
+        /// <param name="keySerializer">Serializer for <typeparamref name="TKey"/> (null for default serializer)</param>
         public BobNodeClient(NodeAddress nodeAddress, TimeSpan operationTimeout, BobKeySerializer<TKey> keySerializer)
             : this(new BobNodeClient(nodeAddress, operationTimeout), keySerializer)
         {
@@ -424,6 +424,9 @@ namespace Qoollo.BobClient
         /// <exception cref="ArgumentException">At least one key in <paramref name="keys"/> array is not specified</exception>
         protected internal bool[] Exists(TKey[] keys, bool fullGet, CancellationToken token)
         {
+            if (keys == null)
+                throw new ArgumentNullException(nameof(keys));
+
             BobKey[] bobKeyArray = new BobKey[keys.Length];
             for (int i = 0; i < keys.Length; i++)
                 bobKeyArray[i] = _keySerializer.SerializeToBobKey(keys[i]);
@@ -478,11 +481,14 @@ namespace Qoollo.BobClient
         /// <exception cref="ArgumentException">At least one key in <paramref name="keys"/> array is not specified</exception>
         protected internal bool[] Exists(IReadOnlyList<TKey> keys, bool fullGet, CancellationToken token)
         {
+            if (keys == null)
+                throw new ArgumentNullException(nameof(keys));
+
             BobKey[] bobKeyArray = new BobKey[keys.Count];
             for (int i = 0; i < keys.Count; i++)
                 bobKeyArray[i] = _keySerializer.SerializeToBobKey(keys[i]);
 
-            return _innerClient.Exists(bobKeyArray, token);
+            return _innerClient.Exists(bobKeyArray, fullGet, token);
         }
 
         /// <summary>
@@ -532,13 +538,16 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
         /// <exception cref="ArgumentException">At least one key in <paramref name="keys"/> array is not specified</exception>
-        protected internal Task<bool[]> ExistsAsync(TKey[] keys, bool fullGet, CancellationToken token)
+        protected internal async Task<bool[]> ExistsAsync(TKey[] keys, bool fullGet, CancellationToken token)
         {
+            if (keys == null)
+                throw new ArgumentNullException(nameof(keys));
+
             BobKey[] bobKeyArray = new BobKey[keys.Length];
             for (int i = 0; i < keys.Length; i++)
                 bobKeyArray[i] = _keySerializer.SerializeToBobKey(keys[i]);
 
-            return _innerClient.ExistsAsync(bobKeyArray, fullGet, token);
+            return await _innerClient.ExistsAsync(bobKeyArray, fullGet, token);
         }
 
         /// <summary>
@@ -586,13 +595,16 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
         /// <exception cref="ArgumentException">At least one key in <paramref name="keys"/> array is not specified</exception>
-        protected internal Task<bool[]> ExistsAsync(IReadOnlyList<TKey> keys, bool fullGet, CancellationToken token)
+        protected internal async Task<bool[]> ExistsAsync(IReadOnlyList<TKey> keys, bool fullGet, CancellationToken token)
         {
+            if (keys == null)
+                throw new ArgumentNullException(nameof(keys));
+
             BobKey[] bobKeyArray = new BobKey[keys.Count];
             for (int i = 0; i < keys.Count; i++)
                 bobKeyArray[i] = _keySerializer.SerializeToBobKey(keys[i]);
 
-            return _innerClient.ExistsAsync(bobKeyArray, fullGet, token);
+            return await _innerClient.ExistsAsync(bobKeyArray, fullGet, token);
         }
 
         /// <summary>

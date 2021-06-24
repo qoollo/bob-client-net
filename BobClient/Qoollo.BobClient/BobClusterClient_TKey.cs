@@ -1,4 +1,5 @@
-﻿using Qoollo.BobClient.NodeSelectionPolicies;
+﻿using Qoollo.BobClient.KeySerializers;
+using Qoollo.BobClient.NodeSelectionPolicies;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,47 +13,45 @@ namespace Qoollo.BobClient
     /// <summary>
     /// Bob client for whole cluster (switch nodes according to the policy)
     /// </summary>
-    public class BobClusterClient: IBobApi, IDisposable
+    /// <typeparam name="TKey">Type of the Key</typeparam>
+    public class BobClusterClient<TKey>: IBobApi<TKey>, IDisposable
     {
-        private readonly BobNodeClient[] _clients;
-        private readonly BobNodeSelectionPolicy _selectionPolicy;
+        private readonly BobClusterClient _innerCluster;
+        private readonly BobKeySerializer<TKey> _keySerializer;
+
+        /// <summary>
+        /// <see cref="BobClusterClient"/> constructor
+        /// </summary>
+        /// <param name="innerCluster">Low-level BobClusterClient</param>
+        /// <param name="keySerializer">Serializer for <typeparamref name="TKey"/> (null for default serializer)</param>
+        protected internal BobClusterClient(BobClusterClient innerCluster, BobKeySerializer<TKey> keySerializer)
+        {
+            if (innerCluster == null)
+                throw new ArgumentNullException(nameof(innerCluster));
+
+            _innerCluster = innerCluster;
+            _keySerializer = keySerializer;
+
+            if (keySerializer == null && !BobDefaultKeySerializers.TryGetKeySerializer<TKey>(out _keySerializer))
+                throw new ArgumentException($"KeySerializer is null and no default key serializer found for key type '{typeof(TKey).Name}'", nameof(keySerializer));
+        }
 
         /// <summary>
         /// <see cref="BobClusterClient"/> constructor
         /// </summary>
         /// <param name="clients">List of clients for every bob node</param>
         /// <param name="nodeSelectionPolicyFactory">Factory to create node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
-        public BobClusterClient(IEnumerable<BobNodeClient> clients, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory)
+        /// <param name="keySerializer">Serializer for <typeparamref name="TKey"/> (null for default serializer)</param>
+        public BobClusterClient(IEnumerable<BobNodeClient> clients, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, BobKeySerializer<TKey> keySerializer)
+            : this(new BobClusterClient(clients, nodeSelectionPolicyFactory), keySerializer)
         {
-            if (clients == null)
-                throw new ArgumentNullException(nameof(clients));
-
-            _clients = clients.ToArray();
-
-            if (_clients.Length == 0)
-                throw new ArgumentException("Clients list cannot be empty", nameof(clients));
-            for (int i = 0; i < _clients.Length; i++)
-                if (_clients[i] == null)
-                    throw new ArgumentNullException($"{nameof(clients)}[{i}]", "Client inside clients array cannot be null");
-
-            if (nodeSelectionPolicyFactory == null)
-            {
-                if (_clients.Length == 1)
-                    _selectionPolicy = new FirstNodeSelectionPolicy(_clients);
-                else
-                    _selectionPolicy = new SequentialNodeSelectionPolicy(_clients);
-            }
-            else
-            {
-                _selectionPolicy = nodeSelectionPolicyFactory.Create(_clients);
-            }
         }
         /// <summary>
         /// <see cref="BobClusterClient"/> constructor
         /// </summary>
         /// <param name="clients">List of clients for every bob node</param>
         public BobClusterClient(IEnumerable<BobNodeClient> clients)
-            : this(clients, (BobNodeSelectionPolicyFactory)null)
+            : this(clients, (BobNodeSelectionPolicyFactory)null, (BobKeySerializer<TKey>)null)
         {
         }
         /// <summary>
@@ -61,8 +60,9 @@ namespace Qoollo.BobClient
         /// <param name="nodeAddress">List of nodes addresses</param>
         /// <param name="operationTimeout">Operation timeout for every created node client</param>
         /// <param name="nodeSelectionPolicyFactory">Factory to create node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
-        public BobClusterClient(IEnumerable<NodeAddress> nodeAddress, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, TimeSpan operationTimeout)
-            : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), nodeSelectionPolicyFactory)
+        /// <param name="keySerializer">Serializer for <typeparamref name="TKey"/> (null for default serializer)</param>
+        public BobClusterClient(IEnumerable<NodeAddress> nodeAddress, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, BobKeySerializer<TKey> keySerializer, TimeSpan operationTimeout)
+            : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), nodeSelectionPolicyFactory, keySerializer)
         {
         }
         /// <summary>
@@ -70,7 +70,7 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="nodeAddress">List of nodes addresses</param>
         public BobClusterClient(IEnumerable<NodeAddress> nodeAddress)
-            : this(nodeAddress, (BobNodeSelectionPolicyFactory)null, BobNodeClient.DefaultOperationTimeout)
+            : this(nodeAddress, (BobNodeSelectionPolicyFactory)null, (BobKeySerializer<TKey>)null, BobNodeClient.DefaultOperationTimeout)
         {
         }
         /// <summary>
@@ -79,8 +79,9 @@ namespace Qoollo.BobClient
         /// <param name="nodeAddress">List of nodes addresses</param>
         /// <param name="operationTimeout">Operation timeout for every created node client</param>
         /// <param name="nodeSelectionPolicyFactory">Factory to create node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
-        public BobClusterClient(IEnumerable<string> nodeAddress, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, TimeSpan operationTimeout)
-            : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), nodeSelectionPolicyFactory)
+        /// <param name="keySerializer">Serializer for <typeparamref name="TKey"/> (null for default serializer)</param>
+        public BobClusterClient(IEnumerable<string> nodeAddress, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, BobKeySerializer<TKey> keySerializer, TimeSpan operationTimeout)
+            : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), nodeSelectionPolicyFactory, keySerializer)
         {
         }
         /// <summary>
@@ -88,7 +89,7 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="nodeAddress">List of nodes addresses</param>
         public BobClusterClient(IEnumerable<string> nodeAddress)
-            : this(nodeAddress, (BobNodeSelectionPolicyFactory)null, BobNodeClient.DefaultOperationTimeout)
+            : this(nodeAddress, (BobNodeSelectionPolicyFactory)null, (BobKeySerializer<TKey>)null, BobNodeClient.DefaultOperationTimeout)
         {
         }
 
@@ -102,13 +103,9 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Specified timeout reached</exception>
         /// <exception cref="ObjectDisposedException">Client was disposed</exception>
         /// <exception cref="ArgumentOutOfRangeException">Incorrect timeout value</exception>
-        public async Task OpenAsync(TimeSpan timeout)
+        public Task OpenAsync(TimeSpan timeout)
         {
-            if (timeout < TimeSpan.Zero && timeout != Timeout.InfiniteTimeSpan)
-                throw new ArgumentOutOfRangeException(nameof(timeout));
-
-            for (int i = 0; i < _clients.Length; i++)
-                await _clients[i].OpenAsync(timeout);
+            return _innerCluster.OpenAsync(timeout);
         }
         /// <summary>
         /// Explicitly opens connection to every Bob node in cluster
@@ -117,10 +114,9 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Connection was not opened</exception>
         /// <exception cref="TimeoutException">Specified timeout reached</exception>
         /// <exception cref="ObjectDisposedException">Client was disposed</exception>
-        public async Task OpenAsync()
+        public Task OpenAsync()
         {
-            for (int i = 0; i < _clients.Length; i++)
-                await _clients[i].OpenAsync();
+            return _innerCluster.OpenAsync();
         }
         /// <summary>
         /// Explicitly opens connection to every Bob node in cluster
@@ -132,11 +128,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ArgumentOutOfRangeException">Incorrect timeout value</exception>
         public void Open(TimeSpan timeout)
         {
-            if (timeout < TimeSpan.Zero && timeout != Timeout.InfiniteTimeSpan)
-                throw new ArgumentOutOfRangeException(nameof(timeout));
-
-            for (int i = 0; i < _clients.Length; i++)
-                _clients[i].Open(timeout);
+            _innerCluster.Open(timeout);
         }
         /// <summary>
         /// Explicitly opens connection to every Bob node in cluster
@@ -146,8 +138,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ObjectDisposedException">Client was disposed</exception>
         public void Open()
         {
-            for (int i = 0; i < _clients.Length; i++)
-                _clients[i].Open();
+            _innerCluster.Open();
         }
 
 
@@ -156,10 +147,9 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <returns>Task to await</returns>
         /// <exception cref="BobOperationException">Error during connection shutdown</exception>
-        public async Task CloseAsync()
+        public Task CloseAsync()
         {
-            for (int i = 0; i < _clients.Length; i++)
-                await _clients[i].CloseAsync();
+            return _innerCluster.CloseAsync();
         }
         /// <summary>
         /// Closes connections to every Bob node in cluster
@@ -167,30 +157,7 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Error during connection shutdown</exception>
         public void Close()
         {
-            for (int i = 0; i < _clients.Length; i++)
-                _clients[i].Close();
-        }
-
-        /// <summary>
-        /// Throws IndexOutOfRangeException when client index is incorrect
-        /// </summary>
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void ThrowSelectedIndexOutOfRange(int index, int clientsCount)
-        {
-            throw new IndexOutOfRangeException($"NodeSelectionPolicy returned node index that is out of range (index: {index}, number of clients: {clientsCount}");
-        }
-
-        /// <summary>
-        /// Selects next client
-        /// </summary>
-        /// <returns>Selected client</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private BobNodeClient SelectClient()
-        {
-            int clientIndex = _selectionPolicy.SelectNextNodeIndex();
-            if (clientIndex < 0 || clientIndex > _clients.Length)
-                ThrowSelectedIndexOutOfRange(clientIndex, _clients.Length);
-            return _clients[clientIndex];
+            _innerCluster.Close();
         }
 
         /// <summary>
@@ -204,9 +171,9 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public void Put(BobKey key, byte[] data, CancellationToken token)
+        public void Put(TKey key, byte[] data, CancellationToken token)
         {
-            SelectClient().Put(key, data, token);
+            _innerCluster.Put(_keySerializer.SerializeToBobKey(key), data, token);
         }
 
         /// <summary>
@@ -218,7 +185,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public void Put(BobKey key, byte[] data)
+        public void Put(TKey key, byte[] data)
         {
             Put(key, data, default(CancellationToken));
         }
@@ -235,9 +202,9 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task PutAsync(BobKey key, byte[] data, CancellationToken token)
+        public Task PutAsync(TKey key, byte[] data, CancellationToken token)
         {
-            return SelectClient().PutAsync(key, data, token);
+            return _innerCluster.PutAsync(_keySerializer.SerializeToBobKey(key), data, token);
         }
 
         /// <summary>
@@ -250,7 +217,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ObjectDisposedException">Client was closed</exception>
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task PutAsync(BobKey key, byte[] data)
+        public Task PutAsync(TKey key, byte[] data)
         {
             return PutAsync(key, data, default(CancellationToken));
         }
@@ -268,9 +235,9 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        protected internal byte[] Get(BobKey key, bool fullGet, CancellationToken token)
+        protected internal byte[] Get(TKey key, bool fullGet, CancellationToken token)
         {
-            return SelectClient().Get(key, fullGet, token);
+            return _innerCluster.Get(_keySerializer.SerializeToBobKey(key), fullGet, token);
         }
 
         /// <summary>
@@ -284,7 +251,7 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public byte[] Get(BobKey key, CancellationToken token)
+        public byte[] Get(TKey key, CancellationToken token)
         {
             return Get(key, false, token);
         }
@@ -298,7 +265,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public byte[] Get(BobKey key)
+        public byte[] Get(TKey key)
         {
             return Get(key, false, default(CancellationToken));
         }
@@ -316,9 +283,9 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        protected internal Task<byte[]> GetAsync(BobKey key, bool fullGet, CancellationToken token)
+        protected internal Task<byte[]> GetAsync(TKey key, bool fullGet, CancellationToken token)
         {
-            return SelectClient().GetAsync(key, fullGet, token);
+            return _innerCluster.GetAsync(_keySerializer.SerializeToBobKey(key), fullGet, token);
         }
 
         /// <summary>
@@ -332,7 +299,7 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task<byte[]> GetAsync(BobKey key, CancellationToken token)
+        public Task<byte[]> GetAsync(TKey key, CancellationToken token)
         {
             return GetAsync(key, false, token);
         }
@@ -346,7 +313,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task<byte[]> GetAsync(BobKey key)
+        public Task<byte[]> GetAsync(TKey key)
         {
             return GetAsync(key, false, default(CancellationToken));
         }
@@ -363,9 +330,16 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        protected internal bool[] Exists(BobKey[] keys, bool fullGet, CancellationToken token)
+        protected internal bool[] Exists(TKey[] keys, bool fullGet, CancellationToken token)
         {
-            return SelectClient().Exists(keys, fullGet, token);
+            if (keys == null)
+                throw new ArgumentNullException(nameof(keys));
+
+            BobKey[] bobKeyArray = new BobKey[keys.Length];
+            for (int i = 0; i < keys.Length; i++)
+                bobKeyArray[i] = _keySerializer.SerializeToBobKey(keys[i]);
+
+            return _innerCluster.Exists(bobKeyArray, fullGet, token);
         }
 
         /// <summary>
@@ -379,7 +353,7 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        public bool[] Exists(BobKey[] keys, CancellationToken token)
+        public bool[] Exists(TKey[] keys, CancellationToken token)
         {
             return Exists(keys, false, token);
         }
@@ -393,7 +367,7 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        public bool[] Exists(BobKey[] keys)
+        public bool[] Exists(TKey[] keys)
         {
             return Exists(keys, false, default(CancellationToken));
         }
@@ -410,9 +384,16 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        protected internal Task<bool[]> ExistsAsync(BobKey[] keys, bool fullGet, CancellationToken token)
+        protected internal async Task<bool[]> ExistsAsync(TKey[] keys, bool fullGet, CancellationToken token)
         {
-            return SelectClient().ExistsAsync(keys, fullGet, token);
+            if (keys == null)
+                throw new ArgumentNullException(nameof(keys));
+
+            BobKey[] bobKeyArray = new BobKey[keys.Length];
+            for (int i = 0; i < keys.Length; i++)
+                bobKeyArray[i] = _keySerializer.SerializeToBobKey(keys[i]);
+
+            return await _innerCluster.ExistsAsync(bobKeyArray, fullGet, token);
         }
 
         /// <summary>
@@ -426,7 +407,7 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        public Task<bool[]> ExistsAsync(BobKey[] keys, CancellationToken token)
+        public Task<bool[]> ExistsAsync(TKey[] keys, CancellationToken token)
         {
             return ExistsAsync(keys, false, token);
         }
@@ -441,7 +422,7 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        public Task<bool[]> ExistsAsync(BobKey[] keys)
+        public Task<bool[]> ExistsAsync(TKey[] keys)
         {
             return ExistsAsync(keys, false, default(CancellationToken));
         }
@@ -453,8 +434,7 @@ namespace Qoollo.BobClient
         /// <param name="isUserCall">Was called by user</param>
         protected virtual void Dispose(bool isUserCall)
         {
-            for (int i = 0; i < _clients.Length; i++)
-                _clients[i].Dispose();
+            _innerCluster.Dispose();
         }
 
         /// <summary>
