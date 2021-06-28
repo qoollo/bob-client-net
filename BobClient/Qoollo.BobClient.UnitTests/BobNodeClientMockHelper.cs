@@ -19,6 +19,18 @@ namespace Qoollo.BobClient.UnitTests
             public string PutTextError { get; set; } = null;
         }
 
+        public class MockClientStat
+        {
+            public int PingRequestCount { get; set; } = 0;
+            public int GetRequestCount { get; set; } = 0;
+            public int PutRequestCount { get; set; } = 0;
+            public int ExistsRequestCount { get; set; } = 0;
+
+            public int TotalRequestCount { get { return PingRequestCount + GetRequestCount + PutRequestCount + ExistsRequestCount; } }
+
+            public int RequestsWithFullGet { get; set; } = 0;
+        }
+
         public static BobNodeClient CreateMockedClient(Mock<BobStorage.BobApi.BobApiClient> rpcClientMock, TimeSpan? timeout = null)
         {
             var result = new BobNodeClient("127.0.0.1", timeout ?? TimeSpan.FromSeconds(16));
@@ -56,7 +68,7 @@ namespace Qoollo.BobClient.UnitTests
 
             return mock;
         }
-        public static Mock<BobStorage.BobApi.BobApiClient> CreateDataAccessMockedBobApiClient(Dictionary<BobKey, byte[]> data, MockClientBehaviour behaviour,
+        public static Mock<BobStorage.BobApi.BobApiClient> CreateDataAccessMockedBobApiClient(Dictionary<BobKey, byte[]> data, MockClientBehaviour behaviour, MockClientStat stat,
             Func<BobStorage.Null, Grpc.Core.CallOptions, BobStorage.Null> pingFunc = null,
             Func<BobStorage.GetRequest, Grpc.Core.CallOptions, BobStorage.Blob> getFunc = null,
             Func<BobStorage.PutRequest, Grpc.Core.CallOptions, BobStorage.OpStatus> putFunc = null,
@@ -64,6 +76,8 @@ namespace Qoollo.BobClient.UnitTests
         {
             pingFunc = pingFunc ?? ((request, callOptions) =>
             {
+                stat.PingRequestCount++;
+
                 if (callOptions.CancellationToken.IsCancellationRequested)
                     throw new Grpc.Core.RpcException(new Grpc.Core.Status(Grpc.Core.StatusCode.Cancelled, "Cancelled"));
                 if (behaviour.DelayMs > 0)
@@ -75,8 +89,13 @@ namespace Qoollo.BobClient.UnitTests
                 return new BobStorage.Null();
             });
 
+
             getFunc = getFunc ?? ((request, callOptions) =>
             {
+                stat.GetRequestCount++;
+                if (request.Options.Source == BobStorage.GetSource.All)
+                    stat.RequestsWithFullGet++;
+
                 if (callOptions.CancellationToken.IsCancellationRequested)
                     throw new Grpc.Core.RpcException(new Grpc.Core.Status(Grpc.Core.StatusCode.Cancelled, "Cancelled"));
                 if (behaviour.DelayMs > 0)
@@ -104,6 +123,8 @@ namespace Qoollo.BobClient.UnitTests
 
             putFunc = putFunc ?? new Func<BobStorage.PutRequest, Grpc.Core.CallOptions, BobStorage.OpStatus>((request, callOptions) =>
             {
+                stat.PutRequestCount++;
+
                 if (callOptions.CancellationToken.IsCancellationRequested)
                     throw new Grpc.Core.RpcException(new Grpc.Core.Status(Grpc.Core.StatusCode.Cancelled, "Cancelled"));
                 if (behaviour.DelayMs > 0)
@@ -129,6 +150,10 @@ namespace Qoollo.BobClient.UnitTests
 
             existsFunc = existsFunc ?? ((request, callOptions) =>
             {
+                stat.ExistsRequestCount++;
+                if (request.Options.Source == BobStorage.GetSource.All)
+                    stat.RequestsWithFullGet++;
+
                 if (callOptions.CancellationToken.IsCancellationRequested)
                     throw new Grpc.Core.RpcException(new Grpc.Core.Status(Grpc.Core.StatusCode.Cancelled, "Cancelled"));
                 if (behaviour.DelayMs > 0)
@@ -145,9 +170,9 @@ namespace Qoollo.BobClient.UnitTests
 
             return CreateMockedBobApiClient(pingFunc, getFunc, putFunc, existsFunc);
         }
-        public static BobNodeClient CreateMockedClientWithData(Dictionary<BobKey, byte[]> data, MockClientBehaviour behaviour = null, TimeSpan? timeout = null)
+        public static BobNodeClient CreateMockedClientWithData(Dictionary<BobKey, byte[]> data, MockClientBehaviour behaviour = null, MockClientStat stat = null, TimeSpan? timeout = null)
         {
-            return CreateMockedClient(CreateDataAccessMockedBobApiClient(data, behaviour ?? new MockClientBehaviour()), timeout);
+            return CreateMockedClient(CreateDataAccessMockedBobApiClient(data, behaviour ?? new MockClientBehaviour(), stat ?? new MockClientStat()), timeout);
         }
     }
 }

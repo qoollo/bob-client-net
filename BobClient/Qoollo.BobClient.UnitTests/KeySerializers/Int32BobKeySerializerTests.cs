@@ -19,23 +19,19 @@ namespace Qoollo.BobClient.UnitTests.KeySerializers
         }
 
         [Theory]
-        [InlineData(0)]
-        [InlineData(100)]
-        [InlineData(1245556)]
-        [InlineData(-567547645)]
-        [InlineData(int.MaxValue)]
-        [InlineData(int.MinValue)]
-        [InlineData(int.MaxValue - 432)]
-        [InlineData(int.MinValue + 432)]
-        public void KeySerializationDeserializationTest(int key)
+        [InlineData(0, new byte[4] { 0, 0, 0, 0 })]
+        [InlineData(100, new byte[4] { 100, 0, 0, 0 })]
+        [InlineData(1245556, new byte[4] { 116, 1, 19, 0 })]
+        [InlineData(-567547645, new byte[4] { 3, 233, 43, 222 })]
+        [InlineData(int.MaxValue, new byte[4] { 255, 255, 255, 127 })]
+        [InlineData(int.MinValue, new byte[4] { 0, 0, 0, 128 })]
+        [InlineData(int.MaxValue - 432, new byte[4] { 79, 254, 255, 127 })]
+        [InlineData(int.MinValue + 432, new byte[4] { 176, 1, 0, 128 })]
+        public void KeySerializationDeserializationTest(int key, byte[] expected)
         {
             var serKey = Serializer.SerializeToBobKey(key);
             Assert.Equal(Serializer.SerializedSize, serKey.Length);
-
-            if (BitConverter.IsLittleEndian)
-            {
-                Assert.Equal(BitConverter.GetBytes(key), serKey.GetKeyBytes());
-            }
+            Assert.Equal(expected, serKey.GetKeyBytes());
 
             var deserKey = Serializer.DeserializeFromBobKey(serKey);
             Assert.Equal(key, deserKey);

@@ -20,7 +20,9 @@ namespace Qoollo.BobClient.UnitTests
                 { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
             };
 
-            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data))
+            var stat = new BobNodeClientMockHelper.MockClientStat();
+
+            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour: null, stat: stat))
             {
                 Assert.Equal(BobNodeClientState.Idle, client.State);
                 Assert.Equal(0, client.SequentialErrorCount);
@@ -31,17 +33,20 @@ namespace Qoollo.BobClient.UnitTests
                 Assert.True(client.TimeSinceLastOperationMs < 10000);
 
                 client.Put(BobKey.FromUInt64(2), new byte[] { 1, 2, 3 });
+                Assert.Equal(1, stat.PutRequestCount);
                 Assert.Equal(BobNodeClientState.Ready, client.State);
                 Assert.Equal(0, client.SequentialErrorCount);
                 Assert.True(client.TimeSinceLastOperationMs < 10000);
 
                 var testDataArray = client.Get(BobKey.FromUInt64(2));
+                Assert.Equal(1, stat.GetRequestCount);
                 Assert.Equal(new byte[] { 1, 2, 3 }, testDataArray);
                 Assert.Equal(BobNodeClientState.Ready, client.State);
                 Assert.Equal(0, client.SequentialErrorCount);
                 Assert.True(client.TimeSinceLastOperationMs < 10000);
 
                 var existsResult = client.Exists(new BobKey[] { BobKey.FromUInt64(1), BobKey.FromUInt64(2), BobKey.FromUInt64(3) });
+                Assert.Equal(1, stat.ExistsRequestCount);
                 Assert.Equal(new bool[] { true, true, false }, existsResult);
                 Assert.Equal(BobNodeClientState.Ready, client.State);
                 Assert.Equal(0, client.SequentialErrorCount);
@@ -61,7 +66,9 @@ namespace Qoollo.BobClient.UnitTests
                 { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
             };
 
-            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data))
+            var stat = new BobNodeClientMockHelper.MockClientStat();
+
+            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour: null, stat: stat))
             {
                 Assert.Equal(BobNodeClientState.Idle, client.State);
                 Assert.Equal(0, client.SequentialErrorCount);
@@ -72,17 +79,20 @@ namespace Qoollo.BobClient.UnitTests
                 Assert.True(client.TimeSinceLastOperationMs < 10000);
 
                 await client.PutAsync(BobKey.FromUInt64(2), new byte[] { 1, 2, 3 });
+                Assert.Equal(1, stat.PutRequestCount);
                 Assert.Equal(BobNodeClientState.Ready, client.State);
                 Assert.Equal(0, client.SequentialErrorCount);
                 Assert.True(client.TimeSinceLastOperationMs < 10000);
 
                 var testDataArray = await client.GetAsync(BobKey.FromUInt64(2));
+                Assert.Equal(1, stat.GetRequestCount);
                 Assert.Equal(new byte[] { 1, 2, 3 }, testDataArray);
                 Assert.Equal(BobNodeClientState.Ready, client.State);
                 Assert.Equal(0, client.SequentialErrorCount);
                 Assert.True(client.TimeSinceLastOperationMs < 10000);
 
                 var existsResult = await client.ExistsAsync(new BobKey[] { BobKey.FromUInt64(1), BobKey.FromUInt64(2), BobKey.FromUInt64(3) });
+                Assert.Equal(1, stat.ExistsRequestCount);
                 Assert.Equal(new bool[] { true, true, false }, existsResult);
                 Assert.Equal(BobNodeClientState.Ready, client.State);
                 Assert.Equal(0, client.SequentialErrorCount);
@@ -143,7 +153,7 @@ namespace Qoollo.BobClient.UnitTests
             var data = new Dictionary<BobKey, byte[]>
             {
                 { BobKey.FromUInt64(1), defaultData },
-                 { BobKey.FromUInt64(ulong.MaxValue), defaultData }
+                { BobKey.FromUInt64(ulong.MaxValue), defaultData }
             };
 
             using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data))
@@ -244,8 +254,9 @@ namespace Qoollo.BobClient.UnitTests
                 { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
             };
             var behaviour = new BobNodeClientMockHelper.MockClientBehaviour();
+            var stat = new BobNodeClientMockHelper.MockClientStat();
 
-            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, TimeSpan.FromSeconds(1)))
+            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, stat, TimeSpan.FromSeconds(1)))
             {
                 client.Open();
                 Assert.Equal(BobNodeClientState.Ready, client.State);
@@ -272,8 +283,9 @@ namespace Qoollo.BobClient.UnitTests
                 { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
             };
             var behaviour = new BobNodeClientMockHelper.MockClientBehaviour();
+            var stat = new BobNodeClientMockHelper.MockClientStat();
 
-            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, TimeSpan.FromSeconds(1)))
+            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, stat, TimeSpan.FromSeconds(1)))
             {
                 client.Open();
                 Assert.Equal(BobNodeClientState.Ready, client.State);
@@ -302,8 +314,9 @@ namespace Qoollo.BobClient.UnitTests
                 { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
             };
             var behaviour = new BobNodeClientMockHelper.MockClientBehaviour();
+            var stat = new BobNodeClientMockHelper.MockClientStat();
 
-            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, TimeSpan.FromSeconds(1)))
+            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, stat, TimeSpan.FromSeconds(1)))
             {
                 client.Open();
                 Assert.Equal(BobNodeClientState.Ready, client.State);
@@ -332,8 +345,9 @@ namespace Qoollo.BobClient.UnitTests
                 { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
             };
             var behaviour = new BobNodeClientMockHelper.MockClientBehaviour();
+            var stat = new BobNodeClientMockHelper.MockClientStat();
 
-            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, TimeSpan.FromSeconds(1)))
+            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, stat, TimeSpan.FromSeconds(1)))
             {
                 client.Open();
                 Assert.Equal(BobNodeClientState.Ready, client.State);
@@ -372,8 +386,9 @@ namespace Qoollo.BobClient.UnitTests
                 { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
             };
             var behaviour = new BobNodeClientMockHelper.MockClientBehaviour();
+            var stat = new BobNodeClientMockHelper.MockClientStat();
 
-            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, TimeSpan.FromSeconds(1)))
+            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, stat, TimeSpan.FromSeconds(1)))
             {
                 client.Open();
                 Assert.Equal(BobNodeClientState.Ready, client.State);
@@ -412,8 +427,9 @@ namespace Qoollo.BobClient.UnitTests
                 { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
             };
             var behaviour = new BobNodeClientMockHelper.MockClientBehaviour();
+            var stat = new BobNodeClientMockHelper.MockClientStat();
 
-            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, TimeSpan.FromSeconds(1)))
+            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, stat, TimeSpan.FromSeconds(1)))
             {
                 client.Open();
 
