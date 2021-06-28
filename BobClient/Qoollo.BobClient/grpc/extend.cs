@@ -1,4 +1,5 @@
 ﻿using Google.Protobuf;
+using Qoollo.BobClient.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,13 +12,12 @@ namespace BobStorage
         {
             Key = new BlobKey
             {
-                // TODO: avoid data copy
                 Key = ByteString.CopyFrom(key.GetKeyBytes())
             };
             Data = new Blob
             {
-                // TODO: avoid data array copy
-                Data = ByteString.CopyFrom(data),
+                //Data = ByteString.CopyFrom(data),
+                Data = ProtoBufByteStringHelper.CreateFromByteArrayOptimized(data),
                 Meta = new BlobMeta { Timestamp = unchecked((ulong)DateTimeOffset.UtcNow.ToUnixTimeSeconds()) }
             };
         }
@@ -29,8 +29,8 @@ namespace BobStorage
         {
             Key = new BlobKey
             {
-                // TODO: avoid data copy
-                Key = ByteString.CopyFrom(key.GetKeyBytes())
+                //Key = ByteString.CopyFrom(key.GetKeyBytes())
+                Key = ProtoBufByteStringHelper.CreateFromByteArrayOptimized(key.GetKeyBytes())
             };
             Options = new GetOptions
             {
@@ -43,8 +43,8 @@ namespace BobStorage
     {
         public byte[] ExtractData()
         {
-            // TODO: avoid data copy
-            return this.Data.ToByteArray();
+            //return this.Data.ToByteArray();
+            return ProtoBufByteStringHelper.ExtractByteArrayOptimized(this.Data);
         }
     }
 
@@ -53,7 +53,13 @@ namespace BobStorage
         public ExistRequest(IEnumerable<Qoollo.BobClient.BobKey> keys, bool fullGet)
         {
             foreach (var k in keys)
-                Keys.Add(new BlobKey() { Key = ByteString.CopyFrom(k.GetKeyBytes()) });
+            {
+                Keys.Add(new BlobKey()
+                {
+                    //Key = ByteString.CopyFrom(k.GetKeyBytes())
+                    Key = ProtoBufByteStringHelper.CreateFromByteArrayOptimized(k.GetKeyBytes())
+                });
+            }
 
             Options = new GetOptions
             {
@@ -64,7 +70,13 @@ namespace BobStorage
         {
             Keys.Capacity = keys.Length;
             for (int i = 0; i < keys.Length; i++)
-                Keys.Add(new BlobKey() { Key = ByteString.CopyFrom(keys[i].GetKeyBytes()) });
+            {
+                Keys.Add(new BlobKey() 
+                { 
+                    //Key = ByteString.CopyFrom(keys[i].GetKeyBytes())
+                    Key = ProtoBufByteStringHelper.CreateFromByteArrayOptimized(keys[i].GetKeyBytes())
+                });
+            }
 
             Options = new GetOptions
             {
@@ -75,7 +87,13 @@ namespace BobStorage
         {
             Keys.Capacity = keys.Count;
             for (int i = 0; i < keys.Count; i++)
-                Keys.Add(new BlobKey() { Key = ByteString.CopyFrom(keys[i].GetKeyBytes()) });
+            {
+                Keys.Add(new BlobKey() 
+                { 
+                    //Key = ByteString.CopyFrom(keys[i].GetKeyBytes())
+                    Key = ProtoBufByteStringHelper.CreateFromByteArrayOptimized(keys[i].GetKeyBytes())
+                });
+            }
 
             Options = new GetOptions
             {
