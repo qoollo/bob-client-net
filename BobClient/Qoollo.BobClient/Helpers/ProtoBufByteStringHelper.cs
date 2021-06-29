@@ -26,7 +26,7 @@ namespace Qoollo.BobClient.Helpers
         private const int CanExtractByteArrayOptimized_Ok = 1;
         private const int CanExtractByteArrayOptimized_Unavailable = -1;
 
-        private const int ExtractObjectIndexFromMemoryWithReflectionThreshold = 16;
+        private const int ExtractObjectIndexFromMemoryWithReflectionThreshold = 64;
 
 
         private static readonly object _syncObj = new object();
@@ -120,8 +120,10 @@ namespace Qoollo.BobClient.Helpers
         /// <param name="index">Extracted '_index'</param>
         private static void ExtractObjectIndexFromMemoryWithReflection(ref ReadOnlyMemory<byte> mem, out object obj, out int index)
         {
-            obj = _readOnlyMemory_object.GetValue(mem);
-            index = (int)_readOnlyMemory_index.GetValue(mem);
+            object boxedMem = (object)mem;
+
+            obj = _readOnlyMemory_object.GetValue(boxedMem);
+            index = (int)_readOnlyMemory_index.GetValue(boxedMem);
         }
 
         /// <summary>
@@ -180,24 +182,31 @@ namespace Qoollo.BobClient.Helpers
             if (objectField == null || indexField == null)
                 return null;
 
-            var method = new System.Reflection.Emit.DynamicMethod("ByteString_ExtractByteArray_" + Guid.NewGuid().ToString("N"),
-                null, new Type[] { typeof(ReadOnlyMemory<byte>).MakeByRefType(), typeof(object).MakeByRefType(), typeof(int).MakeByRefType() }, true);
+            try
+            {
+                var method = new System.Reflection.Emit.DynamicMethod("ByteString_ExtractByteArray_" + Guid.NewGuid().ToString("N"),
+                    null, new Type[] { typeof(ReadOnlyMemory<byte>).MakeByRefType(), typeof(object).MakeByRefType(), typeof(int).MakeByRefType() }, true);
 
-            var ilGen = method.GetILGenerator();
+                var ilGen = method.GetILGenerator();
 
-            ilGen.Emit(System.Reflection.Emit.OpCodes.Ldarg_1);
-            ilGen.Emit(System.Reflection.Emit.OpCodes.Ldarg_0);
-            ilGen.Emit(System.Reflection.Emit.OpCodes.Ldfld, objectField);
-            ilGen.Emit(System.Reflection.Emit.OpCodes.Stind_Ref);
+                ilGen.Emit(System.Reflection.Emit.OpCodes.Ldarg_1);
+                ilGen.Emit(System.Reflection.Emit.OpCodes.Ldarg_0);
+                ilGen.Emit(System.Reflection.Emit.OpCodes.Ldfld, objectField);
+                ilGen.Emit(System.Reflection.Emit.OpCodes.Stind_Ref);
 
-            ilGen.Emit(System.Reflection.Emit.OpCodes.Ldarg_2);
-            ilGen.Emit(System.Reflection.Emit.OpCodes.Ldarg_0);
-            ilGen.Emit(System.Reflection.Emit.OpCodes.Ldfld, indexField);
-            ilGen.Emit(System.Reflection.Emit.OpCodes.Stind_I4);
+                ilGen.Emit(System.Reflection.Emit.OpCodes.Ldarg_2);
+                ilGen.Emit(System.Reflection.Emit.OpCodes.Ldarg_0);
+                ilGen.Emit(System.Reflection.Emit.OpCodes.Ldfld, indexField);
+                ilGen.Emit(System.Reflection.Emit.OpCodes.Stind_I4);
 
-            ilGen.Emit(System.Reflection.Emit.OpCodes.Ret);
+                ilGen.Emit(System.Reflection.Emit.OpCodes.Ret);
 
-            return (ExtractObjectIndexFromMemoryDelegate)method.CreateDelegate(typeof(ExtractObjectIndexFromMemoryDelegate));
+                return (ExtractObjectIndexFromMemoryDelegate)method.CreateDelegate(typeof(ExtractObjectIndexFromMemoryDelegate));
+            }
+            catch
+            {
+                return null;
+            }
 #endif
         }
 

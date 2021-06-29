@@ -35,7 +35,31 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="address">Address of a node</param>
         /// <returns>The reference to the current builder instatnce</returns>
+        [Obsolete("Use AddNode", false)]
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
         public BobClusterBuilder<TKey> WithAdditionalNode(NodeAddress address)
+        {
+            return AddNode(address);
+        }
+
+        /// <summary>
+        /// Adds a node to the cluster
+        /// </summary>
+        /// <param name="nodeAddress">Address of a node</param>
+        /// <returns>The reference to the current builder instatnce</returns>
+        [Obsolete("Use AddNode", false)]
+        [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+        public BobClusterBuilder<TKey> WithAdditionalNode(string nodeAddress)
+        {
+            return AddNode(nodeAddress);
+        }
+
+        /// <summary>
+        /// Adds a node to the cluster
+        /// </summary>
+        /// <param name="address">Address of a node</param>
+        /// <returns>The reference to the current builder instatnce</returns>
+        public BobClusterBuilder<TKey> AddNode(NodeAddress address)
         {
             if (address == null)
                 throw new ArgumentNullException(nameof(address));
@@ -49,12 +73,52 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="nodeAddress">Address of a node</param>
         /// <returns>The reference to the current builder instatnce</returns>
-        public BobClusterBuilder<TKey> WithAdditionalNode(string nodeAddress)
+        public BobClusterBuilder<TKey> AddNode(string nodeAddress)
         {
             if (nodeAddress == null)
                 throw new ArgumentNullException(nameof(nodeAddress));
 
             _nodeAddresses.Add(new NodeAddress(nodeAddress));
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a node to the cluster
+        /// </summary>
+        /// <param name="addresses">Addresses of nodes</param>
+        /// <returns>The reference to the current builder instatnce</returns>
+        public BobClusterBuilder<TKey> AddNodes(IEnumerable<NodeAddress> addresses)
+        {
+            if (addresses == null)
+                throw new ArgumentNullException(nameof(addresses));
+
+            foreach (var address in addresses)
+            {
+                if (address == null)
+                    throw new ArgumentNullException(nameof(addresses), "Node address inside list cannot be null");
+
+                _nodeAddresses.Add(address);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a node to the cluster
+        /// </summary>
+        /// <param name="nodeAddresses">Addresses of nodes</param>
+        /// <returns>The reference to the current builder instatnce</returns>
+        public BobClusterBuilder<TKey> AddNodes(IEnumerable<string> nodeAddresses)
+        {
+            if (nodeAddresses == null)
+                throw new ArgumentNullException(nameof(nodeAddresses));
+
+            foreach (var nodeAddress in nodeAddresses)
+            {
+                if (nodeAddress == null)
+                    throw new ArgumentNullException(nameof(nodeAddresses), "Node address inside list cannot be null");
+
+                _nodeAddresses.Add(new NodeAddress(nodeAddress));
+            }
             return this;
         }
 
