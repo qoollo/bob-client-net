@@ -236,7 +236,9 @@ namespace Qoollo.BobClient.UnitTests
                     catch { }
                 });
 
-                Thread.Sleep(10);
+                for (int i = 0; i < 100 && client.State == BobNodeClientState.Idle; i++)
+                    Thread.Sleep(10);
+
                 Assert.Equal(BobNodeClientState.Connecting, client.State);
 
                 behaviour.Pause.Set();

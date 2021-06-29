@@ -51,7 +51,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers
 
             Assert.Equal(data, extractedArray);
 
-            if (ProtoBufByteStringHelper.CanExtractByteArrayOptimized() && ProtoBufByteStringHelper.CanCreateFromByteArrayOptimized())
+            if (ProtoBufByteStringHelper.CanExtractByteArrayOptimized() && ProtoBufByteStringHelper.CanCreateFromByteArrayOptimized() && data.Length >= ProtoBufByteStringHelper.ExtractObjectIndexFromMemoryWithReflectionThreshold)
                 Assert.True(object.ReferenceEquals(data, extractedArray));
         }
     }

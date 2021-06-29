@@ -26,7 +26,7 @@ namespace Qoollo.BobClient.Helpers
         private const int CanExtractByteArrayOptimized_Ok = 1;
         private const int CanExtractByteArrayOptimized_Unavailable = -1;
 
-        private const int ExtractObjectIndexFromMemoryWithReflectionThreshold = 64;
+        internal const int ExtractObjectIndexFromMemoryWithReflectionThreshold = 64;
 
 
         private static readonly object _syncObj = new object();
