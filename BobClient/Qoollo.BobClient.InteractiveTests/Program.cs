@@ -106,8 +106,7 @@ namespace Qoollo.BobClient.InteractiveTests
 
             byte[] sampleData = Enumerable.Range(0, dataLength).Select(o => (byte)(o % byte.MaxValue)).ToArray();
 
-            using (var client = new BobClusterBuilder<ulong>()
-                .AddNodes(nodes)
+            using (var client = new BobClusterBuilder<ulong>(nodes)
                 .WithOperationTimeout(TimeSpan.FromSeconds(1))
                 .WithNodeSelectionPolicy(SequentialNodeSelectionPolicy.Factory)
                 .Build())
