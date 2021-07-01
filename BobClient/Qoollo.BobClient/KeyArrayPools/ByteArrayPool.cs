@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
@@ -10,31 +11,64 @@ namespace Qoollo.BobClient.KeyArrayPools
 
     internal sealed class ByteArrayPool : IDisposable
     {
-        private const int GapSize = 16;
+        internal const int GapSize = 16;
 
-        private struct HeadTailIndicesStruct
+        /// <summary>
+        /// Struct to work with packed head-tail indices.
+        /// (internal for test purposes)
+        /// </summary>
+        internal struct HeadTailIndicesStruct
         {
+            [StructLayout(LayoutKind.Explicit)]
+            private struct UInt16Pack
+            {
+                [FieldOffset(0)]
+                public UInt16 A;
+                [FieldOffset(2)]
+                public UInt16 B;
+            }
+
+            private readonly int _originalPackedHeadTailIndices;
+            private int _pack;
+
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public HeadTailIndicesStruct(ushort head, ushort tail)
             {
-                Head = head;
-                Tail = tail;
-                OriginalPackedHeadTailIndices = unchecked((int)(((uint)Head << 16) | (uint)Tail));
+                _originalPackedHeadTailIndices = unchecked((int)(((uint)head << 16) | (uint)tail));
+                _pack = _originalPackedHeadTailIndices;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public HeadTailIndicesStruct(int packedHeadTailIndices)
             {
-                unchecked
-                {
-                    OriginalPackedHeadTailIndices = packedHeadTailIndices;
-                    Head = (ushort)(((uint)packedHeadTailIndices >> 16) & ushort.MaxValue);
-                    Tail = (ushort)((uint)packedHeadTailIndices & ushort.MaxValue);
-                }
+                _originalPackedHeadTailIndices = packedHeadTailIndices;
+                _pack = packedHeadTailIndices;
             }
 
-            public readonly int OriginalPackedHeadTailIndices;
-            public ushort Head;
-            public ushort Tail;
+            public int OriginalPackedHeadTailIndices 
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get { return _originalPackedHeadTailIndices; } 
+            }
+
+            public ushort Head
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get { return Unsafe.As<int, UInt16Pack>(ref _pack).B; }
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                set { Unsafe.As<int, UInt16Pack>(ref _pack).B = value; }
+            }
+            public ushort Tail
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get { return Unsafe.As<int, UInt16Pack>(ref _pack).A; }
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                set { Unsafe.As<int, UInt16Pack>(ref _pack).A = value; }
+            }
+
+            public int ElementCount(int poolSize)
+            {
+                return ((poolSize + (int)Tail - (int)Head) % poolSize);
+            }
 
             public bool HasElements
             {
@@ -43,10 +77,24 @@ namespace Qoollo.BobClient.KeyArrayPools
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public int MoveHeadForward(int pooledArrayLength)
+            public int MoveHeadForward(int poolSize)
             {
                 int result = Head;
-                Head = (ushort)((Head + 1) % pooledArrayLength);
+                Head = (ushort)((Head + 1) % poolSize);
+                return result;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool HasFreeSpace(int poolSize)
+            {
+                return ((poolSize + (int)Head - (int)Tail - 1) % poolSize) > GapSize;
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public int MoveTailForward(int poolSize)
+            {
+                int result = Tail;
+                Tail = (ushort)((Tail + 1) % poolSize);
                 return result;
             }
 
@@ -54,10 +102,7 @@ namespace Qoollo.BobClient.KeyArrayPools
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public int Pack()
             {
-                unchecked
-                {
-                    return (int)(((uint)Head << 16) | (uint)Tail);
-                }
+                return _pack;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -70,23 +115,23 @@ namespace Qoollo.BobClient.KeyArrayPools
 
         // =================
 
-        private readonly int _pooledArrayLength;
-        private readonly int _maxElementCount;
-
         private readonly byte[][] _arrayContainer;
         private volatile int _headTailIndices;
 
         private readonly ThreadLocal<byte[]> _perThreadContainer;
 
-        public ByteArrayPool(int pooledArrayLength, int maxElementCount)
+        public ByteArrayPool(int byteArrayLength, int maxElementCount)
         {
-            if (pooledArrayLength <= 0)
-                throw new ArgumentOutOfRangeException(nameof(pooledArrayLength));
+            if (byteArrayLength <= 0)
+                throw new ArgumentOutOfRangeException(nameof(byteArrayLength));
             if (maxElementCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(maxElementCount));
 
-            _pooledArrayLength = pooledArrayLength;
-            _maxElementCount = maxElementCount;
+            if (maxElementCount > ushort.MaxValue - GapSize)
+                maxElementCount = ushort.MaxValue - GapSize;
+
+            ByteArrayLength = byteArrayLength;
+            MaxElementCount = maxElementCount;
 
             _arrayContainer = new byte[maxElementCount + GapSize][];
             _headTailIndices = new HeadTailIndicesStruct(0, 0).Pack();
@@ -94,24 +139,25 @@ namespace Qoollo.BobClient.KeyArrayPools
             _perThreadContainer = new ThreadLocal<byte[]>(trackAllValues: false);
         }
 
-        public int PooledArrayLength { get { return _pooledArrayLength; } }
-        public int MaxElementCount { get { return _maxElementCount; } }
+        public int ByteArrayLength { get; }
+        public int MaxElementCount { get; }
 
 
         internal byte[] TryRentGlobal()
         {
-            SpinWait sw = new SpinWait();
             int iteration = 0;
             var unpackedIndices = new HeadTailIndicesStruct(_headTailIndices);
 
             while (unpackedIndices.HasElements)
             {
-                int headIndex = unpackedIndices.MoveHeadForward(_pooledArrayLength);
+                int headIndex = unpackedIndices.MoveHeadForward(_arrayContainer.Length);
                 if (unpackedIndices.CompareExchangeCurState(ref _headTailIndices))
                     return Interlocked.Exchange(ref _arrayContainer[headIndex], null);
 
-                if (++iteration > 8)
-                    sw.SpinOnce();
+                if (++iteration > 16)
+                    Thread.Yield();
+                else if (iteration > 4)
+                    Thread.SpinWait(iteration << 3);
 
                 unpackedIndices = new HeadTailIndicesStruct(_headTailIndices);
             }
@@ -133,15 +179,54 @@ namespace Qoollo.BobClient.KeyArrayPools
             if (result == null)
                 result = TryRentGlobal();
             if (result == null)
-                result = new byte[_pooledArrayLength];
+                result = new byte[ByteArrayLength];
 
             return result;
         }
 
-        public void Release(byte[] array)
+        internal bool TryReleaseGlobal(byte[] array)
         {
-            if (array == null || array.Length != _pooledArrayLength)
+            int iteration = 0;
+            var unpackedIndices = new HeadTailIndicesStruct(_headTailIndices);
+
+            while (unpackedIndices.HasFreeSpace(_arrayContainer.Length))
+            {
+                int tailIndex = unpackedIndices.MoveTailForward(_arrayContainer.Length);
+                if (unpackedIndices.CompareExchangeCurState(ref _headTailIndices))
+                {
+                    Interlocked.Exchange(ref _arrayContainer[tailIndex], array);
+                    return true;
+                }
+
+                if (++iteration > 16)
+                    Thread.Yield();
+                else if (iteration > 4)
+                    Thread.SpinWait(iteration << 3);
+
+                unpackedIndices = new HeadTailIndicesStruct(_headTailIndices);
+            }
+
+            return false;
+        }
+
+        internal bool TryReleaseThreadLocal(byte[] array)
+        {
+            if (_perThreadContainer.Value != null)
+                return false;
+
+            _perThreadContainer.Value = array;
+            return true;
+        }
+
+        public void Release(byte[] array, bool skipLocal)
+        {
+            if (array == null || array.Length != ByteArrayLength)
                 return;
+
+            if (!skipLocal && TryReleaseThreadLocal(array))
+                return;
+
+            TryReleaseGlobal(array);
         }
 
         public void Dispose()
