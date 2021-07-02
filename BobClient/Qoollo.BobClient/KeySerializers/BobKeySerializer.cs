@@ -8,12 +8,16 @@ namespace Qoollo.BobClient.KeySerializers
     /// Key serializer. Converts Key of type <typeparamref name="TKey"/> to its byte array representation
     /// </summary>
     /// <typeparam name="TKey"></typeparam>
-    public abstract class BobKeySerializer<TKey>
+    public abstract class BobKeySerializer<TKey> : IBobKeySerializer
     {
         /// <summary>
         /// Size of the key in bytes after serialization
         /// </summary>
         public abstract int SerializedSize { get; }
+        /// <summary>
+        /// Type of the key
+        /// </summary>
+        Type IBobKeySerializer.KeyType { get { return typeof(TKey); } }
 
         /// <summary>
         /// Serialize <paramref name="key"/> into <paramref name="byteArray"/>

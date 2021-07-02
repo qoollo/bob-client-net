@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
-namespace Qoollo.BobClient.KeyArrayPools
+namespace Qoollo.BobClient.KeySerializationArrayPools
 {
 #pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
 

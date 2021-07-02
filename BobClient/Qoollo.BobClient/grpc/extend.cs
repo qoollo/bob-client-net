@@ -12,7 +12,8 @@ namespace BobStorage
         {
             Key = new BlobKey
             {
-                Key = ByteString.CopyFrom(key.GetKeyBytes())
+                //Key = ByteString.CopyFrom(key.GetKeyBytes())
+                Key = ProtoBufByteStringHelper.CreateFromByteArrayOptimized(key.GetKeyBytes())
             };
             Data = new Blob
             {
