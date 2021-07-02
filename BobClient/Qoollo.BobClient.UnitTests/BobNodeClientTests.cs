@@ -202,9 +202,11 @@ namespace Qoollo.BobClient.UnitTests
 
                 behaviour.Pause.Reset();
 
-                Task asyncOp = Task.Run(() => client.Open());
+                Task asyncOp = Task.Factory.StartNew(() => client.Open(), TaskCreationOptions.LongRunning);
 
-                Thread.Sleep(10);
+                for (int i = 0; i < 1000 && client.State == BobNodeClientState.Idle; i++)
+                    Thread.Sleep(10);
+
                 Assert.Equal(BobNodeClientState.Connecting, client.State);
 
                 behaviour.Pause.Set();
@@ -230,13 +232,13 @@ namespace Qoollo.BobClient.UnitTests
                 behaviour.Pause.Reset();
                 behaviour.ErrorStatus = new Grpc.Core.Status(Grpc.Core.StatusCode.Internal, "Internal error");
 
-                Task asyncOp = Task.Run(() =>
+                Task asyncOp = Task.Factory.StartNew(() =>
                 {
                     try { client.Open(); }
                     catch { }
-                });
+                }, TaskCreationOptions.LongRunning);
 
-                for (int i = 0; i < 100 && client.State == BobNodeClientState.Idle; i++)
+                for (int i = 0; i < 1000 && client.State == BobNodeClientState.Idle; i++)
                     Thread.Sleep(10);
 
                 Assert.Equal(BobNodeClientState.Connecting, client.State);

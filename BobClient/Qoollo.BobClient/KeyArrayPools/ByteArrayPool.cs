@@ -9,8 +9,14 @@ namespace Qoollo.BobClient.KeyArrayPools
 {
 #pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
 
+    /// <summary>
+    /// Byte array pool for Bob keys serialization
+    /// </summary>
     internal sealed class ByteArrayPool : IDisposable
     {
+        /// <summary>
+        /// Gap between head and tail (in both directions). It is used to prevent contention between threads
+        /// </summary>
         internal const int GapSize = 16;
 
         /// <summary>
@@ -50,6 +56,9 @@ namespace Qoollo.BobClient.KeyArrayPools
                 get { return _originalPackedHeadTailIndices; } 
             }
 
+            /// <summary>
+            /// Queue head index
+            /// </summary>
             public ushort Head
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -57,6 +66,9 @@ namespace Qoollo.BobClient.KeyArrayPools
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 set { Unsafe.As<int, UInt16Pack>(ref _pack).B = value; }
             }
+            /// <summary>
+            /// Queue tail index
+            /// </summary>
             public ushort Tail
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -70,10 +82,10 @@ namespace Qoollo.BobClient.KeyArrayPools
                 return ((poolSize + (int)Tail - (int)Head) % poolSize);
             }
 
-            public bool HasElements
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool HasAvailableElements(int poolSize)
             {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get { return Head != Tail; }
+                return ((poolSize + (int)Tail - (int)Head) % poolSize) > GapSize;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -120,6 +132,11 @@ namespace Qoollo.BobClient.KeyArrayPools
 
         private readonly ThreadLocal<byte[]> _perThreadContainer;
 
+        /// <summary>
+        /// <see cref="ByteArrayPool"/> constructor
+        /// </summary>
+        /// <param name="byteArrayLength">Length of byte arrays stored in pool</param>
+        /// <param name="maxElementCount">Max count of available for Rent elements</param>
         public ByteArrayPool(int byteArrayLength, int maxElementCount)
         {
             if (byteArrayLength <= 0)
@@ -127,28 +144,43 @@ namespace Qoollo.BobClient.KeyArrayPools
             if (maxElementCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(maxElementCount));
 
-            if (maxElementCount > ushort.MaxValue - GapSize)
-                maxElementCount = ushort.MaxValue - GapSize;
+            if (maxElementCount > ushort.MaxValue - 2 * GapSize - 1)
+                maxElementCount = ushort.MaxValue - 2 * GapSize - 1;
 
             ByteArrayLength = byteArrayLength;
             MaxElementCount = maxElementCount;
 
-            _arrayContainer = new byte[maxElementCount + GapSize][];
+            // '2 * GapSize' is used o reserve Gap in both directions
+            _arrayContainer = new byte[maxElementCount + 2 * GapSize + 1][];
             _headTailIndices = new HeadTailIndicesStruct(0, 0).Pack();
 
             _perThreadContainer = new ThreadLocal<byte[]>(trackAllValues: false);
         }
 
+        /// <summary>
+        /// Length of byte arrays stored in pool
+        /// </summary>
         public int ByteArrayLength { get; }
+        /// <summary>
+        /// Max count of available for Rent elements
+        /// </summary>
         public int MaxElementCount { get; }
+        /// <summary>
+        /// Max capacity (<see cref="MaxElementCount"/> + GapSize)
+        /// </summary>
+        public int FullCapacity { get { return MaxElementCount + GapSize; } }
 
 
+        /// <summary>
+        /// Attempts to rent from global array container
+        /// </summary>
+        /// <returns>Byte array if success, null otherwise</returns>
         internal byte[] TryRentGlobal()
         {
             int iteration = 0;
             var unpackedIndices = new HeadTailIndicesStruct(_headTailIndices);
 
-            while (unpackedIndices.HasElements)
+            while (unpackedIndices.HasAvailableElements(_arrayContainer.Length))
             {
                 int headIndex = unpackedIndices.MoveHeadForward(_arrayContainer.Length);
                 if (unpackedIndices.CompareExchangeCurState(ref _headTailIndices))
@@ -164,13 +196,19 @@ namespace Qoollo.BobClient.KeyArrayPools
 
             return null;
         }
-
-
+        /// <summary>
+        /// Attempts to rent from local thread storage
+        /// </summary>
+        /// <returns>Byte array if success, null otherwise</returns>
         internal byte[] TryRentThreadLocal()
         {
             return _perThreadContainer.Value;
         }
-
+        /// <summary>
+        /// Rent byte array from pool (or allocate new if pool is empty)
+        /// </summary>
+        /// <param name="skipLocal">True if you want to ignore Local per Thread storage</param>
+        /// <returns>Byte array</returns>
         public byte[] Rent(bool skipLocal)
         {
             byte[] result = null;
@@ -184,6 +222,11 @@ namespace Qoollo.BobClient.KeyArrayPools
             return result;
         }
 
+        /// <summary>
+        /// Attempt to release array to global storage
+        /// </summary>
+        /// <param name="array">Array</param>
+        /// <returns>True if array was returned back to the pool storage, otherwise false</returns>
         internal bool TryReleaseGlobal(byte[] array)
         {
             int iteration = 0;
@@ -208,7 +251,11 @@ namespace Qoollo.BobClient.KeyArrayPools
 
             return false;
         }
-
+        /// <summary>
+        /// Attempt to release array to local per Thread storage
+        /// </summary>
+        /// <param name="array">Array</param>
+        /// <returns>True if array was returned back to local per Thread storage, otherwise false</returns>
         internal bool TryReleaseThreadLocal(byte[] array)
         {
             if (_perThreadContainer.Value != null)
@@ -217,7 +264,11 @@ namespace Qoollo.BobClient.KeyArrayPools
             _perThreadContainer.Value = array;
             return true;
         }
-
+        /// <summary>
+        /// Release array to pool
+        /// </summary>
+        /// <param name="array">Array to release</param>
+        /// <param name="skipLocal">True if you want to ignore Local per Thread storage</param>
         public void Release(byte[] array, bool skipLocal)
         {
             if (array == null || array.Length != ByteArrayLength)
@@ -229,6 +280,9 @@ namespace Qoollo.BobClient.KeyArrayPools
             TryReleaseGlobal(array);
         }
 
+        /// <summary>
+        /// Release all resources
+        /// </summary>
         public void Dispose()
         {
             _perThreadContainer.Dispose();
