@@ -24,10 +24,7 @@ namespace Qoollo.BobClient.UnitTests.KeyArrayPools
                 BobKeySerializer<TKey> keySerializer = null;
                 Assert.True(BobDefaultKeySerializers.TryGetKeySerializer<TKey>(out keySerializer));
 
-                ByteArrayPool pool = null;
-                Assert.False(SharedKeySerializationArrayPools.TryGetSharedPool(keySerializer, out pool));
-
-                pool = SharedKeySerializationArrayPools.GetOrCreateSharedPool(keySerializer);
+                ByteArrayPool pool = SharedKeySerializationArrayPools.GetOrCreateSharedPool(keySerializer);
                 Assert.NotNull(pool);
                 Assert.True(pool.MaxElementCount > 0);
                 Assert.Equal(keySerializer.SerializedSize, pool.ByteArrayLength);

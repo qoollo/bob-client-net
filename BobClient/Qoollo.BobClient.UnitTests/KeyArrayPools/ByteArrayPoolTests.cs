@@ -86,6 +86,7 @@ namespace Qoollo.BobClient.UnitTests.KeyArrayPools
 
         [Theory]
         [InlineData(0)]
+        [InlineData(32)]
         [InlineData(128)]
         [InlineData(36000)]
         public void InnerLogicTest(int poolSize)
@@ -111,6 +112,31 @@ namespace Qoollo.BobClient.UnitTests.KeyArrayPools
                 }
 
                 Assert.Null(pool.TryRentGlobal());
+
+
+                ulong releaseStart = (ulong)pool.FullCapacity;
+                ulong rentStart = (ulong)poolSize;
+                for (int repeat = 0; repeat < 4; repeat++)
+                {
+                    Assert.Null(pool.TryRentGlobal());
+
+                    for (ulong i = releaseStart; i < releaseStart + (ulong)poolSize; i++)
+                    {
+                        Assert.True(pool.TryReleaseGlobal(BitConverter.GetBytes(i)));
+                    }
+
+                    Assert.False(pool.TryReleaseGlobal(BitConverter.GetBytes((ulong)0)));
+
+                    for (ulong i = rentStart; i < rentStart + (ulong)poolSize; i++)
+                    {
+                        Assert.Equal(BitConverter.GetBytes(i), pool.TryRentGlobal());
+                    }
+
+                    Assert.Null(pool.TryRentGlobal());
+
+                    releaseStart += (ulong)poolSize;
+                    rentStart += (ulong)poolSize;
+                }
             }
         }
 
@@ -209,7 +235,10 @@ namespace Qoollo.BobClient.UnitTests.KeyArrayPools
                     {
                         byte[] array = pool.Rent(skipLocal: skipLocal);
                         Assert.NotNull(array);
+                        Assert.Equal(0, array[0]);
+                        array[0] = 1;
                         uniqArraysLocal.Add(array);
+                        array[0] = 0;
                         pool.Release(array, skipLocal: skipLocal);
                     }
 
@@ -267,8 +296,11 @@ namespace Qoollo.BobClient.UnitTests.KeyArrayPools
                     {
                         byte[] array = pool.Rent(skipLocal: skipLocal);
                         Assert.NotNull(array);
+                        Assert.Equal(0, array[0]);
+                        array[0] = 1;
                         await Task.Yield();
                         uniqArraysLocal.Add(array);
+                        array[0] = 0;
                         pool.Release(array, skipLocal: skipLocal);
                     }
 
@@ -292,6 +324,51 @@ namespace Qoollo.BobClient.UnitTests.KeyArrayPools
 
                 if (poolSize > threadCount)
                     Assert.True(uniqArrays.Count <= pool.FullCapacity + threadCount);
+            }
+        }
+
+
+
+        [Theory]
+        [InlineData(64, true, 2)]
+        [InlineData(64, false, 4)]
+        [InlineData(64, false, 8)]
+        [InlineData(64, false, 16)]
+        public void NotReturnArrayInUseConcurrentTestTest(int poolSize, bool skipLocal, int threadCount)
+        {
+            using (var pool = new ByteArrayPool(sizeof(ulong), poolSize))
+            {
+                Assert.Equal(sizeof(ulong), pool.ByteArrayLength);
+                Assert.Equal(poolSize, pool.MaxElementCount);
+
+                Barrier bar = new Barrier(threadCount + 1);
+
+                void act()
+                {
+                    bar.SignalAndWait(10000);
+
+                    for (int i = 0; i < Math.Max(poolSize * 2 + 101, 100000); i++)
+                    {
+                        byte[] array = pool.Rent(skipLocal: skipLocal);
+                        Assert.NotNull(array);
+                        Assert.Equal(0, Volatile.Read(ref array[0]));
+                        Volatile.Write(ref array[0], 1);
+                        Thread.SpinWait(1000);
+                        Volatile.Write(ref array[0], 0);
+                        pool.Release(array, skipLocal: skipLocal);
+                    }
+                }
+
+
+                Task[] tasks = new Task[threadCount];
+                for (int i = 0; i < tasks.Length; i++)
+                {
+                    tasks[i] = Task.Run(act);
+                }
+
+                bar.SignalAndWait(10000);
+
+                Task.WaitAll(tasks);
             }
         }
     }

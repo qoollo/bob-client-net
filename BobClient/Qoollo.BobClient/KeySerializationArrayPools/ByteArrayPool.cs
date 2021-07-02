@@ -202,7 +202,9 @@ namespace Qoollo.BobClient.KeySerializationArrayPools
         /// <returns>Byte array if success, null otherwise</returns>
         internal byte[] TryRentThreadLocal()
         {
-            return _perThreadContainer.Value;
+            var result = _perThreadContainer.Value;
+            _perThreadContainer.Value = null;
+            return result;
         }
         /// <summary>
         /// Rent byte array from pool (or allocate new if pool is empty)
