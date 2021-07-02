@@ -1,5 +1,6 @@
 ﻿using Moq;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -15,10 +16,8 @@ namespace Qoollo.BobClient.UnitTests
         [Fact]
         public void BasicStateTransitionTest()
         {
-            var data = new Dictionary<BobKey, byte[]>
-            {
-                { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
-            };
+            var data = new ConcurrentDictionary<BobKey, byte[]>();
+            data[BobKey.FromUInt64(1)] = new byte[] { 1, 2, 3 };
 
             var stat = new BobNodeClientMockHelper.MockClientStat();
 
@@ -61,10 +60,8 @@ namespace Qoollo.BobClient.UnitTests
         [Fact]
         public async Task BasicStateTransitionTestAsync()
         {
-            var data = new Dictionary<BobKey, byte[]>
-            {
-                { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
-            };
+            var data = new ConcurrentDictionary<BobKey, byte[]>();
+            data[BobKey.FromUInt64(1)] = new byte[] { 1, 2, 3 };
 
             var stat = new BobNodeClientMockHelper.MockClientStat();
 
@@ -108,11 +105,10 @@ namespace Qoollo.BobClient.UnitTests
         public void PutGetExistOperationTest()
         {
             byte[] defaultData = new byte[] { 1, 2, 3 };
-            var data = new Dictionary<BobKey, byte[]>
-            {
-                { BobKey.FromUInt64(1), defaultData },
-                { BobKey.FromUInt64(ulong.MaxValue), defaultData }
-            };
+
+            var data = new ConcurrentDictionary<BobKey, byte[]>();
+            data[BobKey.FromUInt64(1)] = defaultData;
+            data[BobKey.FromUInt64(ulong.MaxValue)] = defaultData;
 
             using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data))
             {
@@ -150,11 +146,9 @@ namespace Qoollo.BobClient.UnitTests
         public async Task PutGetExistOperationTestAsync()
         {
             byte[] defaultData = new byte[] { 1, 2, 3 };
-            var data = new Dictionary<BobKey, byte[]>
-            {
-                { BobKey.FromUInt64(1), defaultData },
-                { BobKey.FromUInt64(ulong.MaxValue), defaultData }
-            };
+            var data = new ConcurrentDictionary<BobKey, byte[]>();
+            data[BobKey.FromUInt64(1)] = defaultData;
+            data[BobKey.FromUInt64(ulong.MaxValue)] = defaultData;
 
             using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data))
             {
@@ -190,10 +184,9 @@ namespace Qoollo.BobClient.UnitTests
         [Fact]
         public void ConnectingStateTest()
         {
-            var data = new Dictionary<BobKey, byte[]>
-            {
-                { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
-            };
+            var data = new ConcurrentDictionary<BobKey, byte[]>();
+            data[BobKey.FromUInt64(1)] = new byte[] { 1, 2, 3 };
+
             var behaviour = new BobNodeClientMockHelper.MockClientBehaviour();
 
             using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour))
@@ -219,10 +212,9 @@ namespace Qoollo.BobClient.UnitTests
         [Fact]
         public void ConnectingToFailedStateTest()
         {
-            var data = new Dictionary<BobKey, byte[]>
-            {
-                { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
-            };
+            var data = new ConcurrentDictionary<BobKey, byte[]>();
+            data[BobKey.FromUInt64(1)] = new byte[] { 1, 2, 3 };
+
             var behaviour = new BobNodeClientMockHelper.MockClientBehaviour();
 
             using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour))
@@ -253,10 +245,9 @@ namespace Qoollo.BobClient.UnitTests
         [Fact]
         public void KeyNotFoundIsNotCountingAsErrors()
         {
-            var data = new Dictionary<BobKey, byte[]>
-            {
-                { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
-            };
+            var data = new ConcurrentDictionary<BobKey, byte[]>();
+            data[BobKey.FromUInt64(1)] = new byte[] { 1, 2, 3 };
+
             var behaviour = new BobNodeClientMockHelper.MockClientBehaviour();
             var stat = new BobNodeClientMockHelper.MockClientStat();
 
@@ -282,10 +273,9 @@ namespace Qoollo.BobClient.UnitTests
         [Fact]
         public void CancellationIsNotCountingAsErrors()
         {
-            var data = new Dictionary<BobKey, byte[]>
-            {
-                { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
-            };
+            var data = new ConcurrentDictionary<BobKey, byte[]>();
+            data[BobKey.FromUInt64(1)] = new byte[] { 1, 2, 3 };
+
             var behaviour = new BobNodeClientMockHelper.MockClientBehaviour();
             var stat = new BobNodeClientMockHelper.MockClientStat();
 
@@ -313,10 +303,9 @@ namespace Qoollo.BobClient.UnitTests
         [Fact]
         public void TimeoutIsNotCountingAsErrors()
         {
-            var data = new Dictionary<BobKey, byte[]>
-            {
-                { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
-            };
+            var data = new ConcurrentDictionary<BobKey, byte[]>();
+            data[BobKey.FromUInt64(1)] = new byte[] { 1, 2, 3 };
+
             var behaviour = new BobNodeClientMockHelper.MockClientBehaviour();
             var stat = new BobNodeClientMockHelper.MockClientStat();
 
@@ -344,10 +333,9 @@ namespace Qoollo.BobClient.UnitTests
         [Fact]
         public void RecoveryAfterFailTest()
         {
-            var data = new Dictionary<BobKey, byte[]>
-            {
-                { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
-            };
+            var data = new ConcurrentDictionary<BobKey, byte[]>();
+            data[BobKey.FromUInt64(1)] = new byte[] { 1, 2, 3 };
+
             var behaviour = new BobNodeClientMockHelper.MockClientBehaviour();
             var stat = new BobNodeClientMockHelper.MockClientStat();
 
@@ -385,10 +373,9 @@ namespace Qoollo.BobClient.UnitTests
         [Fact]
         public void SequentialErrorCountTest()
         {
-            var data = new Dictionary<BobKey, byte[]>
-            {
-                { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
-            };
+            var data = new ConcurrentDictionary<BobKey, byte[]>();
+            data[BobKey.FromUInt64(1)] = new byte[] { 1, 2, 3 };
+
             var behaviour = new BobNodeClientMockHelper.MockClientBehaviour();
             var stat = new BobNodeClientMockHelper.MockClientStat();
 
@@ -426,10 +413,9 @@ namespace Qoollo.BobClient.UnitTests
         [Fact]
         public void TimeSinceLastOperationTest()
         {
-            var data = new Dictionary<BobKey, byte[]>
-            {
-                { BobKey.FromUInt64(1), new byte[] { 1, 2, 3 } }
-            };
+            var data = new ConcurrentDictionary<BobKey, byte[]>();
+            data[BobKey.FromUInt64(1)] = new byte[] { 1, 2, 3 };
+
             var behaviour = new BobNodeClientMockHelper.MockClientBehaviour();
             var stat = new BobNodeClientMockHelper.MockClientStat();
 

@@ -1,4 +1,4 @@
-﻿using Qoollo.BobClient.KeyArrayPools;
+﻿using Qoollo.BobClient.KeySerializationArrayPools;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -203,7 +203,7 @@ namespace Qoollo.BobClient.UnitTests.KeyArrayPools
                 {
                     HashSet<byte[]> uniqArraysLocal = new HashSet<byte[]>();
 
-                    bar.SignalAndWait();
+                    bar.SignalAndWait(10000);
 
                     for (int i = 0; i < Math.Max(poolSize * 2 + 101, 100000); i++)
                     {
@@ -227,7 +227,7 @@ namespace Qoollo.BobClient.UnitTests.KeyArrayPools
                     tasks[i] = Task.Run(act);
                 }
 
-                bar.SignalAndWait();
+                bar.SignalAndWait(10000);
 
                 Task.WaitAll(tasks);
 
@@ -261,7 +261,7 @@ namespace Qoollo.BobClient.UnitTests.KeyArrayPools
                 {
                     HashSet<byte[]> uniqArraysLocal = new HashSet<byte[]>();
 
-                    bar.SignalAndWait();
+                    bar.SignalAndWait(10000);
 
                     for (int i = 0; i < Math.Max(poolSize * 2 + 101, 100000); i++)
                     {
@@ -286,7 +286,7 @@ namespace Qoollo.BobClient.UnitTests.KeyArrayPools
                     tasks[i] = Task.Run(() => act().GetAwaiter().GetResult());
                 }
 
-                bar.SignalAndWait();
+                bar.SignalAndWait(10000);
 
                 Task.WaitAll(tasks);
 

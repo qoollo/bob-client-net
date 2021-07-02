@@ -1,5 +1,6 @@
 ﻿using Qoollo.BobClient.NodeSelectionPolicies;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,9 +16,7 @@ namespace Qoollo.BobClient.UnitTests
         public void PutGetExistOperationTest()
         {
             byte[] defaultData = new byte[] { 1, 2, 3 };
-            var data = new Dictionary<BobKey, byte[]>
-            {
-            };
+            var data = new ConcurrentDictionary<BobKey, byte[]>();
 
             var stat1 = new BobNodeClientMockHelper.MockClientStat();
             var stat2 = new BobNodeClientMockHelper.MockClientStat();
@@ -81,9 +80,7 @@ namespace Qoollo.BobClient.UnitTests
         public async Task PutGetExistOperationTestAsync()
         {
             byte[] defaultData = new byte[] { 1, 2, 3 };
-            var data = new Dictionary<BobKey, byte[]>
-            {
-            };
+            var data = new ConcurrentDictionary<BobKey, byte[]>();
 
             var stat1 = new BobNodeClientMockHelper.MockClientStat();
             var stat2 = new BobNodeClientMockHelper.MockClientStat();

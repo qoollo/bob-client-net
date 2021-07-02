@@ -1,5 +1,6 @@
 ﻿using Moq;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -68,7 +69,7 @@ namespace Qoollo.BobClient.UnitTests
 
             return mock;
         }
-        public static Mock<BobStorage.BobApi.BobApiClient> CreateDataAccessMockedBobApiClient(Dictionary<BobKey, byte[]> data, MockClientBehaviour behaviour, MockClientStat stat,
+        public static Mock<BobStorage.BobApi.BobApiClient> CreateDataAccessMockedBobApiClient(ConcurrentDictionary<BobKey, byte[]> data, MockClientBehaviour behaviour, MockClientStat stat,
             Func<BobStorage.Null, Grpc.Core.CallOptions, BobStorage.Null> pingFunc = null,
             Func<BobStorage.GetRequest, Grpc.Core.CallOptions, BobStorage.Blob> getFunc = null,
             Func<BobStorage.PutRequest, Grpc.Core.CallOptions, BobStorage.OpStatus> putFunc = null,
@@ -170,7 +171,7 @@ namespace Qoollo.BobClient.UnitTests
 
             return CreateMockedBobApiClient(pingFunc, getFunc, putFunc, existsFunc);
         }
-        public static BobNodeClient CreateMockedClientWithData(Dictionary<BobKey, byte[]> data, MockClientBehaviour behaviour = null, MockClientStat stat = null, TimeSpan? timeout = null)
+        public static BobNodeClient CreateMockedClientWithData(ConcurrentDictionary<BobKey, byte[]> data, MockClientBehaviour behaviour = null, MockClientStat stat = null, TimeSpan? timeout = null)
         {
             return CreateMockedClient(CreateDataAccessMockedBobApiClient(data, behaviour ?? new MockClientBehaviour(), stat ?? new MockClientStat()), timeout);
         }
