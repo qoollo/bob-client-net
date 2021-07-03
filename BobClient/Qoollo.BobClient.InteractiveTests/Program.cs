@@ -20,6 +20,15 @@ namespace Qoollo.BobClient.InteractiveTests
             Exists = 4
         }
 
+        class ExecutionConfig
+        {
+            public RunMode RunMode { get; set; } = RunMode.Get | RunMode.Exists;
+            public int DataLength { get; set; } = 1024;
+            public ulong StartId { get; set; } = 0;
+            public int Count { get; set; } = 1000;
+            public List<string> Nodes { get; set; } = new List<string>();
+        }
+
         static void PutTest(IBobApi<ulong> client, ulong startId, int count, byte[] data)
         {
             Stopwatch sw = Stopwatch.StartNew();
@@ -94,31 +103,99 @@ namespace Qoollo.BobClient.InteractiveTests
         }
 
 
+        static void PrintHelp()
+        {
+            Console.WriteLine("Bob client tests");
+            Console.WriteLine("Arguments:");
+            Console.WriteLine("  --mode   | -m  : Work mode combined by comma. Possible values: 'Get,Put,Exists'");
+            Console.WriteLine("  --length | -l  : Set size of the single record");
+            Console.WriteLine("  --start  | -s  : Start Id");
+            Console.WriteLine("  --count  | -c  : Count of ids to process");
+            Console.WriteLine("  --nodes        : Comma separated node addresses. Example: '127.0.0.1:20000, 127.0.0.2:20000'");
+            Console.WriteLine("  --help         : Print help");
+            Console.WriteLine();
+        }
+
+        static ExecutionConfig ParseConfigFromArgs(string[] args)
+        {
+            var result = new ExecutionConfig();
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                switch (args[i].ToLowerInvariant())
+                {
+                    case "--mode":
+                    case "-m":
+                        result.RunMode = (RunMode)Enum.Parse(typeof(RunMode), args[i + 1]);
+                        i++;
+                        break;
+                    case "--length":
+                    case "-l":
+                        result.DataLength = int.Parse(args[i + 1]);
+                        i++;
+                        break;
+                    case "--start":
+                    case "-s":
+                        result.StartId = ulong.Parse(args[i + 1]);
+                        i++;
+                        break;
+                    case "--count":
+                    case "-c":
+                        result.Count = int.Parse(args[i + 1]);
+                        i++;
+                        break;
+                    case "--nodes":
+                        result.Nodes = args[i + 1].Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Select(o => o.Trim()).ToList();
+                        i++;
+                        break;
+                    case "--help":
+                        PrintHelp();
+                        break;
+                    default:
+                        Console.WriteLine($"Unknown argument: {args[i]}. Use '--help' to get help");
+                        break;
+                }
+            }
+
+            return result;
+        }
+
         static void Main(string[] args)
         {
-            RunMode runMode = RunMode.Get | RunMode.Put | RunMode.Exists;
-            int dataLength = 1024;
-            ulong startId = 30000;
-            int count = 1000;
-            List<string> nodes = new List<string>() { "10.5.5.127:20000", "10.5.5.128:20000" };
+            ExecutionConfig config = new ExecutionConfig()
+            {
+                RunMode = RunMode.Get | RunMode.Put | RunMode.Exists,
+                DataLength = 1024,
+                StartId = 30000,
+                Count = 1000,
+                Nodes = new List<string>() { "10.5.5.127:20000", "10.5.5.128:20000" }
+            };
 
 
+            if (args.Length > 0)
+                config = ParseConfigFromArgs(args);
+ 
+            if (config.Nodes.Count == 0)
+            {
+                Console.WriteLine("Node addresses not specified");
+                return;
+            }
 
-            byte[] sampleData = Enumerable.Range(0, dataLength).Select(o => (byte)(o % byte.MaxValue)).ToArray();
+            byte[] sampleData = Enumerable.Range(0, config.DataLength).Select(o => (byte)(o % byte.MaxValue)).ToArray();
 
-            using (var client = new BobClusterBuilder<ulong>(nodes)
+            using (var client = new BobClusterBuilder<ulong>(config.Nodes)
                 .WithOperationTimeout(TimeSpan.FromSeconds(1))
                 .WithNodeSelectionPolicy(SequentialNodeSelectionPolicy.Factory)
                 .Build())
             {
                 client.Open(TimeSpan.FromSeconds(5));
 
-                if ((runMode & RunMode.Put) != 0)
-                    PutTest(client, startId, count, sampleData);
-                if ((runMode & RunMode.Get) != 0)
-                    GetTest(client, startId, count, expectedData: sampleData);
-                if ((runMode & RunMode.Exists) != 0)
-                    ExistsTest(client, startId, count);
+                if ((config.RunMode & RunMode.Put) != 0)
+                    PutTest(client, config.StartId, config.Count, sampleData);
+                if ((config.RunMode & RunMode.Get) != 0)
+                    GetTest(client, config.StartId, config.Count, expectedData: sampleData);
+                if ((config.RunMode & RunMode.Exists) != 0)
+                    ExistsTest(client, config.StartId, config.Count);
 
                 client.Close();
             }
