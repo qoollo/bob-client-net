@@ -18,6 +18,7 @@ namespace Qoollo.BobClient
         private TimeSpan _operationTimeout;
         private BobNodeSelectionPolicyFactory _nodeSelectionPolicyFactory;
         private BobKeySerializer<TKey> _keySerializer;
+        private int? _keySerializationPoolSize;
 
         /// <summary>
         /// <see cref="BobClusterBuilder{TKey}"/> constructor
@@ -28,6 +29,7 @@ namespace Qoollo.BobClient
             _operationTimeout = BobNodeClient.DefaultOperationTimeout;
             _nodeSelectionPolicyFactory = null;
             _keySerializer = null;
+            _keySerializationPoolSize = null;
         }
         /// <summary>
         /// <see cref="BobClusterBuilder{TKey}"/> constructor
@@ -193,6 +195,25 @@ namespace Qoollo.BobClient
         }
 
         /// <summary>
+        /// Specifies key serialization pool size (null - shared pool, 0 or less - pool is disabled, 1 or greater - custom pool with specified size)
+        /// </summary>
+        /// <param name="poolSize">Size of the Key serialization pool (null - shared pool, 0 or less - pool is disabled, 1 or greater - custom pool with specified size)</param>
+        /// <returns>The reference to the current builder instatnce</returns>
+        public BobClusterBuilder<TKey> WithKeySerializationPoolSize(int? poolSize)
+        {
+            _keySerializationPoolSize = poolSize;
+            return this;
+        }
+        /// <summary>
+        /// Switches back to shared key serialization pool (equivalent to <see cref="WithKeySerializationPoolSize(int?)"/> called with 'null' argument)
+        /// </summary>
+        /// <returns>The reference to the current builder instatnce</returns>
+        public BobClusterBuilder<TKey> WithSharedKeySerializationPool()
+        {
+            return WithKeySerializationPoolSize(null);
+        }
+
+        /// <summary>
         /// Builds <see cref="BobClusterClient{TKey}"/>
         /// </summary>
         /// <returns>Created cluster</returns>
@@ -201,7 +222,7 @@ namespace Qoollo.BobClient
             if (_nodeAddresses.Count == 0)
                 throw new InvalidOperationException("At least one node should be added to cluster");
 
-            return new BobClusterClient<TKey>(_nodeAddresses.Select(o => new BobNodeClient(o, _operationTimeout)).ToList(), _nodeSelectionPolicyFactory, _keySerializer);
+            return new BobClusterClient<TKey>(_nodeAddresses.Select(o => new BobNodeClient(o, _operationTimeout)).ToList(), _nodeSelectionPolicyFactory, _keySerializer, _keySerializationPoolSize);
         }
     }
 }

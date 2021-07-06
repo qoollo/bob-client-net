@@ -51,6 +51,13 @@ namespace Qoollo.BobClient.UnitTests
                 Assert.Equal(0, client.SequentialErrorCount);
                 Assert.True(client.TimeSinceLastOperationMs < 10000);
 
+                var existsResult2 = client.Exists(new List<BobKey>() { BobKey.FromUInt64(1), BobKey.FromUInt64(2), BobKey.FromUInt64(3) });
+                Assert.Equal(2, stat.ExistsRequestCount);
+                Assert.Equal(new bool[] { true, true, false }, existsResult2);
+                Assert.Equal(BobNodeClientState.Ready, client.State);
+                Assert.Equal(0, client.SequentialErrorCount);
+                Assert.True(client.TimeSinceLastOperationMs < 10000);
+
                 client.Close();
                 Assert.Equal(BobNodeClientState.Shutdown, client.State);
                 Assert.Equal(0, client.SequentialErrorCount);
@@ -91,6 +98,13 @@ namespace Qoollo.BobClient.UnitTests
                 var existsResult = await client.ExistsAsync(new BobKey[] { BobKey.FromUInt64(1), BobKey.FromUInt64(2), BobKey.FromUInt64(3) });
                 Assert.Equal(1, stat.ExistsRequestCount);
                 Assert.Equal(new bool[] { true, true, false }, existsResult);
+                Assert.Equal(BobNodeClientState.Ready, client.State);
+                Assert.Equal(0, client.SequentialErrorCount);
+                Assert.True(client.TimeSinceLastOperationMs < 10000);
+
+                var existsResult2 = await client.ExistsAsync(new List<BobKey>() { BobKey.FromUInt64(1), BobKey.FromUInt64(2), BobKey.FromUInt64(3) });
+                Assert.Equal(2, stat.ExistsRequestCount);
+                Assert.Equal(new bool[] { true, true, false }, existsResult2);
                 Assert.Equal(BobNodeClientState.Ready, client.State);
                 Assert.Equal(0, client.SequentialErrorCount);
                 Assert.True(client.TimeSinceLastOperationMs < 10000);

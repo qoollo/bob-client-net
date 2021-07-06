@@ -27,7 +27,7 @@ namespace Qoollo.BobClient.UnitTests
                 BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour: null, stat: stat2)
             };
 
-            using (var client = new BobClusterClient<ulong>(clients, SequentialNodeSelectionPolicy.Factory, keySerializer: null))
+            using (var client = new BobClusterClient<ulong>(clients, SequentialNodeSelectionPolicy.Factory, keySerializer: null, keySerializationPoolSize: null))
             {
                 client.Put(1, defaultData);
                 client.Put(ulong.MaxValue, defaultData);
@@ -57,7 +57,11 @@ namespace Qoollo.BobClient.UnitTests
 
                 Assert.All(client.Exists(Enumerable.Range(100, 10000 - 100).Select(o => (ulong)o).ToArray()), res => Assert.True(res));
                 Assert.All(client.Exists(Enumerable.Range(20000, 1000).Select(o => (ulong)o).ToArray(), fullGet: true, new CancellationToken()), res => Assert.False(res));
-                Assert.Equal(10000 - 100 + 1, stat1.RequestsWithFullGet + stat2.RequestsWithFullGet);
+
+                Assert.All(client.Exists(Enumerable.Range(100, 10000 - 100).Select(o => (ulong)o).ToList()), res => Assert.True(res));
+                Assert.All(client.Exists(Enumerable.Range(20000, 1000).Select(o => (ulong)o).ToList(), fullGet: true, new CancellationToken()), res => Assert.False(res));
+
+                Assert.Equal(10000 - 100 + 2, stat1.RequestsWithFullGet + stat2.RequestsWithFullGet);
 
                 for (ulong i = uint.MaxValue; i < (ulong)uint.MaxValue + 1000; i++)
                 {
@@ -75,6 +79,76 @@ namespace Qoollo.BobClient.UnitTests
             }
         }
 
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(4)]
+        [InlineData(8)]
+        public void PutGetExistOperationUInt64ConcurrentTest(int threadCount)
+        {
+            byte[] defaultData = new byte[] { 1, 2, 3 };
+            var data = new ConcurrentDictionary<BobKey, byte[]>();
+            data[BobKey.FromUInt64(1)] = defaultData;
+            data[BobKey.FromUInt64(ulong.MaxValue)] = defaultData;
+
+            var stat1 = new BobNodeClientMockHelper.MockClientStat();
+            var stat2 = new BobNodeClientMockHelper.MockClientStat();
+
+            BobNodeClient[] clients = new BobNodeClient[]
+            {
+                BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour: null, stat: stat1),
+                BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour: null, stat: stat2)
+            };
+
+            using (var client = new BobClusterClient<ulong>(clients, SequentialNodeSelectionPolicy.Factory, keySerializer: null, keySerializationPoolSize: null))
+            {
+                Barrier bar = new Barrier(threadCount + 1);
+
+                void MainAction()
+                {
+                    bar.SignalAndWait(10000);
+
+                    Assert.Equal(defaultData, client.Get(1));
+                    Assert.Equal(defaultData, client.Get(ulong.MaxValue));
+                    Assert.Throws<BobKeyNotFoundException>(() => client.Get(2));
+
+                    Assert.Equal(new bool[] { true, false }, client.Exists(new ulong[] { 1, 2 }));
+
+                    for (ulong i = 100; i < 10000; i++)
+                    {
+                        client.Put(i, defaultData);
+                    }
+                    for (ulong i = 100; i < 10000; i++)
+                    {
+                        Assert.Equal(defaultData, client.Get(i));
+                    }
+                    Assert.All(client.Exists(Enumerable.Range(100, 10000 - 100).Select(o => (ulong)o).ToArray()), res => Assert.True(res));
+                    Assert.All(client.Exists(Enumerable.Range(20000, 1000).Select(o => (ulong)o).ToArray()), res => Assert.False(res));
+
+                    Assert.All(client.Exists(Enumerable.Range(100, 10000 - 100).Select(o => (ulong)o).ToList()), res => Assert.True(res));
+                    Assert.All(client.Exists(Enumerable.Range(20000, 1000).Select(o => (ulong)o).ToList()), res => Assert.False(res));
+
+                    for (ulong i = uint.MaxValue; i < (ulong)uint.MaxValue + 1000; i++)
+                    {
+                        client.Put(i, defaultData);
+                    }
+                    for (ulong i = uint.MaxValue; i < (ulong)uint.MaxValue + 1000; i++)
+                    {
+                        Assert.Equal(defaultData, client.Get(i));
+                    }
+                }
+
+                Task[] tasks = new Task[threadCount];
+                for (int i = 0; i < tasks.Length; i++)
+                    tasks[i] = Task.Factory.StartNew(MainAction, TaskCreationOptions.LongRunning);
+
+                bar.SignalAndWait(10000);
+
+                Task.WaitAll(tasks);
+            }
+        }
+
+
         [Fact]
         public async Task PutGetExistOperationTestAsync()
         {
@@ -90,7 +164,7 @@ namespace Qoollo.BobClient.UnitTests
                 BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour: null, stat: stat2)
             };
             
-            using (var client = new BobClusterClient<uint>(clients, SequentialNodeSelectionPolicy.Factory, keySerializer: null))
+            using (var client = new BobClusterClient<uint>(clients, SequentialNodeSelectionPolicy.Factory, keySerializer: null, keySerializationPoolSize: null))
             {
                 await client.PutAsync(1, defaultData);
                 await client.PutAsync(uint.MaxValue, defaultData);
@@ -120,7 +194,11 @@ namespace Qoollo.BobClient.UnitTests
 
                 Assert.All(await client.ExistsAsync(Enumerable.Range(100, 10000 - 100).Select(o => (uint)o).ToArray()), res => Assert.True(res));
                 Assert.All(await client.ExistsAsync(Enumerable.Range(20000, 1000).Select(o => (uint)o).ToArray(), fullGet: true, new CancellationToken()), res => Assert.False(res));
-                Assert.Equal(10000 - 100 + 1, stat1.RequestsWithFullGet + stat2.RequestsWithFullGet);
+
+                Assert.All(await client.ExistsAsync(Enumerable.Range(100, 10000 - 100).Select(o => (uint)o).ToList()), res => Assert.True(res));
+                Assert.All(await client.ExistsAsync(Enumerable.Range(20000, 1000).Select(o => (uint)o).ToList(), fullGet: true, new CancellationToken()), res => Assert.False(res));
+
+                Assert.Equal(10000 - 100 + 2, stat1.RequestsWithFullGet + stat2.RequestsWithFullGet);
 
                 for (uint i = ushort.MaxValue; i < (uint)ushort.MaxValue + 1000; i++)
                 {

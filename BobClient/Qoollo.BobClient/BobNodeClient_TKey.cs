@@ -34,7 +34,7 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="innerClient">Low-level BobNodeClient</param>
         /// <param name="keySerializer">Serializer for <typeparamref name="TKey"/>  (null for default serializer)</param>
-        /// <param name="keySerializationPoolSize">Size of the Key serialization pool (null - shared pool, 0 and less - pool is disabled, 1 and greater - custom pool with specified size)</param>
+        /// <param name="keySerializationPoolSize">Size of the Key serialization pool (null - shared pool, 0 or less - pool is disabled, 1 or greater - custom pool with specified size)</param>
         protected internal BobNodeClient(BobNodeClient innerClient, BobKeySerializer<TKey> keySerializer, int? keySerializationPoolSize)
         {
             if (innerClient == null)
@@ -60,7 +60,7 @@ namespace Qoollo.BobClient
         /// <param name="nodeAddress">Address of a Bob node</param>
         /// <param name="operationTimeout">Timeout for every operation</param>
         /// <param name="keySerializer">Serializer for <typeparamref name="TKey"/> (null for default serializer)</param>
-        /// <param name="keySerializationPoolSize">Size of the Key serialization pool (null - shared pool, 0 and less - pool is disabled, 1 and greater - custom pool with specified size)</param>
+        /// <param name="keySerializationPoolSize">Size of the Key serialization pool (null - shared pool, 0 or less - pool is disabled, 1 or greater - custom pool with specified size)</param>
         public BobNodeClient(NodeAddress nodeAddress, TimeSpan operationTimeout, BobKeySerializer<TKey> keySerializer, int? keySerializationPoolSize)
             : this(new BobNodeClient(nodeAddress, operationTimeout), keySerializer, keySerializationPoolSize)
         {

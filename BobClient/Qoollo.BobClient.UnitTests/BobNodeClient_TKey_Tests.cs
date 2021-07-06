@@ -38,6 +38,8 @@ namespace Qoollo.BobClient.UnitTests
                 Assert.All(client.Exists(Enumerable.Range(100, 10000 - 100).Select(o => (ulong)o).ToArray()), res => Assert.True(res));
                 Assert.All(client.Exists(Enumerable.Range(20000, 1000).Select(o => (ulong)o).ToArray()), res => Assert.False(res));
 
+                Assert.All(client.Exists(Enumerable.Range(100, 10000 - 100).Select(o => (ulong)o).ToList()), res => Assert.True(res));
+                Assert.All(client.Exists(Enumerable.Range(20000, 1000).Select(o => (ulong)o).ToList()), res => Assert.False(res));
 
                 for (ulong i = uint.MaxValue; i < (ulong)uint.MaxValue + 1000; i++)
                 {

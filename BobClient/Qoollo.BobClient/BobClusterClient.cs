@@ -193,6 +193,8 @@ namespace Qoollo.BobClient
             return _clients[clientIndex];
         }
 
+        #region ============ Put ============
+
         /// <summary>
         /// Writes data to Bob
         /// </summary>
@@ -255,6 +257,9 @@ namespace Qoollo.BobClient
             return PutAsync(key, data, default(CancellationToken));
         }
 
+        #endregion
+
+        #region ============ Get ============
 
         /// <summary>
         /// Reads data from Bob
@@ -351,6 +356,10 @@ namespace Qoollo.BobClient
             return GetAsync(key, false, default(CancellationToken));
         }
 
+        #endregion
+
+        #region ============ Exists =========
+
         /// <summary>
         /// Checks data presented in Bob
         /// </summary>
@@ -397,6 +406,55 @@ namespace Qoollo.BobClient
         {
             return Exists(keys, false, default(CancellationToken));
         }
+
+
+        /// <summary>
+        /// Checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        protected internal bool[] Exists(IReadOnlyList<BobKey> keys, bool fullGet, CancellationToken token)
+        {
+            return SelectClient().Exists(keys, fullGet, token);
+        }
+
+        /// <summary>
+        /// Checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public bool[] Exists(IReadOnlyList<BobKey> keys, CancellationToken token)
+        {
+            return Exists(keys, false, token);
+        }
+
+        /// <summary>
+        /// Checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public bool[] Exists(IReadOnlyList<BobKey> keys)
+        {
+            return Exists(keys, false, default(CancellationToken));
+        }
+
 
         /// <summary>
         /// Asynchronously checks data presented in Bob
@@ -446,6 +504,56 @@ namespace Qoollo.BobClient
             return ExistsAsync(keys, false, default(CancellationToken));
         }
 
+
+        /// <summary>
+        /// Asynchronously checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="fullGet">Try read data from sup nodes</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        protected internal Task<bool[]> ExistsAsync(IReadOnlyList<BobKey> keys, bool fullGet, CancellationToken token)
+        {
+            return SelectClient().ExistsAsync(keys, fullGet, token);
+        }
+
+        /// <summary>
+        /// Asynchronously checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <param name="token">Cancellation token</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public Task<bool[]> ExistsAsync(IReadOnlyList<BobKey> keys, CancellationToken token)
+        {
+            return ExistsAsync(keys, false, token);
+        }
+
+        /// <summary>
+        /// Asynchronously checks data presented in Bob
+        /// </summary>
+        /// <param name="keys">Keys array</param>
+        /// <returns>Operation result</returns>
+        /// <exception cref="ObjectDisposedException">Client was closed</exception>
+        /// <exception cref="TimeoutException">Timeout reached</exception>
+        /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
+        /// <exception cref="BobOperationException">Other operation errors</exception>
+        /// <exception cref="ArgumentNullException">keys is null</exception>
+        public Task<bool[]> ExistsAsync(IReadOnlyList<BobKey> keys)
+        {
+            return ExistsAsync(keys, false, default(CancellationToken));
+        }
+
+        #endregion
 
         /// <summary>
         ///  Cleans-up all resources
