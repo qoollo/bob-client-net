@@ -111,6 +111,20 @@ namespace Qoollo.BobClient
         /// Explicitly opens connection to every Bob node in cluster
         /// </summary>
         /// <param name="timeout">Timeout</param>
+        /// <param name="mode">Mode that contols open error handling</param>
+        /// <returns>Task to await</returns>
+        /// <exception cref="BobOperationException">Connection was not opened</exception>
+        /// <exception cref="TimeoutException">Specified timeout reached</exception>
+        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Incorrect timeout value</exception>
+        public Task OpenAsync(TimeSpan timeout, BobClusterOpenCloseMode mode)
+        {
+            return _innerCluster.OpenAsync(timeout, mode);
+        }
+        /// <summary>
+        /// Explicitly opens connection to every Bob node in cluster
+        /// </summary>
+        /// <param name="timeout">Timeout</param>
         /// <returns>Task to await</returns>
         /// <exception cref="BobOperationException">Connection was not opened</exception>
         /// <exception cref="TimeoutException">Specified timeout reached</exception>
@@ -119,6 +133,18 @@ namespace Qoollo.BobClient
         public Task OpenAsync(TimeSpan timeout)
         {
             return _innerCluster.OpenAsync(timeout);
+        }
+        /// <summary>
+        /// Explicitly opens connection to every Bob node in cluster
+        /// </summary>
+        /// <param name="mode">Mode that contols open error handling</param>
+        /// <returns>Task to await</returns>
+        /// <exception cref="BobOperationException">Connection was not opened</exception>
+        /// <exception cref="TimeoutException">Specified timeout reached</exception>
+        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
+        public Task OpenAsync(BobClusterOpenCloseMode mode)
+        {
+            return _innerCluster.OpenAsync(mode);
         }
         /// <summary>
         /// Explicitly opens connection to every Bob node in cluster
@@ -135,6 +161,19 @@ namespace Qoollo.BobClient
         /// Explicitly opens connection to every Bob node in cluster
         /// </summary>
         /// <param name="timeout">Timeout</param>
+        /// <param name="mode">Mode that contols open error handling</param>
+        /// <exception cref="BobOperationException">Connection was not opened</exception>
+        /// <exception cref="TimeoutException">Specified timeout reached</exception>
+        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Incorrect timeout value</exception>
+        public void Open(TimeSpan timeout, BobClusterOpenCloseMode mode)
+        {
+            _innerCluster.Open(timeout, mode);
+        }
+        /// <summary>
+        /// Explicitly opens connection to every Bob node in cluster
+        /// </summary>
+        /// <param name="timeout">Timeout</param>
         /// <exception cref="BobOperationException">Connection was not opened</exception>
         /// <exception cref="TimeoutException">Specified timeout reached</exception>
         /// <exception cref="ObjectDisposedException">Client was disposed</exception>
@@ -142,6 +181,17 @@ namespace Qoollo.BobClient
         public void Open(TimeSpan timeout)
         {
             _innerCluster.Open(timeout);
+        }
+        /// <summary>
+        /// Explicitly opens connection to every Bob node in cluster
+        /// </summary>
+        /// <param name="mode">Mode that contols open error handling</param>
+        /// <exception cref="BobOperationException">Connection was not opened</exception>
+        /// <exception cref="TimeoutException">Specified timeout reached</exception>
+        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
+        public void Open(BobClusterOpenCloseMode mode)
+        {
+            _innerCluster.Open(mode);
         }
         /// <summary>
         /// Explicitly opens connection to every Bob node in cluster
@@ -158,11 +208,30 @@ namespace Qoollo.BobClient
         /// <summary>
         /// Closes connections to every Bob node in cluster
         /// </summary>
+        /// <param name="mode">Mode that contols close error handling</param>
+        /// <returns>Task to await</returns>
+        /// <exception cref="BobOperationException">Error during connection shutdown</exception>
+        public Task CloseAsync(BobClusterOpenCloseMode mode)
+        {
+            return _innerCluster.CloseAsync(mode);
+        }
+        /// <summary>
+        /// Closes connections to every Bob node in cluster
+        /// </summary>
         /// <returns>Task to await</returns>
         /// <exception cref="BobOperationException">Error during connection shutdown</exception>
         public Task CloseAsync()
         {
             return _innerCluster.CloseAsync();
+        }
+        /// <summary>
+        /// Closes connections to every Bob node in cluster
+        /// </summary>
+        /// <param name="mode">Mode that contols close error handling</param>
+        /// <exception cref="BobOperationException">Error during connection shutdown</exception>
+        public void Close(BobClusterOpenCloseMode mode)
+        {
+            _innerCluster.Close(mode);
         }
         /// <summary>
         /// Closes connections to every Bob node in cluster
