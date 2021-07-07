@@ -119,6 +119,11 @@ namespace Qoollo.BobClient
                     if (mode == BobClusterOpenCloseMode.ThrowOnFirstError)
                         throw;
                 }
+                catch (TimeoutException)
+                {
+                    if (mode == BobClusterOpenCloseMode.ThrowOnFirstError)
+                        throw;
+                }
             }
         }
         /// <summary>
@@ -151,6 +156,11 @@ namespace Qoollo.BobClient
                     await _clients[i].OpenAsync();
                 }
                 catch (BobOperationException)
+                {
+                    if (mode == BobClusterOpenCloseMode.ThrowOnFirstError)
+                        throw;
+                }
+                catch (TimeoutException)
                 {
                     if (mode == BobClusterOpenCloseMode.ThrowOnFirstError)
                         throw;
@@ -193,6 +203,11 @@ namespace Qoollo.BobClient
                     if (mode == BobClusterOpenCloseMode.ThrowOnFirstError)
                         throw;
                 }
+                catch (TimeoutException)
+                {
+                    if (mode == BobClusterOpenCloseMode.ThrowOnFirstError)
+                        throw;
+                }
             }
         }
         /// <summary>
@@ -223,6 +238,11 @@ namespace Qoollo.BobClient
                     _clients[i].Open();
                 }
                 catch (BobOperationException)
+                {
+                    if (mode == BobClusterOpenCloseMode.ThrowOnFirstError)
+                        throw;
+                }
+                catch (TimeoutException)
                 {
                     if (mode == BobClusterOpenCloseMode.ThrowOnFirstError)
                         throw;

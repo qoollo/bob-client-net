@@ -166,7 +166,7 @@ namespace Qoollo.BobClient.InteractiveTests
             {
                 RunMode = RunMode.Get | RunMode.Put | RunMode.Exists,
                 DataLength = 1024,
-                StartId = 30000,
+                StartId = 55000,
                 Count = 1000,
                 Nodes = new List<string>() { "10.5.5.127:20000", "10.5.5.128:20000" }
             };
@@ -188,7 +188,7 @@ namespace Qoollo.BobClient.InteractiveTests
                 .WithNodeSelectionPolicy(SequentialNodeSelectionPolicy.Factory)
                 .Build())
             {
-                client.Open(TimeSpan.FromSeconds(5));
+                client.Open(TimeSpan.FromSeconds(5), BobClusterOpenCloseMode.SkipErrors);
 
                 if ((config.RunMode & RunMode.Put) != 0)
                     PutTest(client, config.StartId, config.Count, sampleData);
