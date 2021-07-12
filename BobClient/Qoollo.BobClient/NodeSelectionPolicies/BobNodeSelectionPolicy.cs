@@ -38,7 +38,17 @@ namespace Qoollo.BobClient.NodeSelectionPolicies
         /// <summary>
         /// Selects one of the node from cluster to perform operation
         /// </summary>
+        /// <param name="operation">Operation for which the node selection is performing</param>
+        /// <param name="key">Key for which the node selection is performing (can be empty)</param>
         /// <returns>Index of the selected node</returns>
-        public abstract int SelectNextNodeIndex();
+        public abstract int SelectNodeIndex(BobOperationKind operation, BobKey key);
+        /// <summary>
+        /// Selects one of the node from cluster to retry previously failed operation (may return negative value to stop trying)
+        /// </summary>
+        /// <param name="prevNodeIndex">Previously selected node index</param>
+        /// <param name="operation">Operation for which the node selection is performing</param>
+        /// <param name="key">Key for which the node selection is performing (can be empty)</param>
+        /// <returns>Index of the selected node or -1 to stop trying</returns>
+        public abstract int SelectNodeIndexOnRetry(int prevNodeIndex, BobOperationKind operation, BobKey key);
     }
 }

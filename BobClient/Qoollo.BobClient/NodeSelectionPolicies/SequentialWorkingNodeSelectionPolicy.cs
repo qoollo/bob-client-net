@@ -116,8 +116,10 @@ namespace Qoollo.BobClient.NodeSelectionPolicies
         /// <summary>
         /// Selects one of the node from cluster to perform operation
         /// </summary>
+        /// <param name="operation">Operation for which the node selection is performing</param>
+        /// <param name="key">Key for which the node selection is performing (can be empty)</param>
         /// <returns>Index of the selected node</returns>
-        public override int SelectNextNodeIndex()
+        public override int SelectNodeIndex(BobOperationKind operation, BobKey key)
         {
             var nodes = this.Nodes;
             if (nodes.Count == 1)
@@ -140,6 +142,30 @@ namespace Qoollo.BobClient.NodeSelectionPolicies
 
             int fallback_index = Interlocked.Increment(ref _index) & int.MaxValue;
             return fallback_index % nodes.Count;
+        }
+
+        /// <summary>
+        /// Selects one of the node from cluster to retry previously failed operation (may return negative value to stop trying)
+        /// </summary>
+        /// <param name="prevNodeIndex">Previously selected node index</param>
+        /// <param name="operation">Operation for which the node selection is performing</param>
+        /// <param name="key">Key for which the node selection is performing (can be empty)</param>
+        /// <returns>Index of the selected node or -1 to stop trying</returns>
+        public override int SelectNodeIndexOnRetry(int prevNodeIndex, BobOperationKind operation, BobKey key)
+        {
+            var nodes = this.Nodes;
+            if (nodes.Count == 1)
+                return -1;
+
+            int index = prevNodeIndex;
+            for (int repCnt = 1; repCnt < nodes.Count; repCnt++)
+            {
+                index = (index + 1) % nodes.Count;
+                if (CanBeUsed(nodes[index]))
+                    return index;
+            }
+
+            return -1;
         }
     }
 }
