@@ -185,7 +185,7 @@ namespace Qoollo.BobClient.InteractiveTests
 
             using (var client = new BobClusterBuilder<ulong>(config.Nodes)
                 .WithOperationTimeout(TimeSpan.FromSeconds(1))
-                .WithNodeSelectionPolicy(SequentialNodeSelectionPolicy.Factory)
+                .WithSequentialNodeSelectionPolicy()
                 .Build())
             {
                 client.Open(TimeSpan.FromSeconds(5), BobClusterOpenCloseMode.SkipErrors);
