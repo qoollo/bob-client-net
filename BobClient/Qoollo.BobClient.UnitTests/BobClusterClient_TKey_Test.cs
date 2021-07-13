@@ -27,7 +27,7 @@ namespace Qoollo.BobClient.UnitTests
                 BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour: null, stat: stat2)
             };
 
-            using (var client = new BobClusterClient<ulong>(clients, SequentialNodeSelectionPolicy.Factory, keySerializer: null, keySerializationPoolSize: null))
+            using (var client = new BobClusterClient<ulong>(clients, SequentialNodeSelectionPolicy.Factory, operationsRetryCount: 0, keySerializer: null, keySerializationPoolSize: null))
             {
                 client.Put(1, defaultData);
                 client.Put(ulong.MaxValue, defaultData);
@@ -100,7 +100,7 @@ namespace Qoollo.BobClient.UnitTests
                 BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour: null, stat: stat2)
             };
 
-            using (var client = new BobClusterClient<ulong>(clients, SequentialNodeSelectionPolicy.Factory, keySerializer: null, keySerializationPoolSize: null))
+            using (var client = new BobClusterClient<ulong>(clients, SequentialNodeSelectionPolicy.Factory, operationsRetryCount: 0, keySerializer: null, keySerializationPoolSize: null))
             {
                 Barrier bar = new Barrier(threadCount + 1);
 
@@ -164,7 +164,7 @@ namespace Qoollo.BobClient.UnitTests
                 BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour: null, stat: stat2)
             };
             
-            using (var client = new BobClusterClient<uint>(clients, SequentialNodeSelectionPolicy.Factory, keySerializer: null, keySerializationPoolSize: null))
+            using (var client = new BobClusterClient<uint>(clients, SequentialNodeSelectionPolicy.Factory, operationsRetryCount: 0, keySerializer: null, keySerializationPoolSize: null))
             {
                 await client.PutAsync(1, defaultData);
                 await client.PutAsync(uint.MaxValue, defaultData);

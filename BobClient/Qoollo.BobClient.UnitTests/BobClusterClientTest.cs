@@ -27,7 +27,7 @@ namespace Qoollo.BobClient.UnitTests
                 BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour: null, stat: stat2)
             };
 
-            using (var client = new BobClusterClient(clients, SequentialNodeSelectionPolicy.Factory))
+            using (var client = new BobClusterClient(clients, SequentialNodeSelectionPolicy.Factory, 0))
             {
                 client.Put(BobKey.FromUInt64(1), defaultData);
                 client.Put(BobKey.FromUInt64(ulong.MaxValue), defaultData);
@@ -91,7 +91,7 @@ namespace Qoollo.BobClient.UnitTests
                 BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour: null, stat: stat2)
             };
 
-            using (var client = new BobClusterClient(clients, SequentialNodeSelectionPolicy.Factory))
+            using (var client = new BobClusterClient(clients, SequentialNodeSelectionPolicy.Factory, 0))
             {
                 await client.PutAsync(BobKey.FromUInt64(1), defaultData);
                 await client.PutAsync(BobKey.FromUInt64(ulong.MaxValue), defaultData);

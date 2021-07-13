@@ -17,6 +17,7 @@ namespace Qoollo.BobClient
         private readonly List<NodeAddress> _nodeAddresses;
         private TimeSpan _operationTimeout;
         private BobNodeSelectionPolicyFactory _nodeSelectionPolicyFactory;
+        private int? _operationsRetryCount;
         private BobKeySerializer<TKey> _keySerializer;
         private int? _keySerializationPoolSize;
 
@@ -181,6 +182,42 @@ namespace Qoollo.BobClient
         }
 
         /// <summary>
+        /// Specifies the number of retries of operations on cluster (null - default value (no retries), 0 - no retries, >= 1 - number of retries after failure, -1 - number of retries is equal to number of nodes)
+        /// </summary>
+        /// <param name="operationsRetryCount">The number of times the operation retries in case of failure (null - default value (no retries), 0 - no retries, >= 1 - number of retries after failure, -1 - number of retries is equal to number of nodes)</param>
+        /// <returns>The reference to the current builder instatnce</returns>
+        public BobClusterBuilder<TKey> WithOperationsRetryCount(int? operationsRetryCount)
+        {
+            _operationsRetryCount = operationsRetryCount;
+            return this;
+        }
+        /// <summary>
+        /// Reset number of retries to default value (equivalent to <see cref="WithOperationsRetryCount(int?)"/> called with 'null' argument)
+        /// </summary>
+        /// <returns>The reference to the current builder instatnce</returns>
+        public BobClusterBuilder<TKey> WithDefaultOperationsRetryCount()
+        {
+            return WithOperationsRetryCount(null);
+        }
+        /// <summary>
+        /// Disable operation retries on cluster (equivalent to <see cref="WithOperationsRetryCount(int?)"/> called with '0' argument)
+        /// </summary>
+        /// <returns>The reference to the current builder instatnce</returns>
+        public BobClusterBuilder<TKey> WithNoOperationsRetry()
+        {
+            return WithOperationsRetryCount(0);
+        }
+        /// <summary>
+        /// Set retries count equal to number of nodes in cluster (equivalent to <see cref="WithOperationsRetryCount(int?)"/> called with '-1' argument)
+        /// </summary>
+        /// <returns>The reference to the current builder instatnce</returns>
+        public BobClusterBuilder<TKey> WithOperationsRetryCountByNumberOfNodes()
+        {
+            return WithOperationsRetryCount(-1);
+        }
+
+
+        /// <summary>
         /// Specifies key serializer to convert <typeparamref name="TKey"/> into byte array
         /// </summary>
         /// <param name="keySerializer">Key serializer for <typeparamref name="TKey"/></param>
@@ -222,7 +259,7 @@ namespace Qoollo.BobClient
             if (_nodeAddresses.Count == 0)
                 throw new InvalidOperationException("At least one node should be added to cluster");
 
-            return new BobClusterClient<TKey>(_nodeAddresses.Select(o => new BobNodeClient(o, _operationTimeout)).ToList(), _nodeSelectionPolicyFactory, _keySerializer, _keySerializationPoolSize);
+            return new BobClusterClient<TKey>(_nodeAddresses.Select(o => new BobNodeClient(o, _operationTimeout)).ToList(), _nodeSelectionPolicyFactory, _operationsRetryCount, _keySerializer, _keySerializationPoolSize);
         }
     }
 }

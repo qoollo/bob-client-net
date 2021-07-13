@@ -16,13 +16,15 @@ namespace Qoollo.BobClient
     {
         private readonly BobNodeClient[] _clients;
         private readonly BobNodeSelectionPolicy _selectionPolicy;
+        private readonly int _operationsRetryCount;
 
         /// <summary>
         /// <see cref="BobClusterClient"/> constructor
         /// </summary>
         /// <param name="clients">List of clients for every bob node</param>
         /// <param name="nodeSelectionPolicyFactory">Factory to create node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
-        public BobClusterClient(IEnumerable<BobNodeClient> clients, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory)
+        /// <param name="operationsRetryCount">The number of times the operation retries in case of failure (null - default value (no retries), 0 - no retries, >= 1 - number of retries after failure, -1 - number of retries is equal to number of nodes)</param>
+        public BobClusterClient(IEnumerable<BobNodeClient> clients, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, int? operationsRetryCount)
         {
             if (clients == null)
                 throw new ArgumentNullException(nameof(clients));
@@ -46,13 +48,20 @@ namespace Qoollo.BobClient
             {
                 _selectionPolicy = nodeSelectionPolicyFactory.Create(_clients);
             }
+
+            if (operationsRetryCount == null)
+                _operationsRetryCount = 0;
+            else if (operationsRetryCount.Value < 0)
+                _operationsRetryCount = _clients.Length;
+            else
+                _operationsRetryCount = operationsRetryCount.Value;
         }
         /// <summary>
         /// <see cref="BobClusterClient"/> constructor
         /// </summary>
         /// <param name="clients">List of clients for every bob node</param>
         public BobClusterClient(IEnumerable<BobNodeClient> clients)
-            : this(clients, (BobNodeSelectionPolicyFactory)null)
+            : this(clients, (BobNodeSelectionPolicyFactory)null, (int?)null)
         {
         }
         /// <summary>
@@ -61,8 +70,9 @@ namespace Qoollo.BobClient
         /// <param name="nodeAddress">List of nodes addresses</param>
         /// <param name="operationTimeout">Operation timeout for every created node client</param>
         /// <param name="nodeSelectionPolicyFactory">Factory to create node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
-        public BobClusterClient(IEnumerable<NodeAddress> nodeAddress, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, TimeSpan operationTimeout)
-            : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), nodeSelectionPolicyFactory)
+        /// <param name="operationsRetryCount">The number of times the operation retries in case of failure (null - default value (no retries), 0 - no retries, >= 1 - number of retries after failure, -1 - number of retries is equal to number of nodes)</param>
+        public BobClusterClient(IEnumerable<NodeAddress> nodeAddress, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, int? operationsRetryCount, TimeSpan operationTimeout)
+            : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), nodeSelectionPolicyFactory, operationsRetryCount)
         {
         }
         /// <summary>
@@ -70,7 +80,7 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="nodeAddress">List of nodes addresses</param>
         public BobClusterClient(IEnumerable<NodeAddress> nodeAddress)
-            : this(nodeAddress, (BobNodeSelectionPolicyFactory)null, BobNodeClient.DefaultOperationTimeout)
+            : this(nodeAddress, (BobNodeSelectionPolicyFactory)null, (int?)null, BobNodeClient.DefaultOperationTimeout)
         {
         }
         /// <summary>
@@ -79,8 +89,9 @@ namespace Qoollo.BobClient
         /// <param name="nodeAddress">List of nodes addresses</param>
         /// <param name="operationTimeout">Operation timeout for every created node client</param>
         /// <param name="nodeSelectionPolicyFactory">Factory to create node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
-        public BobClusterClient(IEnumerable<string> nodeAddress, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, TimeSpan operationTimeout)
-            : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), nodeSelectionPolicyFactory)
+        /// <param name="operationsRetryCount">The number of times the operation retries in case of failure (null - default value (no retries), 0 - no retries, >= 1 - number of retries after failure, -1 - number of retries is equal to number of nodes)</param>
+        public BobClusterClient(IEnumerable<string> nodeAddress, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, int? operationsRetryCount, TimeSpan operationTimeout)
+            : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), nodeSelectionPolicyFactory, operationsRetryCount)
         {
         }
         /// <summary>
@@ -88,7 +99,7 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="nodeAddress">List of nodes addresses</param>
         public BobClusterClient(IEnumerable<string> nodeAddress)
-            : this(nodeAddress, (BobNodeSelectionPolicyFactory)null, BobNodeClient.DefaultOperationTimeout)
+            : this(nodeAddress, (BobNodeSelectionPolicyFactory)null, (int?)null, BobNodeClient.DefaultOperationTimeout)
         {
         }
 
@@ -332,14 +343,32 @@ namespace Qoollo.BobClient
         /// <summary>
         /// Selects next client
         /// </summary>
+        /// <param name="operation">Operation for which the node selection is performing</param>
+        /// <param name="key">Key for which the node selection is performing (can be empty)</param>
         /// <returns>Selected client</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private BobNodeClient SelectClient()
+        private int SelectClientIndex(BobOperationKind operation, BobKey key)
         {
-            int clientIndex = _selectionPolicy.SelectNextNodeIndex();
+            int clientIndex = _selectionPolicy.SelectNodeIndex(operation, key);
             if (clientIndex < 0 || clientIndex > _clients.Length)
                 ThrowSelectedIndexOutOfRange(clientIndex, _clients.Length);
-            return _clients[clientIndex];
+            return clientIndex;
+        }
+
+        /// <summary>
+        /// Selects next client for retry
+        /// </summary>
+        /// <param name="clientIndex">Node index</param>
+        /// <param name="operation">Operation for which the node selection is performing</param>
+        /// <param name="key">Key for which the node selection is performing (can be empty)</param>
+        /// <returns>Selected client</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool TrySelectClientIndexOnRetry(ref int clientIndex, BobOperationKind operation, BobKey key)
+        {
+            clientIndex = _selectionPolicy.SelectNodeIndexOnRetry(clientIndex, operation, key);
+            if (clientIndex > _clients.Length)
+                ThrowSelectedIndexOutOfRange(clientIndex, _clients.Length);
+            return clientIndex >= 0;
         }
 
         #region ============ Put ============
@@ -357,7 +386,29 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Other operation errors</exception>
         public void Put(BobKey key, byte[] data, CancellationToken token)
         {
-            SelectClient().Put(key, data, token);
+            int clientIndex = SelectClientIndex(BobOperationKind.Put, key);
+
+            int retryCount = 0;
+            while (true)
+            {
+                retryCount++;
+
+                try
+                {
+                    _clients[clientIndex].Put(key, data, token);
+                    return;
+                }
+                catch (BobOperationException) when (retryCount <= _operationsRetryCount)
+                {
+                    if (!TrySelectClientIndexOnRetry(ref clientIndex, BobOperationKind.Put, key))
+                        throw;
+                }
+                catch (TimeoutException) when (retryCount <= _operationsRetryCount)
+                {
+                    if (!TrySelectClientIndexOnRetry(ref clientIndex, BobOperationKind.Put, key))
+                        throw;
+                }
+            }
         }
 
         /// <summary>
@@ -386,9 +437,31 @@ namespace Qoollo.BobClient
         /// <exception cref="TimeoutException">Timeout reached</exception>
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        public Task PutAsync(BobKey key, byte[] data, CancellationToken token)
+        public async Task PutAsync(BobKey key, byte[] data, CancellationToken token)
         {
-            return SelectClient().PutAsync(key, data, token);
+            int clientIndex = SelectClientIndex(BobOperationKind.Put, key);
+
+            int retryCount = 0;
+            while (true)
+            {
+                retryCount++;
+
+                try
+                {
+                    await _clients[clientIndex].PutAsync(key, data, token);
+                    return;
+                }
+                catch (BobOperationException) when (retryCount <= _operationsRetryCount)
+                {
+                    if (!TrySelectClientIndexOnRetry(ref clientIndex, BobOperationKind.Put, key))
+                        throw;
+                }
+                catch (TimeoutException) when (retryCount <= _operationsRetryCount)
+                {
+                    if (!TrySelectClientIndexOnRetry(ref clientIndex, BobOperationKind.Put, key))
+                        throw;
+                }
+            }
         }
 
         /// <summary>
@@ -424,7 +497,28 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Other operation errors</exception>
         protected internal byte[] Get(BobKey key, bool fullGet, CancellationToken token)
         {
-            return SelectClient().Get(key, fullGet, token);
+            int clientIndex = SelectClientIndex(BobOperationKind.Get, key);
+
+            int retryCount = 0;
+            while (true)
+            {
+                retryCount++;
+
+                try
+                {
+                    return _clients[clientIndex].Get(key, fullGet, token);
+                }
+                catch (BobOperationException ex) when (!(ex is BobKeyNotFoundException) && retryCount <= _operationsRetryCount)
+                {
+                    if (!TrySelectClientIndexOnRetry(ref clientIndex, BobOperationKind.Get, key))
+                        throw;
+                }
+                catch (TimeoutException) when (retryCount <= _operationsRetryCount)
+                {
+                    if (!TrySelectClientIndexOnRetry(ref clientIndex, BobOperationKind.Get, key))
+                        throw;
+                }
+            }
         }
 
         /// <summary>
@@ -470,9 +564,30 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobKeyNotFoundException">Specified key was not found</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
-        protected internal Task<byte[]> GetAsync(BobKey key, bool fullGet, CancellationToken token)
+        protected internal async Task<byte[]> GetAsync(BobKey key, bool fullGet, CancellationToken token)
         {
-            return SelectClient().GetAsync(key, fullGet, token);
+            int clientIndex = SelectClientIndex(BobOperationKind.Get, key);
+
+            int retryCount = 0;
+            while (true)
+            {
+                retryCount++;
+
+                try
+                {
+                    return await _clients[clientIndex].GetAsync(key, fullGet, token);
+                }
+                catch (BobOperationException ex) when (!(ex is BobKeyNotFoundException) && retryCount <= _operationsRetryCount)
+                {
+                    if (!TrySelectClientIndexOnRetry(ref clientIndex, BobOperationKind.Get, key))
+                        throw;
+                }
+                catch (TimeoutException) when (retryCount <= _operationsRetryCount)
+                {
+                    if (!TrySelectClientIndexOnRetry(ref clientIndex, BobOperationKind.Get, key))
+                        throw;
+                }
+            }
         }
 
         /// <summary>
@@ -523,7 +638,29 @@ namespace Qoollo.BobClient
         /// <exception cref="ArgumentNullException">keys is null</exception>
         protected internal bool[] Exists(BobKey[] keys, bool fullGet, CancellationToken token)
         {
-            return SelectClient().Exists(keys, fullGet, token);
+            BobKey firstOrDefaultKey = keys.Length > 0 ? keys[0] : default(BobKey);
+            int clientIndex = SelectClientIndex(BobOperationKind.Exist, firstOrDefaultKey);
+
+            int retryCount = 0;
+            while (true)
+            {
+                retryCount++;
+
+                try
+                {
+                    return _clients[clientIndex].Exists(keys, fullGet, token);
+                }
+                catch (BobOperationException) when (retryCount <= _operationsRetryCount)
+                {
+                    if (!TrySelectClientIndexOnRetry(ref clientIndex, BobOperationKind.Exist, firstOrDefaultKey))
+                        throw;
+                }
+                catch (TimeoutException) when (retryCount <= _operationsRetryCount)
+                {
+                    if (!TrySelectClientIndexOnRetry(ref clientIndex, BobOperationKind.Exist, firstOrDefaultKey))
+                        throw;
+                }
+            }
         }
 
         /// <summary>
@@ -571,7 +708,29 @@ namespace Qoollo.BobClient
         /// <exception cref="ArgumentNullException">keys is null</exception>
         protected internal bool[] Exists(IReadOnlyList<BobKey> keys, bool fullGet, CancellationToken token)
         {
-            return SelectClient().Exists(keys, fullGet, token);
+            BobKey firstOrDefaultKey = keys.Count > 0 ? keys[0] : default(BobKey);
+            int clientIndex = SelectClientIndex(BobOperationKind.Exist, firstOrDefaultKey);
+
+            int retryCount = 0;
+            while (true)
+            {
+                retryCount++;
+
+                try
+                {
+                    return _clients[clientIndex].Exists(keys, fullGet, token);
+                }
+                catch (BobOperationException) when (retryCount <= _operationsRetryCount)
+                {
+                    if (!TrySelectClientIndexOnRetry(ref clientIndex, BobOperationKind.Exist, firstOrDefaultKey))
+                        throw;
+                }
+                catch (TimeoutException) when (retryCount <= _operationsRetryCount)
+                {
+                    if (!TrySelectClientIndexOnRetry(ref clientIndex, BobOperationKind.Exist, firstOrDefaultKey))
+                        throw;
+                }
+            }
         }
 
         /// <summary>
@@ -617,9 +776,31 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        protected internal Task<bool[]> ExistsAsync(BobKey[] keys, bool fullGet, CancellationToken token)
+        protected internal async Task<bool[]> ExistsAsync(BobKey[] keys, bool fullGet, CancellationToken token)
         {
-            return SelectClient().ExistsAsync(keys, fullGet, token);
+            BobKey firstOrDefaultKey = keys.Length > 0 ? keys[0] : default(BobKey);
+            int clientIndex = SelectClientIndex(BobOperationKind.Exist, firstOrDefaultKey);
+
+            int retryCount = 0;
+            while (true)
+            {
+                retryCount++;
+
+                try
+                {
+                    return await _clients[clientIndex].ExistsAsync(keys, fullGet, token);
+                }
+                catch (BobOperationException) when (retryCount <= _operationsRetryCount)
+                {
+                    if (!TrySelectClientIndexOnRetry(ref clientIndex, BobOperationKind.Exist, firstOrDefaultKey))
+                        throw;
+                }
+                catch (TimeoutException) when (retryCount <= _operationsRetryCount)
+                {
+                    if (!TrySelectClientIndexOnRetry(ref clientIndex, BobOperationKind.Exist, firstOrDefaultKey))
+                        throw;
+                }
+            }
         }
 
         /// <summary>
@@ -666,9 +847,31 @@ namespace Qoollo.BobClient
         /// <exception cref="OperationCanceledException">Operation was cancelled</exception>
         /// <exception cref="BobOperationException">Other operation errors</exception>
         /// <exception cref="ArgumentNullException">keys is null</exception>
-        protected internal Task<bool[]> ExistsAsync(IReadOnlyList<BobKey> keys, bool fullGet, CancellationToken token)
+        protected internal async Task<bool[]> ExistsAsync(IReadOnlyList<BobKey> keys, bool fullGet, CancellationToken token)
         {
-            return SelectClient().ExistsAsync(keys, fullGet, token);
+            BobKey firstOrDefaultKey = keys.Count > 0 ? keys[0] : default(BobKey);
+            int clientIndex = SelectClientIndex(BobOperationKind.Exist, firstOrDefaultKey);
+
+            int retryCount = 0;
+            while (true)
+            {
+                retryCount++;
+
+                try
+                {
+                    return await _clients[clientIndex].ExistsAsync(keys, fullGet, token);
+                }
+                catch (BobOperationException) when (retryCount <= _operationsRetryCount)
+                {
+                    if (!TrySelectClientIndexOnRetry(ref clientIndex, BobOperationKind.Exist, firstOrDefaultKey))
+                        throw;
+                }
+                catch (TimeoutException) when (retryCount <= _operationsRetryCount)
+                {
+                    if (!TrySelectClientIndexOnRetry(ref clientIndex, BobOperationKind.Exist, firstOrDefaultKey))
+                        throw;
+                }
+            }
         }
 
         /// <summary>
