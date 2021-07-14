@@ -52,7 +52,7 @@ namespace Qoollo.BobClient
             if (operationsRetryCount == null)
                 _operationsRetryCount = 0;
             else if (operationsRetryCount.Value < 0)
-                _operationsRetryCount = _clients.Length;
+                _operationsRetryCount = _clients.Length - 1;
             else
                 _operationsRetryCount = operationsRetryCount.Value;
         }
@@ -102,6 +102,11 @@ namespace Qoollo.BobClient
             : this(nodeAddress, (BobNodeSelectionPolicyFactory)null, (int?)null, BobNodeClient.DefaultOperationTimeout)
         {
         }
+
+        /// <summary>
+        /// The number of times the operation retries in case of failure
+        /// </summary>
+        internal int OperationsRetryCount { get { return _operationsRetryCount; } }
 
 
         /// <summary>

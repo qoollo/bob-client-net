@@ -79,6 +79,66 @@ namespace Qoollo.BobClient.UnitTests
             }
         }
 
+
+        [Fact]
+        public void PutGetExistOperationWithRetriesTest()
+        {
+            byte[] defaultData = new byte[] { 1, 2, 3 };
+            var data = new ConcurrentDictionary<BobKey, byte[]>();
+
+            var behaviour1 = new BobNodeClientMockHelper.MockClientBehaviour();
+            var behaviour2 = new BobNodeClientMockHelper.MockClientBehaviour();
+
+            BobNodeClient[] clients = new BobNodeClient[]
+            {
+                BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour: behaviour1, stat: null),
+                BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour: behaviour2, stat: null)
+            };
+
+            behaviour1.ErrorStatus = new Grpc.Core.Status(Grpc.Core.StatusCode.Internal, "Internal error");
+
+            using (var client = new BobClusterClient<ulong>(clients, SequentialNodeSelectionPolicy.Factory, operationsRetryCount: 1, keySerializer: null, keySerializationPoolSize: null))
+            {
+                client.Put(1, defaultData);
+                client.Put(ulong.MaxValue, defaultData);
+
+                Assert.Equal(defaultData, client.Get(1));
+                Assert.Equal(defaultData, client.Get(ulong.MaxValue));
+                Assert.Throws<BobKeyNotFoundException>(() => client.Get(2));
+
+                Assert.Equal(new bool[] { true, false }, client.Exists(new ulong[] { 1, 2 }));
+
+                for (ulong i = 100; i < 1000; i++)
+                {
+                    client.Put(i, defaultData);
+                }
+                for (ulong i = 100; i < 1000; i++)
+                {
+                    Assert.Equal(defaultData, client.Get(i));
+                }
+                for (ulong i = 100; i < 1000; i++)
+                {
+                    Assert.Equal(defaultData, client.Get(i, fullGet: true, new CancellationToken()));
+                }
+
+                Assert.All(client.Exists(Enumerable.Range(100, 1000 - 100).Select(o => (ulong)o).ToArray()), res => Assert.True(res));
+                Assert.All(client.Exists(Enumerable.Range(20000, 1000).Select(o => (ulong)o).ToArray(), fullGet: true, new CancellationToken()), res => Assert.False(res));
+
+                Assert.All(client.Exists(Enumerable.Range(100, 1000 - 100).Select(o => (ulong)o).ToList()), res => Assert.True(res));
+                Assert.All(client.Exists(Enumerable.Range(20000, 1000).Select(o => (ulong)o).ToList(), fullGet: true, new CancellationToken()), res => Assert.False(res));
+
+
+                for (ulong i = uint.MaxValue; i < (ulong)uint.MaxValue + 1000; i++)
+                {
+                    client.Put(i, defaultData);
+                }
+                for (ulong i = uint.MaxValue; i < (ulong)uint.MaxValue + 1000; i++)
+                {
+                    Assert.Equal(defaultData, client.Get(i));
+                }
+            }
+        }
+
         [Theory]
         [InlineData(1)]
         [InlineData(2)]

@@ -111,6 +111,12 @@ namespace Qoollo.BobClient
 
 
         /// <summary>
+        /// The number of times the operation retries in case of failure
+        /// </summary>
+        internal int OperationsRetryCount { get { return _innerCluster.OperationsRetryCount; } }
+
+
+        /// <summary>
         /// Explicitly opens connection to every Bob node in cluster
         /// </summary>
         /// <param name="timeout">Timeout</param>

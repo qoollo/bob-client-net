@@ -140,8 +140,8 @@ namespace Qoollo.BobClient.NodeSelectionPolicies
                 }
             }
 
-            int fallback_index = Interlocked.Increment(ref _index) & int.MaxValue;
-            return fallback_index % nodes.Count;
+            // Fallback to one-by-one stepping (_index was incremented at the beggining)
+            return (indexRawValue & int.MaxValue) % nodes.Count;
         }
 
         /// <summary>
