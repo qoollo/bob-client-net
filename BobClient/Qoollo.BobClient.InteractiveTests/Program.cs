@@ -166,7 +166,7 @@ namespace Qoollo.BobClient.InteractiveTests
             {
                 RunMode = RunMode.Get | RunMode.Put | RunMode.Exists,
                 DataLength = 1024,
-                StartId = 55000,
+                StartId = 62000,
                 Count = 1000,
                 Nodes = new List<string>() { "10.5.5.127:20000", "10.5.5.128:20000" }
             };
@@ -181,10 +181,13 @@ namespace Qoollo.BobClient.InteractiveTests
                 return;
             }
 
-            byte[] sampleData = Enumerable.Range(0, config.DataLength).Select(o => (byte)(o % byte.MaxValue)).ToArray();
+            byte[] sampleData = new byte[config.DataLength];
+            for (int i = 0; i < sampleData.Length; i++)
+                sampleData[i] = (byte)(i & byte.MaxValue);
+
 
             using (var client = new BobClusterBuilder<ulong>(config.Nodes)
-                .WithOperationTimeout(TimeSpan.FromSeconds(1))
+                .WithOperationTimeout(TimeSpan.FromSeconds(1000))
                 .WithSequentialNodeSelectionPolicy()
                 .Build())
             {

@@ -47,6 +47,14 @@ namespace Qoollo.BobClient
         /// Default operation timeout
         /// </summary>
         public static readonly TimeSpan DefaultOperationTimeout = TimeSpan.FromMinutes(2);
+        /// <summary>
+        /// Default max receive message size
+        /// </summary>
+        private const int DefaultMaxReceiveMessageSize = int.MaxValue - 64;
+        /// <summary>
+        /// Default max send message size
+        /// </summary>
+        private const int DefaultMaxSendMessageSize = int.MaxValue - 64;
 
         /// <summary>
         /// Returns timestamp in milliseconds
@@ -160,10 +168,17 @@ namespace Qoollo.BobClient
             _rpcChannel = Grpc.Net.Client.GrpcChannel.ForAddress(nodeAddress.GetAddressAsUri(), 
                                                                  new Grpc.Net.Client.GrpcChannelOptions() 
                                                                  { 
-                                                                    Credentials = Grpc.Core.ChannelCredentials.Insecure
+                                                                     Credentials = Grpc.Core.ChannelCredentials.Insecure,
+                                                                     MaxReceiveMessageSize = DefaultMaxReceiveMessageSize,
+                                                                     MaxSendMessageSize = DefaultMaxSendMessageSize
                                                                  });
 #elif GRPC_LEGACY
-            _rpcChannel = new Grpc.Core.Channel(nodeAddress.Address, Grpc.Core.ChannelCredentials.Insecure);
+            _rpcChannel = new Grpc.Core.Channel(nodeAddress.Address, Grpc.Core.ChannelCredentials.Insecure, 
+                new Grpc.Core.ChannelOption[]
+                {
+                    new Grpc.Core.ChannelOption(Grpc.Core.ChannelOptions.MaxReceiveMessageLength, DefaultMaxReceiveMessageSize),
+                    new Grpc.Core.ChannelOption(Grpc.Core.ChannelOptions.MaxSendMessageLength, DefaultMaxSendMessageSize)
+                });
 #endif
 
             _rpcClient = new BobStorage.BobApi.BobApiClient(_rpcChannel);
