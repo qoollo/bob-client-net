@@ -152,9 +152,9 @@ namespace Qoollo.BobClient.UnitTests
                 BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour: null, stat: null)
             };
 
-            using (var client = new BobClusterClient(clients, SequentialNodeSelectionPolicy.Factory, operationsRetryCount: -1))
+            using (var client = new BobClusterClient(clients, SequentialNodeSelectionPolicy.Factory, operationRetryCount: -1))
             {
-                Assert.Equal(clients.Length - 1, client.OperationsRetryCount);
+                Assert.Equal(clients.Length - 1, client.OperationRetryCount);
             }
         }
 
@@ -177,7 +177,7 @@ namespace Qoollo.BobClient.UnitTests
 
             behaviour1.ErrorStatus = new Grpc.Core.Status(Grpc.Core.StatusCode.Internal, "Internal error");
 
-            using (var client = new BobClusterClient(clients, SequentialNodeSelectionPolicy.Factory, operationsRetryCount: 1))
+            using (var client = new BobClusterClient(clients, SequentialNodeSelectionPolicy.Factory, operationRetryCount: 1))
             {
                 client.Put(BobKey.FromUInt64(1), defaultData);
                 Assert.Equal(defaultData, client.Get(BobKey.FromUInt64(1)));
@@ -213,7 +213,7 @@ namespace Qoollo.BobClient.UnitTests
 
             behaviour1.ErrorStatus = new Grpc.Core.Status(Grpc.Core.StatusCode.Internal, "Internal error");
 
-            using (var client = new BobClusterClient(clients, SequentialNodeSelectionPolicy.Factory, operationsRetryCount: 1))
+            using (var client = new BobClusterClient(clients, SequentialNodeSelectionPolicy.Factory, operationRetryCount: 1))
             {
                 await client.PutAsync(BobKey.FromUInt64(1), defaultData);
                 Assert.Equal(defaultData, await client.GetAsync(BobKey.FromUInt64(1)));
@@ -251,7 +251,7 @@ namespace Qoollo.BobClient.UnitTests
             behaviour1.ErrorStatus = new Grpc.Core.Status(Grpc.Core.StatusCode.Internal, "Internal error");
             behaviour2.ErrorStatus = new Grpc.Core.Status(Grpc.Core.StatusCode.Internal, "Internal error");
 
-            using (var client = new BobClusterClient(clients, SequentialNodeSelectionPolicy.Factory, operationsRetryCount: 10))
+            using (var client = new BobClusterClient(clients, SequentialNodeSelectionPolicy.Factory, operationRetryCount: 10))
             {
                 Assert.Throws<BobOperationException>(() => client.Put(BobKey.FromUInt64(1), defaultData));
                 Assert.Throws<BobOperationException>(() => client.Get(BobKey.FromUInt64(1)));
@@ -276,7 +276,7 @@ namespace Qoollo.BobClient.UnitTests
                 BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour: behaviour2, stat: stat2)
             };
 
-            using (var client = new BobClusterClient(clients, SequentialNodeSelectionPolicy.Factory, operationsRetryCount: 10))
+            using (var client = new BobClusterClient(clients, SequentialNodeSelectionPolicy.Factory, operationRetryCount: 10))
             {
                 Assert.Throws<BobKeyNotFoundException>(() => client.Get(BobKey.FromUInt64(1)));
                 Assert.Equal(1, stat1.GetRequestCount + stat2.GetRequestCount);

@@ -51,11 +51,11 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="clients">List of clients for every bob node</param>
         /// <param name="nodeSelectionPolicyFactory">Factory to create node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
-        /// <param name="operationsRetryCount">The number of times the operation retries in case of failure (null - default value (no retries), 0 - no retries, >= 1 - number of retries after failure, -1 - number of retries is equal to number of nodes)</param>
+        /// <param name="operationRetryCount">The number of times the operation retries in case of failure (null - default value (no retries), 0 - no retries, >= 1 - number of retries after failure, -1 - number of retries is equal to number of nodes)</param>
         /// <param name="keySerializer">Serializer for <typeparamref name="TKey"/> (null for default serializer)</param>
         /// <param name="keySerializationPoolSize">Size of the Key serialization pool (null - shared pool, 0 or less - pool is disabled, 1 or greater - custom pool with specified size)</param>
-        public BobClusterClient(IEnumerable<BobNodeClient> clients, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, int? operationsRetryCount, BobKeySerializer<TKey> keySerializer, int? keySerializationPoolSize)
-            : this(new BobClusterClient(clients, nodeSelectionPolicyFactory, operationsRetryCount), keySerializer, keySerializationPoolSize)
+        public BobClusterClient(IEnumerable<BobNodeClient> clients, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, int? operationRetryCount, BobKeySerializer<TKey> keySerializer, int? keySerializationPoolSize)
+            : this(new BobClusterClient(clients, nodeSelectionPolicyFactory, operationRetryCount), keySerializer, keySerializationPoolSize)
         {
         }
         /// <summary>
@@ -72,11 +72,11 @@ namespace Qoollo.BobClient
         /// <param name="nodeAddress">List of nodes addresses</param>
         /// <param name="operationTimeout">Operation timeout for every created node client</param>
         /// <param name="nodeSelectionPolicyFactory">Factory to create node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
-        /// <param name="operationsRetryCount">The number of times the operation retries in case of failure (null - default value (no retries), 0 - no retries, >= 1 - number of retries after failure, -1 - number of retries is equal to number of nodes)</param>
+        /// <param name="operationRetryCount">The number of times the operation retries in case of failure (null - default value (no retries), 0 - no retries, >= 1 - number of retries after failure, -1 - number of retries is equal to number of nodes)</param>
         /// <param name="keySerializer">Serializer for <typeparamref name="TKey"/> (null for default serializer)</param>
         /// <param name="keySerializationPoolSize">Size of the Key serialization pool (null - shared pool, 0 or less - pool is disabled, 1 or greater - custom pool with specified size)</param>
-        public BobClusterClient(IEnumerable<NodeAddress> nodeAddress, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, int? operationsRetryCount, BobKeySerializer<TKey> keySerializer, int? keySerializationPoolSize, TimeSpan operationTimeout)
-            : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), nodeSelectionPolicyFactory, operationsRetryCount, keySerializer, keySerializationPoolSize)
+        public BobClusterClient(IEnumerable<NodeAddress> nodeAddress, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, int? operationRetryCount, BobKeySerializer<TKey> keySerializer, int? keySerializationPoolSize, TimeSpan operationTimeout)
+            : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), nodeSelectionPolicyFactory, operationRetryCount, keySerializer, keySerializationPoolSize)
         {
         }
         /// <summary>
@@ -93,11 +93,11 @@ namespace Qoollo.BobClient
         /// <param name="nodeAddress">List of nodes addresses</param>
         /// <param name="operationTimeout">Operation timeout for every created node client</param>
         /// <param name="nodeSelectionPolicyFactory">Factory to create node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
-        /// <param name="operationsRetryCount">The number of times the operation retries in case of failure (null - default value (no retries), 0 - no retries, >= 1 - number of retries after failure, -1 - number of retries is equal to number of nodes)</param>
+        /// <param name="operationRetryCount">The number of times the operation retries in case of failure (null - default value (no retries), 0 - no retries, >= 1 - number of retries after failure, -1 - number of retries is equal to number of nodes)</param>
         /// <param name="keySerializer">Serializer for <typeparamref name="TKey"/> (null for default serializer)</param>
         /// <param name="keySerializationPoolSize">Size of the Key serialization pool (null - shared pool, 0 or less - pool is disabled, 1 or greater - custom pool with specified size)</param>
-        public BobClusterClient(IEnumerable<string> nodeAddress, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, int? operationsRetryCount, BobKeySerializer<TKey> keySerializer, int? keySerializationPoolSize, TimeSpan operationTimeout)
-            : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), nodeSelectionPolicyFactory, operationsRetryCount, keySerializer, keySerializationPoolSize)
+        public BobClusterClient(IEnumerable<string> nodeAddress, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, int? operationRetryCount, BobKeySerializer<TKey> keySerializer, int? keySerializationPoolSize, TimeSpan operationTimeout)
+            : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), nodeSelectionPolicyFactory, operationRetryCount, keySerializer, keySerializationPoolSize)
         {
         }
         /// <summary>
@@ -113,7 +113,7 @@ namespace Qoollo.BobClient
         /// <summary>
         /// The number of times the operation retries in case of failure
         /// </summary>
-        internal int OperationsRetryCount { get { return _innerCluster.OperationsRetryCount; } }
+        internal int OperationRetryCount { get { return _innerCluster.OperationRetryCount; } }
 
 
         /// <summary>

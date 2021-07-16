@@ -17,7 +17,7 @@ namespace Qoollo.BobClient
         private readonly List<NodeAddress> _nodeAddresses;
         private TimeSpan _operationTimeout;
         private BobNodeSelectionPolicyFactory _nodeSelectionPolicyFactory;
-        private int? _operationsRetryCount;
+        private int? _operationRetryCount;
         private BobKeySerializer<TKey> _keySerializer;
         private int? _keySerializationPoolSize;
 
@@ -186,34 +186,29 @@ namespace Qoollo.BobClient
         /// </summary>
         /// <param name="operationsRetryCount">The number of times the operation retries in case of failure (null - default value (no retries), 0 - no retries, >= 1 - number of retries after failure, -1 - number of retries is equal to number of nodes)</param>
         /// <returns>The reference to the current builder instatnce</returns>
-        public BobClusterBuilder<TKey> WithOperationsRetryCount(int? operationsRetryCount)
+        public BobClusterBuilder<TKey> WithOperationRetryCount(int? operationsRetryCount)
         {
-            _operationsRetryCount = operationsRetryCount;
+            _operationRetryCount = operationsRetryCount;
             return this;
         }
         /// <summary>
-        /// Reset number of retries to default value (equivalent to <see cref="WithOperationsRetryCount(int?)"/> called with 'null' argument)
+        /// Specifies the special retries mode
         /// </summary>
+        /// <param name="operationsRetryMode">Special retries mode</param>
         /// <returns>The reference to the current builder instatnce</returns>
-        public BobClusterBuilder<TKey> WithDefaultOperationsRetryCount()
+        public BobClusterBuilder<TKey> WithOperationRetry(BobCommonOperationRetryMode operationsRetryMode)
         {
-            return WithOperationsRetryCount(null);
-        }
-        /// <summary>
-        /// Disable operation retries on cluster (equivalent to <see cref="WithOperationsRetryCount(int?)"/> called with '0' argument)
-        /// </summary>
-        /// <returns>The reference to the current builder instatnce</returns>
-        public BobClusterBuilder<TKey> WithNoOperationsRetry()
-        {
-            return WithOperationsRetryCount(0);
-        }
-        /// <summary>
-        /// Set retries count equal to number of nodes in cluster (equivalent to <see cref="WithOperationsRetryCount(int?)"/> called with '-1' argument)
-        /// </summary>
-        /// <returns>The reference to the current builder instatnce</returns>
-        public BobClusterBuilder<TKey> WithOperationsRetryCountByNumberOfNodes()
-        {
-            return WithOperationsRetryCount(-1);
+            switch (operationsRetryMode)
+            {
+                case BobCommonOperationRetryMode.Default:
+                    return WithOperationRetryCount(null);
+                case BobCommonOperationRetryMode.ByNumberOfNodes:
+                    return WithOperationRetryCount(-1);
+                case BobCommonOperationRetryMode.NoRetry:
+                    return WithOperationRetryCount(0);
+                default:
+                    throw new ArgumentException($"Unknown {nameof(BobCommonOperationRetryMode)} value: {operationsRetryMode}");
+            }
         }
 
 
@@ -242,12 +237,21 @@ namespace Qoollo.BobClient
             return this;
         }
         /// <summary>
-        /// Switches back to shared key serialization pool (equivalent to <see cref="WithKeySerializationPoolSize(int?)"/> called with 'null' argument)
+        /// Specifies the special key serialization pool usage mode
         /// </summary>
+        /// <param name="poolUsageMode">Usage mode</param>
         /// <returns>The reference to the current builder instatnce</returns>
-        public BobClusterBuilder<TKey> WithSharedKeySerializationPool()
+        public BobClusterBuilder<TKey> WithKeySerializationPool(BobCommonKeySerailizationPoolUsageMode poolUsageMode)
         {
-            return WithKeySerializationPoolSize(null);
+            switch (poolUsageMode)
+            {
+                case BobCommonKeySerailizationPoolUsageMode.Default:
+                    return WithKeySerializationPoolSize(null);
+                case BobCommonKeySerailizationPoolUsageMode.NoPool:
+                    return WithKeySerializationPoolSize(0);
+                default:
+                    throw new ArgumentException($"Unknown {nameof(BobCommonKeySerailizationPoolUsageMode)} value: {poolUsageMode}");
+            }
         }
 
         /// <summary>
@@ -259,7 +263,48 @@ namespace Qoollo.BobClient
             if (_nodeAddresses.Count == 0)
                 throw new InvalidOperationException("At least one node should be added to cluster");
 
-            return new BobClusterClient<TKey>(_nodeAddresses.Select(o => new BobNodeClient(o, _operationTimeout)).ToList(), _nodeSelectionPolicyFactory, _operationsRetryCount, _keySerializer, _keySerializationPoolSize);
+            return new BobClusterClient<TKey>(_nodeAddresses.Select(o => new BobNodeClient(o, _operationTimeout)).ToList(), _nodeSelectionPolicyFactory, _operationRetryCount, _keySerializer, _keySerializationPoolSize);
         }
+    }
+
+
+    /// <summary>
+    /// Defines several common retry modes
+    /// </summary>
+    public enum BobCommonOperationRetryMode
+    {
+        /// <summary>
+        /// Resets number of retries to default value 
+        /// (equivalent to calling <see cref="BobClusterBuilder{TKey}.WithOperationRetryCount(int?)"/> with <c>null</c> value)
+        /// </summary>
+        Default,
+        /// <summary>
+        /// Sets the number of retries equal to the number of nodes in cluster minus one, so the operation will be performed when at least one node is working 
+        /// (equivalent to calling <see cref="BobClusterBuilder{TKey}.WithOperationRetryCount(int?)"/> with <c>-1</c> value)
+        /// </summary>
+        ByNumberOfNodes,
+        /// <summary>
+        /// Disables operation retries on cluster
+        /// (equivalent to calling <see cref="BobClusterBuilder{TKey}.WithOperationRetryCount(int?)"/> with <c>0</c> value)
+        /// </summary>
+        NoRetry
+    }
+
+
+    /// <summary>
+    /// Defines several common key serialization pool usage modes
+    /// </summary>
+    public enum BobCommonKeySerailizationPoolUsageMode
+    {
+        /// <summary>
+        /// Resets to default shared pool
+        /// (equivalent to calling <see cref="BobClusterBuilder{TKey}.WithKeySerializationPoolSize(int?)"/> with <c>null</c> value)
+        /// </summary>
+        Default,
+        /// <summary>
+        /// Disables key serialization pool
+        /// (equivalent to calling <see cref="BobClusterBuilder{TKey}.WithKeySerializationPoolSize(int?)"/> with <c>0</c> value)
+        /// </summary>
+        NoPool
     }
 }
