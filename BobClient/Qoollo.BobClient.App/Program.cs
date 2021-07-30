@@ -32,6 +32,7 @@ namespace Qoollo.BobClient.App
             public int Timeout { get; set; } = 60;
             public uint ThreadCount { get; set; } = 1;
             public uint ExistsPackageSize { get; set; } = 100;
+            public uint KeySize { get; set; } = sizeof(ulong);
             public List<string> Nodes { get; set; } = new List<string>();
         }
 
@@ -200,8 +201,9 @@ namespace Qoollo.BobClient.App
             Console.WriteLine("  --start  | -s  : Start Id. Default: 0");
             Console.WriteLine("  --end    | -e  : End Id (optional)");
             Console.WriteLine("  --count  | -c  : Count of ids to process. Default: 1000");
+            Console.WriteLine("  --keySize      : Target key size in bytes. Default: 8");
             Console.WriteLine("  --threads      : Number of threads. Default: 1");
-            Console.WriteLine("  --timeout      : Timeout in seconds. Default: 60");
+            Console.WriteLine("  --timeout      : Operation and connection timeout in seconds. Default: 60");
             Console.WriteLine("  --random       : Random read/write mode. Default: false");
             Console.WriteLine("  --verbose      : Enable verbose output for errors. Default: false");
             Console.WriteLine("  --packageSize  : Exists package size. Default: 100");
@@ -255,6 +257,10 @@ namespace Qoollo.BobClient.App
                         result.ExistsPackageSize = uint.Parse(args[i + 1]);
                         i++;
                         break;
+                    case "--keysize":
+                        result.KeySize = uint.Parse(args[i + 1]);
+                        i++;
+                        break;
                     case "--random":
                         if (i + 1 < args.Length && bool.TryParse(args[i + 1], out bool randomMode))
                         {
@@ -293,26 +299,33 @@ namespace Qoollo.BobClient.App
             return result;
         }
 
+
         static void Main(string[] args)
         {
-            ExecutionConfig config = new ExecutionConfig()
+            ExecutionConfig config = new ExecutionConfig();
+
+            if (args.Length == 1 && args[0] == ":test")
             {
-                RunMode = RunMode.Get | RunMode.Put | RunMode.Exists,
-                DataLength = 1024,
-                StartId = 62000,
-                EndId = null,
-                Count = 20000,
-                ExistsPackageSize = 100,
-                RandomMode = false,
-                Verbose = true,
-                Timeout = 60,
-                ThreadCount = 4,
-                Nodes = new List<string>() { "10.5.5.127:20000", "10.5.5.128:20000" }
-            };
-
-
-            if (args.Length > 0)
+                config = new ExecutionConfig()
+                {
+                    RunMode = RunMode.Get | RunMode.Put | RunMode.Exists,
+                    DataLength = 1024,
+                    StartId = 62000,
+                    EndId = null,
+                    Count = 20000,
+                    ExistsPackageSize = 100,
+                    KeySize = sizeof(ulong),
+                    RandomMode = true,
+                    Verbose = false,
+                    Timeout = 60,
+                    ThreadCount = 4,
+                    Nodes = new List<string>() { "10.5.5.127:20000", "10.5.5.128:20000" }
+                };
+            }
+            else if (args.Length > 0)
+            {
                 config = ParseConfigFromArgs(args);
+            }
  
             if (config.Nodes.Count == 0)
             {
@@ -332,6 +345,7 @@ namespace Qoollo.BobClient.App
 
             using (var client = new BobClusterBuilder<ulong>(config.Nodes)
                 .WithOperationTimeout(TimeSpan.FromSeconds(config.Timeout))
+                .WithKeySerializer(new CustomSizeUInt64BobKeySerializer((int)config.KeySize))
                 .WithSequentialNodeSelectionPolicy()
                 .Build())
             {
