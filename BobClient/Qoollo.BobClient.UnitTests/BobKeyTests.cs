@@ -64,5 +64,30 @@ namespace Qoollo.BobClient.UnitTests
         {
             Assert.Equal((long)key % divisor, BobKey.FromUInt64(key).Remainder(divisor));
         }
+
+        [Theory]
+        [InlineData(new byte[] { 1 }, 1u)]
+        [InlineData(new byte[] { 1, 2, 3 }, 197121u)]
+        [InlineData(new byte[] { 1, 2, 3, 4 }, 67305985u)]
+        [InlineData(new byte[] { 1, 2, 3, 4, 5 }, 21542142465u)]
+        [InlineData(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 }, 578437695752307201u)]
+        public void ToUInt64Test(byte[] k, ulong expected)
+        {
+            var bobKey = new BobKey(k);
+            ulong convKey = bobKey.ToUInt64();
+            Assert.Equal(expected, convKey);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(123)]
+        [InlineData(100500)]
+        [InlineData(96333534)]
+        public void ToUInt64FromUInt64Test(ulong key)
+        {
+            var bobKey = BobKey.FromUInt64(key);
+            ulong convKey = bobKey.ToUInt64();
+            Assert.Equal(key, convKey);
+        }
     }
 }

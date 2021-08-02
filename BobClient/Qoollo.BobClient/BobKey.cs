@@ -102,6 +102,31 @@ namespace Qoollo.BobClient
         }
 
         /// <summary>
+        /// Convert key to unsigned integer representation
+        /// </summary>
+        /// <returns>UInt64 representation</returns>
+        /// <exception cref="InvalidOperationException">Only keys with size <= 8 bytes are supported</exception>
+        internal ulong ToUInt64()
+        {
+            if (_keyBytes.Length > 8)
+                throw new InvalidOperationException("Only keys with size <= 8 bytes are supported");
+
+            if (BitConverter.IsLittleEndian)
+            {
+                if (_keyBytes.Length == 8)
+                    return BitConverter.ToUInt64(_keyBytes, 0);
+                else if (_keyBytes.Length == 4)
+                    return BitConverter.ToUInt32(_keyBytes, 0);
+            }
+
+            ulong result = 0;
+            for (int i = _keyBytes.Length - 1; i >= 0; i--)
+                result = (result << 8) | _keyBytes[i];
+
+            return result;
+        }
+
+        /// <summary>
         /// Indicates whether the current BobKey is equal to another BobKey
         /// </summary>
         /// <param name="other">Other BobKey</param>
