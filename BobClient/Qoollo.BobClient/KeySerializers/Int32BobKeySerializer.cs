@@ -34,9 +34,6 @@ namespace Qoollo.BobClient.KeySerializers
 
             System.Runtime.CompilerServices.Unsafe.As<byte, int>(ref byteArray[0]) = key;
 
-#if !NETFRAMEWORK
-            // NETFRAMEWORK always runs on LittleEndian architecture
-
             if (!BitConverter.IsLittleEndian)
             {
                 byte tmp = byteArray[0];
@@ -47,7 +44,6 @@ namespace Qoollo.BobClient.KeySerializers
                 byteArray[1] = byteArray[2];
                 byteArray[2] = tmp;
             }
-#endif
         }
 
         /// <summary>
