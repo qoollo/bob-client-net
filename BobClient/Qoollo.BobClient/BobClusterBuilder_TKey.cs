@@ -174,9 +174,6 @@ namespace Qoollo.BobClient
         /// <returns>The reference to the current builder instatnce</returns>
         public BobClusterBuilder<TKey> WithNodeSelectionPolicy(BobNodeSelectionPolicyFactory policyFactory)
         {
-            if (policyFactory == null)
-                throw new ArgumentNullException(nameof(policyFactory));
-
             _nodeSelectionPolicyFactory = policyFactory;
             return this;
         }
@@ -219,9 +216,6 @@ namespace Qoollo.BobClient
         /// <returns>The reference to the current builder instatnce</returns>
         public BobClusterBuilder<TKey> WithKeySerializer(BobKeySerializer<TKey> keySerializer)
         {
-            if (keySerializer == null)
-                throw new ArgumentNullException(nameof(keySerializer));
-
             _keySerializer = keySerializer;
             return this;
         }

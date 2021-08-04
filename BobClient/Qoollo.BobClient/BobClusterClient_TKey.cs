@@ -33,9 +33,10 @@ namespace Qoollo.BobClient
                 throw new ArgumentNullException(nameof(innerCluster));
 
             _innerCluster = innerCluster;
-            _keySerializer = keySerializer;
 
-            if (keySerializer == null && !BobDefaultKeySerializers.TryGetKeySerializer<TKey>(out _keySerializer))
+            if (keySerializer != null || BobDefaultKeySerializers.TryGetKeySerializer<TKey>(out keySerializer))
+                _keySerializer = keySerializer;
+            else
                 throw new ArgumentException($"KeySerializer is null and no default key serializer found for key type '{typeof(TKey).Name}'", nameof(keySerializer));
 
             if (keySerializationPoolSize == null)

@@ -105,9 +105,11 @@ namespace Qoollo.BobClient
         /// Convert key to unsigned integer representation
         /// </summary>
         /// <returns>UInt64 representation</returns>
-        /// <exception cref="InvalidOperationException">Only keys with size <= 8 bytes are supported</exception>
+        /// <exception cref="InvalidOperationException">Only keys with size &lt;= 8 bytes are supported</exception>
         internal ulong ToUInt64()
         {
+            if (_keyBytes == null)
+                throw new InvalidOperationException("BobKey is not initialized");
             if (_keyBytes.Length > 8)
                 throw new InvalidOperationException("Only keys with size <= 8 bytes are supported");
 

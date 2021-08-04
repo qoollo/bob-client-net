@@ -120,6 +120,9 @@ namespace Qoollo.BobClient.Helpers
         /// <param name="index">Extracted '_index'</param>
         private static void ExtractObjectIndexFromMemoryWithReflection(ref ReadOnlyMemory<byte> mem, out object obj, out int index)
         {
+            System.Diagnostics.Debug.Assert(_readOnlyMemory_object != null);
+            System.Diagnostics.Debug.Assert(_readOnlyMemory_index != null);
+
             object boxedMem = (object)mem;
 
             obj = _readOnlyMemory_object.GetValue(boxedMem);
