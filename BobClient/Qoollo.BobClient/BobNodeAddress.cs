@@ -4,11 +4,22 @@ using System.Text;
 
 namespace Qoollo.BobClient
 {
+    /// <summary>
+    /// Address of Bob node
+    /// </summary>
     [System.Diagnostics.DebuggerDisplay("[Address: {Address}]")]
     public class BobNodeAddress : IEquatable<BobNodeAddress>
     {
+        /// <summary>
+        /// Default Bob client port
+        /// </summary>
         public const int DefaultPort = 20000;
 
+        /// <summary>
+        /// <see cref="BobNodeAddress"/> constructor
+        /// </summary>
+        /// <param name="host">Node host</param>
+        /// <param name="port">Node port</param>
         public BobNodeAddress(string host, int port)
         {
             if (host == null)
@@ -24,12 +35,24 @@ namespace Qoollo.BobClient
             Address = host + ":" + port.ToString();
         }
 
+        /// <summary>
+        /// Node Host
+        /// </summary>
         public string Host { get; }
+        /// <summary>
+        /// Node Port
+        /// </summary>
         public int Port { get; }
-
+        /// <summary>
+        /// Address of node in format 'host:port'
+        /// </summary>
         public string Address { get; }
 
-
+        /// <summary>
+        /// Converts the string representation of an adress to <see cref="BobNodeAddress"/>
+        /// </summary>
+        /// <param name="address">String represenation of an address</param>
+        /// <returns>Converted address</returns>
         public static BobNodeAddress Parse(string address)
         {
             if (address == null)
@@ -62,7 +85,11 @@ namespace Qoollo.BobClient
             return new BobNodeAddress(host, port);
         }
 
-
+        /// <summary>
+        /// Indicates whether the current <see cref="BobNodeAddress"/> is equal to another <see cref="BobNodeAddress"/>
+        /// </summary>
+        /// <param name="other">Other <see cref="BobNodeAddress"/></param>
+        /// <returns>true if the current object is equal to the other parameter; otherwise, false</returns>
         public bool Equals(BobNodeAddress other)
         {
             if (object.ReferenceEquals(this, other))
@@ -72,15 +99,28 @@ namespace Qoollo.BobClient
 
             return Port == other.Port && string.Equals(Host, other.Host, StringComparison.OrdinalIgnoreCase);
         }
+        /// <summary>
+        /// Indicates whether the current <see cref="BobNodeAddress"/> is equal to another object
+        /// </summary>
+        /// <param name="obj">Other object</param>
+        /// <returns>true if the current object is equal to the other parameter; otherwise, false</returns>
         public override bool Equals(object obj)
         {
             return Equals(obj as BobNodeAddress);
         }
+        /// <summary>
+        /// Calculates hash code of the current <see cref="BobNodeAddress"/>
+        /// </summary>
+        /// <returns>Calculated hash code</returns>
         public override int GetHashCode()
         {
             return StringComparer.OrdinalIgnoreCase.GetHashCode(Host) ^ Port.GetHashCode();
         }
 
+        /// <summary>
+        /// Returns string representation of <see cref="BobNodeAddress"/>
+        /// </summary>
+        /// <returns>String representation of <see cref="BobNodeAddress"/></returns>
         public override string ToString()
         {
             return Address;
