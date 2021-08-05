@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Qoollo.BobClient
@@ -7,6 +8,7 @@ namespace Qoollo.BobClient
     public class BobConnectionParameters
     {
         private readonly Dictionary<string, string> _customParameters;
+        private BobNodeAddress _nodeAddress;
 
         public BobConnectionParameters(BobNodeAddress nodeAddress, string user, string password)
         {
@@ -15,7 +17,7 @@ namespace Qoollo.BobClient
 
             Host = nodeAddress.Host;
             Port = nodeAddress.Port;
-            NodeAddress = nodeAddress;
+            _nodeAddress = nodeAddress;
             User = user;
             Password = password;
 
@@ -35,10 +37,9 @@ namespace Qoollo.BobClient
 
         }
 
-
         public string Host { get; private set; }
         public int? Port { get; private set; }
-        public BobNodeAddress NodeAddress { get; }
+        public BobNodeAddress NodeAddress { get { return _nodeAddress ?? InitNodeAddress(); } }
 
         public string User { get; private set; }
         public string Password { get; private set; }
@@ -55,5 +56,16 @@ namespace Qoollo.BobClient
         internal int? KeySerializationPoolSize { get; }
         internal int? OperationRetryCount { get; }
         internal NodeSelectionPolicies.KnownBobNodeSelectionPolicies? NodeSelectionPolicy { get; }
+
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private BobNodeAddress InitNodeAddress()
+        {
+            BobNodeAddress result = _nodeAddress;
+            if (result == null)
+                _nodeAddress = result = new BobNodeAddress(Host, Port ?? BobNodeAddress.DefaultPort);
+
+            return result;
+        }
     }
 }
