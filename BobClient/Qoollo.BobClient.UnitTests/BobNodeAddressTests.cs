@@ -25,6 +25,7 @@ namespace Qoollo.BobClient.UnitTests
         [InlineData("host:")]
         [InlineData("host:-15")]
         [InlineData(":22")]
+        [InlineData(":66666")]
         [InlineData(":::::")]
         public void ParseFormatExceptionTest(string addr)
         {

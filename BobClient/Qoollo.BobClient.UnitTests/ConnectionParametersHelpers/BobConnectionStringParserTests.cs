@@ -77,5 +77,71 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
             }
         }
 
+
+
+        public static IEnumerable<object[]> ParseConnectionStringIntoTestData
+        {
+            get
+            {
+                yield return new object[]
+                {
+                    "",
+                    new ModifiableBobConnectionParametersMock()
+                };
+                yield return new object[] 
+                {
+                    "Host = node1.bob.com; ",  
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node1.bob.com"
+                    }
+                };
+                yield return new object[] 
+                {
+                    "Host=node1.bob.com; Port=20001",  
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node1.bob.com",
+                        Port = 20001
+                    }
+                };
+                yield return new object[]
+                {
+                    " Address=node1.bob.com:20001;",
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node1.bob.com",
+                        Port = 20001
+                    }
+                };
+                yield return new object[]
+                {
+                    "Address=node2.bob.com",
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node2.bob.com"
+                    }
+                };
+                yield return new object[]
+                {
+                    "Address = node2.bob.com; Port = 20001",
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node2.bob.com",
+                        Port = 20001
+                    }
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(ParseConnectionStringIntoTestData))]
+        public void ParseConnectionStringIntoTest(string connectionString, ModifiableBobConnectionParametersMock expected)
+        {
+            ModifiableBobConnectionParametersMock target = new ModifiableBobConnectionParametersMock();
+            BobConnectionStringParser.ParseConnectionStringInto(connectionString, target);
+
+            Assert.Equal(expected, target);
+        }
     }
 }

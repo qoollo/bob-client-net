@@ -48,20 +48,22 @@ namespace Qoollo.BobClient
         /// </summary>
         public string Address { get; }
 
+
         /// <summary>
-        /// Converts the string representation of an adress to <see cref="BobNodeAddress"/>
+        /// Converts address to <paramref name="host"/> and <paramref name="port"/>
         /// </summary>
-        /// <param name="address">String represenation of an address</param>
-        /// <returns>Converted address</returns>
-        public static BobNodeAddress Parse(string address)
+        /// <param name="address">Address</param>
+        /// <param name="host">Parsed host</param>
+        /// <param name="port">Parsed port</param>
+        internal static void ParseCore(string address, out string host, out int? port)
         {
             if (address == null)
                 throw new ArgumentNullException(nameof(address));
             if (string.IsNullOrWhiteSpace(address))
                 throw new ArgumentException("address cannot be empty", nameof(address));
 
-            string host = address;
-            int port = DefaultPort;
+            host = address;
+            port = null;
 
             int portSeparatorPosition = address.LastIndexOf(':');
             if (portSeparatorPosition == address.Length - 1)
@@ -74,15 +76,28 @@ namespace Qoollo.BobClient
             }
             else if (portSeparatorPosition > 0)
             {
-                if (!int.TryParse(address.Substring(portSeparatorPosition + 1), out port))
+                if (!int.TryParse(address.Substring(portSeparatorPosition + 1), out int portVal))
                     throw new FormatException($"Unable to parse port in bob node address: {address}");
-                if (port <= 0 || port > ushort.MaxValue)
+                if (portVal <= 0 || portVal > ushort.MaxValue)
                     throw new FormatException($"Port is not in a valid range: {address}");
 
                 host = address.Substring(0, portSeparatorPosition);
+                port = portVal;
             }
+        }
 
-            return new BobNodeAddress(host, port);
+        /// <summary>
+        /// Converts the string representation of an address to <see cref="BobNodeAddress"/>
+        /// </summary>
+        /// <param name="address">String represenation of an address</param>
+        /// <returns>Converted address</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="address"/> is null</exception>
+        /// <exception cref="ArgumentException"><paramref name="address"/> is empty</exception>
+        /// <exception cref="FormatException">Incorrect format</exception>
+        public static BobNodeAddress Parse(string address)
+        {
+            ParseCore(address, out string host, out int? port);
+            return new BobNodeAddress(host, port ?? DefaultPort);
         }
 
         /// <summary>

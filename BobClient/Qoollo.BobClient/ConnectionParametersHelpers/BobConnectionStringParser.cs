@@ -153,5 +153,19 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
 
             return result;
         }
+
+
+        public static void ParseConnectionStringInto(string connectionString, IModifiableBobConnectionParameters parameters)
+        {
+            if (connectionString == null)
+                throw new ArgumentNullException(nameof(connectionString));
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+
+            var keyValues = ParseConnectionStringIntoKeyValues(connectionString);
+
+            foreach (var keyValue in keyValues)
+                parameters.SetValue(keyValue.Key, keyValue.Value, allowCustomParameters: true);
+        }
     }
 }
