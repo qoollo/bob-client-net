@@ -83,11 +83,6 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
         {
             get
             {
-                yield return new object[]
-                {
-                    "",
-                    new ModifiableBobConnectionParametersMock()
-                };
                 yield return new object[] 
                 {
                     "Host = node1.bob.com; ",  
@@ -116,7 +111,7 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
                 };
                 yield return new object[]
                 {
-                    "Address=node2.bob.com",
+                    "'Address'='node2.bob.com'",
                     new ModifiableBobConnectionParametersMock()
                     {
                         Host = "node2.bob.com"
@@ -129,6 +124,115 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
                     {
                         Host = "node2.bob.com",
                         Port = 20001
+                    }
+                };
+                yield return new object[]
+                {
+                    "address = node2.bob.com:19000 ; Port = 22000",
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node2.bob.com",
+                        Port = 22000
+                    }
+                };
+                yield return new object[]
+                {
+                    "address = node1.bob.com:19000 ; 'User' = 'user'; PASSWORD = '!@#$%=;'",
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node1.bob.com",
+                        Port = 19000,
+                        User = "user",
+                        Password = "!@#$%=;"
+                    }
+                };
+                yield return new object[]
+                {
+                    "address = node1.bob.com:19000; User = 'user'; Password = '!@#$%=;'; MaxSendMessageLength = 1024; MaxReceiveMessageLength = 2048",
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node1.bob.com",
+                        Port = 19000,
+                        User = "user",
+                        Password = "!@#$%=;",
+                        MaxSendMessageLength = 1024,
+                        MaxReceiveMessageLength = 2048
+                    }
+                };
+                yield return new object[]
+                {
+                    "address = node1.bob.com:19000; User ID = 'user'; OperationTimeout=00:12:00; ConnectionTimeout = 10000",
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node1.bob.com",
+                        Port = 19000,
+                        User = "user",
+                        OperationTimeout = TimeSpan.Parse("00:12:00"),
+                        ConnectionTimeout = TimeSpan.FromMilliseconds(10000)
+                    }
+                };
+                yield return new object[]
+                {
+                    "address = node1.bob.com:19000; User ID = 'user'; Timeout=1000;",
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node1.bob.com",
+                        Port = 19000,
+                        User = "user",
+                        OperationTimeout = TimeSpan.FromMilliseconds(1000),
+                        ConnectionTimeout = TimeSpan.FromMilliseconds(1000)
+                    }
+                };
+                yield return new object[]
+                {
+                    "address = node1.bob.com:19000; Timeout=1000; Connect Timeout = 2000",
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node1.bob.com",
+                        Port = 19000,
+                        OperationTimeout = TimeSpan.FromMilliseconds(1000),
+                        ConnectionTimeout = TimeSpan.FromMilliseconds(2000)
+                    }
+                };
+                yield return new object[]
+                {
+                    "address = node1.bob.com:19000; Timeout=1000; Connect Timeout = 2000; Timeout=1000;",
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node1.bob.com",
+                        Port = 19000,
+                        OperationTimeout = TimeSpan.FromMilliseconds(1000),
+                        ConnectionTimeout = TimeSpan.FromMilliseconds(1000)
+                    }
+                };
+                yield return new object[]
+                {
+                    "address = node1.bob.com:19000; Custom1 = Value1; Custom2 = 'Value2'; \"Custom3\"=\"VALUE3\"",
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node1.bob.com",
+                        Port = 19000,
+                    }
+                    .WithCustomParam("Custom1", "Value1")
+                    .WithCustomParam("Custom2", "Value2")
+                    .WithCustomParam("Custom3", "VALUE3")
+                };
+
+                yield return new object[]
+                {
+                    "node1.bob.com:19000",
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node1.bob.com",
+                        Port = 19000,
+                    }
+                };
+                yield return new object[]
+                {
+                    "node2.bob.com",
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node2.bob.com"
                     }
                 };
             }

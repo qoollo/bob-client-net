@@ -49,6 +49,75 @@ namespace Qoollo.BobClient
         public string Address { get; }
 
 
+        internal static bool TryParseCore(string address, bool throwFormatException, out string host, out int? port1)
+        {
+            if (address == null)
+                throw new ArgumentNullException(nameof(address));
+
+            host = null;
+            port1 = null;
+
+            if (address.Length == 0)
+                return false;
+
+            int pos = -1;
+
+            // Parse port
+            while (++pos < address.Length)
+            {
+                if (address[pos] >= 'a' && address[pos] <= 'z')
+                    continue;
+                if (address[pos] >= 'A' && address[pos] <= 'Z')
+                    continue;
+                if (address[pos] >= '0' && address[pos] <= '9')
+                    continue;
+                if (address[pos] == '-' && pos > 0)
+                    continue;
+                if (address[pos] == '.')
+                    continue;
+                if (address[pos] == ':')
+                    break;
+
+                if (throwFormatException)
+                    throw new FormatException($"Host name in node address contains invalid symbol '{address[pos]}': {address}");
+
+                return false;
+            }
+
+            if (pos == address.Length)
+            {
+                host = address;
+                port1 = null;
+
+                return true;
+            }
+
+            // Parse port
+            if (pos + 1 < address.Length && address[pos] == ':')
+            {
+                int portAccum = 0;
+                while (++pos < address.Length)
+                {
+                    if (portAccum > ushort.MaxValue)
+                        return false;
+
+                    if (address[pos] >= '0' && address[pos] <= '9')
+                    {
+                        portAccum = portAccum * 10 + (address[pos] - '0');
+                        continue;
+                    }
+
+                    return false;
+                }
+
+                if (portAccum > ushort.MaxValue)
+                    return false;
+            }
+
+
+            return false;
+        }
+
         /// <summary>
         /// Converts address to <paramref name="host"/> and <paramref name="port"/>
         /// </summary>

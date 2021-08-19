@@ -154,6 +154,14 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
             return result;
         }
 
+        private static void ParseBobNodeAddressInto(string bobNodeAddress, IModifiableBobConnectionParameters parameters)
+        {
+            BobNodeAddress.ParseCore(bobNodeAddress, out string host, out int? port);
+            parameters.Host = host;
+            if (port != null)
+                parameters.Port = port;
+        }
+
 
         public static void ParseConnectionStringInto(string connectionString, IModifiableBobConnectionParameters parameters)
         {
@@ -162,10 +170,20 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
             if (parameters == null)
                 throw new ArgumentNullException(nameof(parameters));
 
-            var keyValues = ParseConnectionStringIntoKeyValues(connectionString);
+            if (string.IsNullOrWhiteSpace(connectionString))
+                throw new FormatException("Connection string cannot be empty. At least 'address' should be specified");
 
-            foreach (var keyValue in keyValues)
-                parameters.SetValue(keyValue.Key, keyValue.Value, allowCustomParameters: true);
+            if (!connectionString.Contains("="))
+            {
+                ParseBobNodeAddressInto(connectionString, parameters);
+            }
+            else
+            {
+                var keyValues = ParseConnectionStringIntoKeyValues(connectionString);
+
+                foreach (var keyValue in keyValues)
+                    parameters.SetValue(keyValue.Key, keyValue.Value, allowCustomParameters: true);
+            }
         }
     }
 }

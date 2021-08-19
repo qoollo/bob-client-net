@@ -20,6 +20,12 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
 
         public Dictionary<string, string> CustomParameters { get; } = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
+        public ModifiableBobConnectionParametersMock WithCustomParam(string key, string value)
+        {
+            CustomParameters[key] = value;
+            return this;
+        }
+
         public bool Equals(ModifiableBobConnectionParametersMock other)
         {
             if (other is null)
