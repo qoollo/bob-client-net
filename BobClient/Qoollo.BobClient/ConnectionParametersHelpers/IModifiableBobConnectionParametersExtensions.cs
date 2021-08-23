@@ -64,7 +64,7 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
                         throw new ArgumentNullException(nameof(value), $"Value cannot be null for '{key}' parameter");
                     if (string.IsNullOrWhiteSpace(value))
                         throw new FormatException($"Value cannot be an empty string for '{key}' parameter");
-                    BobNodeAddress.ParseCore(value, out string addrHostVal, out int? addrPortVal);
+                    BobNodeAddress.TryParseCore(value, true, out string addrHostVal, out int? addrPortVal);
                     parameters.Host = addrHostVal;
                     if (addrPortVal != null)
                         parameters.Port = addrPortVal;

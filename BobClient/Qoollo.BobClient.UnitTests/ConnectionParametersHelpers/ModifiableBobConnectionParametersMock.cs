@@ -26,21 +26,13 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
             return this;
         }
 
+        internal bool Equals(IModifiableBobConnectionParameters other)
+        {
+            return ModifiableBobConnectionParametersEqualityComparer.Instance.Equals(this, other);
+        }
         public bool Equals(ModifiableBobConnectionParametersMock other)
         {
-            if (other is null)
-                return false;
-
-            return Host == other.Host &&
-                   Port == other.Port &&
-                   User == other.User &&
-                   Password == other.Password &&
-                   MaxReceiveMessageLength == other.MaxReceiveMessageLength &&
-                   MaxSendMessageLength == other.MaxSendMessageLength &&
-                   OperationTimeout == other.OperationTimeout &&
-                   ConnectionTimeout == other.ConnectionTimeout &&
-                   CustomParameters.All((kv) => other.CustomParameters.ContainsKey(kv.Key) && other.CustomParameters[kv.Key] == kv.Value) &&
-                   other.CustomParameters.All((kv) => CustomParameters.ContainsKey(kv.Key) && CustomParameters[kv.Key] == kv.Value);
+            return ModifiableBobConnectionParametersEqualityComparer.Instance.Equals(this, other);
         }
 
         public override bool Equals(object obj)

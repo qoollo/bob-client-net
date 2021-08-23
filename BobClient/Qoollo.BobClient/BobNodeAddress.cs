@@ -48,124 +48,103 @@ namespace Qoollo.BobClient
         /// </summary>
         public string Address { get; }
 
+        /// <summary>
+        /// Throws <see cref="FormatException"/> if <paramref name="throwFormatException"/> is true. Otherwise returns 'false'
+        /// </summary>
+        /// <param name="throwFormatException">'true' to throw <see cref="FormatException"/></param>
+        /// <param name="address">Address string</param>
+        /// <param name="message">Message for <see cref="FormatException"/></param>
+        /// <returns>False</returns>
+        private static bool ThrowFormatExceptionOrReturnFalse(bool throwFormatException, string address, string message)
+        {
+            if (throwFormatException)
+                throw new FormatException(message + ": '" + address + "'");
+            return false;
+        }
 
-        internal static bool TryParseCore(string address, bool throwFormatException, out string host, out int? port1)
+        /// <summary>
+        /// Attempts to convert address to <paramref name="host"/> and <paramref name="port"/>
+        /// </summary>
+        /// <param name="address">Address</param>
+        /// <param name="throwFormatException">'true' to throw <see cref="FormatException"/> on parsing error</param>
+        /// <param name="host">Parsed host</param>
+        /// <param name="port">Parsed port</param>
+        /// <returns>True if parsed, otherwise false</returns>
+        internal static bool TryParseCore(string address, bool throwFormatException, out string host, out int? port)
         {
             if (address == null)
                 throw new ArgumentNullException(nameof(address));
 
             host = null;
-            port1 = null;
-
-            if (address.Length == 0)
-                return false;
-
-            int pos = -1;
-
-            // Parse port
-            while (++pos < address.Length)
-            {
-                if (address[pos] >= 'a' && address[pos] <= 'z')
-                    continue;
-                if (address[pos] >= 'A' && address[pos] <= 'Z')
-                    continue;
-                if (address[pos] >= '0' && address[pos] <= '9')
-                    continue;
-                if (address[pos] == '-' && pos > 0)
-                    continue;
-                if (address[pos] == '.')
-                    continue;
-                if (address[pos] == ':')
-                    break;
-
-                if (throwFormatException)
-                    throw new FormatException($"Host name in node address contains invalid symbol '{address[pos]}': {address}");
-
-                return false;
-            }
-
-            if (pos == address.Length)
-            {
-                host = address;
-                port1 = null;
-
-                return true;
-            }
-
-            // Parse port
-            if (pos + 1 < address.Length && address[pos] == ':')
-            {
-                int portAccum = 0;
-                while (++pos < address.Length)
-                {
-                    if (portAccum > ushort.MaxValue)
-                        return false;
-
-                    if (address[pos] >= '0' && address[pos] <= '9')
-                    {
-                        portAccum = portAccum * 10 + (address[pos] - '0');
-                        continue;
-                    }
-
-                    return false;
-                }
-
-                if (portAccum > ushort.MaxValue)
-                    return false;
-            }
-
-
-            return false;
-        }
-
-        /// <summary>
-        /// Converts address to <paramref name="host"/> and <paramref name="port"/>
-        /// </summary>
-        /// <param name="address">Address</param>
-        /// <param name="host">Parsed host</param>
-        /// <param name="port">Parsed port</param>
-        internal static void ParseCore(string address, out string host, out int? port)
-        {
-            if (address == null)
-                throw new ArgumentNullException(nameof(address));
-            if (string.IsNullOrWhiteSpace(address))
-                throw new ArgumentException("address cannot be empty", nameof(address));
-
-            host = address;
             port = null;
 
+            if (string.IsNullOrWhiteSpace(address))
+                return ThrowFormatExceptionOrReturnFalse(throwFormatException, address, "Bob Node address cannot be empty");
+
+            address = address.Trim();
             int portSeparatorPosition = address.LastIndexOf(':');
-            if (portSeparatorPosition == address.Length - 1)
+
+            if (portSeparatorPosition < 0)
             {
-                throw new FormatException($"Empty port after ':' in bob address: {address}");
+                host = address;
+                return true;
+            }
+            else if (address.Length > 2 && address[0] == '[' && address[address.Length - 1] == ']')
+            {
+                // Assume IPv6 address
+                host = address;
+                return true;
+            }
+            else if (portSeparatorPosition == address.Length - 1)
+            {
+                return ThrowFormatExceptionOrReturnFalse(throwFormatException, address, "Empty port after ':' in bob address");
             }
             else if (portSeparatorPosition == 0)
             {
-                throw new FormatException($"Empty host before ':' in bob address: {address}");
+                return ThrowFormatExceptionOrReturnFalse(throwFormatException, address, "Empty host before ':' in bob address");
             }
-            else if (portSeparatorPosition > 0)
+            else
             {
                 if (!int.TryParse(address.Substring(portSeparatorPosition + 1), out int portVal))
-                    throw new FormatException($"Unable to parse port in bob node address: {address}");
+                    return ThrowFormatExceptionOrReturnFalse(throwFormatException, address, "Unable to parse port in bob node address");
                 if (portVal <= 0 || portVal > ushort.MaxValue)
-                    throw new FormatException($"Port is not in a valid range: {address}");
+                    return ThrowFormatExceptionOrReturnFalse(throwFormatException, address, "Port is not in a valid range");
 
                 host = address.Substring(0, portSeparatorPosition);
                 port = portVal;
+                return true;
             }
         }
 
+
+        /// <summary>
+        /// Attempts to convert the string representation of an address to <see cref="BobNodeAddress"/>
+        /// </summary>
+        /// <param name="address">String represenation of an address</param>
+        /// <param name="parsedAddress">Converted address</param>
+        /// <returns>True if was converted successfully, otherwise false</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="address"/> is null</exception>
+        public static bool TryParse(string address, out BobNodeAddress parsedAddress)
+        {
+            if (TryParseCore(address, false, out string host, out int? port))
+            {
+                parsedAddress = new BobNodeAddress(host, port ?? DefaultPort);
+                return true;
+            }
+
+            parsedAddress = null;
+            return false;
+        }
         /// <summary>
         /// Converts the string representation of an address to <see cref="BobNodeAddress"/>
         /// </summary>
         /// <param name="address">String represenation of an address</param>
         /// <returns>Converted address</returns>
         /// <exception cref="ArgumentNullException"><paramref name="address"/> is null</exception>
-        /// <exception cref="ArgumentException"><paramref name="address"/> is empty</exception>
         /// <exception cref="FormatException">Incorrect format</exception>
         public static BobNodeAddress Parse(string address)
         {
-            ParseCore(address, out string host, out int? port);
+            TryParseCore(address, true, out string host, out int? port);
             return new BobNodeAddress(host, port ?? DefaultPort);
         }
 

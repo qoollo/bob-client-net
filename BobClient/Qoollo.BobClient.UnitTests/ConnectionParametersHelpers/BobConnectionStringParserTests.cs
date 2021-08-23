@@ -41,7 +41,7 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
                 yield return new object[] { " Key'1 = Value'2;", ExpectedParsingResults.WithResult("Key'1", "Value'2") };
                 yield return new object[] { "Key=value;;;", ExpectedParsingResults.WithResult("Key", "value") };
                 yield return new object[] { " Key with spaces  = value with spaces ", ExpectedParsingResults.WithResult("Key with spaces", "value with spaces") };
-                yield return new object[] { "User = admin; Password = '$$$! 11'; Address=127.0.0.1:22;", 
+                yield return new object[] { "User = admin; Password = '$$$! 11'; Address=127.0.0.1:22;",
                                             ExpectedParsingResults.WithResult("User", "admin").Add("Password", "$$$! 11").Add("Address", "127.0.0.1:22") };
                 yield return new object[] { "User = admin; Password = '$$$!11'; Address=127.0.0.1:22; User = user; number = 123",
                                             ExpectedParsingResults.WithResult("User", "admin").Add("Password", "$$$!11").Add("Address", "127.0.0.1:22").Add("User", "user").Add("number", "123") };
@@ -54,7 +54,7 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
                 yield return new object[] { " 'Key ' s = text  ", ExpectedParsingResults.WithFormatException() };
                 yield return new object[] { " \"Key ' = text  ", ExpectedParsingResults.WithFormatException() };
                 yield return new object[] { "= text  ", ExpectedParsingResults.WithFormatException() };
-                
+
             }
         }
 
@@ -83,17 +83,17 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
         {
             get
             {
-                yield return new object[] 
+                yield return new object[]
                 {
-                    "Host = node1.bob.com; ",  
+                    "Host = node1.bob.com; ",
                     new ModifiableBobConnectionParametersMock()
                     {
                         Host = "node1.bob.com"
                     }
                 };
-                yield return new object[] 
+                yield return new object[]
                 {
-                    "Host=node1.bob.com; Port=20001",  
+                    "Host=node1.bob.com; Port=20001",
                     new ModifiableBobConnectionParametersMock()
                     {
                         Host = "node1.bob.com",
@@ -229,7 +229,7 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
                 };
                 yield return new object[]
                 {
-                    "node2.bob.com",
+                    " node2.bob.com ",
                     new ModifiableBobConnectionParametersMock()
                     {
                         Host = "node2.bob.com"
@@ -246,6 +246,38 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
             BobConnectionStringParser.ParseConnectionStringInto(connectionString, target);
 
             Assert.Equal(expected, target);
+        }
+
+
+        public static IEnumerable<object[]> ParseConnectionStringIntoFormatException
+        {
+            get
+            {
+                yield return new object[] { "   " };
+                yield return new object[] { "Host = '127.0.0.1" };
+                yield return new object[] { "Host = " };
+                yield return new object[] { "''Address = 127.0.0.1" };
+                yield return new object[] { "Address = host:123123123" };
+                yield return new object[] { "Port = 123123123" };
+                yield return new object[] { "Address = :12312;" };
+                yield return new object[] { "ConnectionTimeout = 12:65:00" };
+                yield return new object[] { "OperationTimeout = -10" };
+                yield return new object[] { "MaxReceiveMessageLength = -1" };
+                yield return new object[] { "MaxSendMessageLength = 1000000000000" };
+                yield return new object[] { "MaxSendMessageLength = 'asdasf'; " };
+            }
+        }
+
+
+        [Theory]
+        [MemberData(nameof(ParseConnectionStringIntoFormatException))]
+        public void ParseConnectionStringIntoFormatExceptionTest(string connectionString)
+        {
+            Assert.Throws<FormatException>(() =>
+            {
+                ModifiableBobConnectionParametersMock target = new ModifiableBobConnectionParametersMock();
+                BobConnectionStringParser.ParseConnectionStringInto(connectionString, target);
+            });
         }
     }
 }

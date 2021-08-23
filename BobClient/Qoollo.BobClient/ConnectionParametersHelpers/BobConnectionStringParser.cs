@@ -9,6 +9,8 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
         private static readonly HashSet<char> _keyStopCharacters = new HashSet<char>() { '=', ';' };
         private static readonly HashSet<char> _valueStopCharacters = new HashSet<char>() { ';' };
 
+        private static readonly char[] _connectionStringMarkers = new char[] { '=', ';' };
+
         internal struct KeyValuePair : IEquatable<KeyValuePair>
         {
             public KeyValuePair(string key, string value)
@@ -154,15 +156,6 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
             return result;
         }
 
-        private static void ParseBobNodeAddressInto(string bobNodeAddress, IModifiableBobConnectionParameters parameters)
-        {
-            BobNodeAddress.ParseCore(bobNodeAddress, out string host, out int? port);
-            parameters.Host = host;
-            if (port != null)
-                parameters.Port = port;
-        }
-
-
         public static void ParseConnectionStringInto(string connectionString, IModifiableBobConnectionParameters parameters)
         {
             if (connectionString == null)
@@ -173,9 +166,12 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
             if (string.IsNullOrWhiteSpace(connectionString))
                 throw new FormatException("Connection string cannot be empty. At least 'address' should be specified");
 
-            if (!connectionString.Contains("="))
+            if (connectionString.IndexOfAny(_connectionStringMarkers) < 0)
             {
-                ParseBobNodeAddressInto(connectionString, parameters);
+                BobNodeAddress.TryParseCore(connectionString, true, out string host, out int? port);
+                parameters.Host = host;
+                if (port != null)
+                    parameters.Port = port;
             }
             else
             {
