@@ -12,10 +12,6 @@ namespace Qoollo.BobClient.Helpers
     /// </summary>
     internal static class ProtoBufByteStringHelper
     {
-        private delegate ByteString CreateFromByteArrayDelegate(byte[] array);
-        private static CreateFromByteArrayDelegate _createFromByteArrayDelegate;
-
-
         private delegate void ExtractObjectIndexFromMemoryDelegate(ref ReadOnlyMemory<byte> mem, out object obj, out int index);
         private static ExtractObjectIndexFromMemoryDelegate _extractObjectIndexFromMemoryDelegate;
         private static System.Reflection.FieldInfo _readOnlyMemory_object;
@@ -35,66 +31,12 @@ namespace Qoollo.BobClient.Helpers
         // ===================
 
         /// <summary>
-        /// Fallback if AttachBytes method is not available
-        /// </summary>
-        /// <param name="array">source array</param>
-        /// <returns>Created ByteString</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static ByteString CreateFromByteArrayFallback(byte[] array)
-        {
-            return ByteString.CopyFrom(array);
-        }
-
-        /// <summary>
         /// True if optimized creation from byte array is available
         /// </summary>
         /// <returns>True if optimized creation from byte array is available</returns>
         internal static bool CanCreateFromByteArrayOptimized()
         {
-            return TryGetAttachBytesMethod() != null;
-        }
-
-        /// <summary>
-        /// Attempts to get 'AttachBytes' method from 'ByteString'
-        /// </summary>
-        /// <returns>MethodInfo or null</returns>
-        private static System.Reflection.MethodInfo TryGetAttachBytesMethod()
-        {
-            return typeof(ByteString).GetMethod("AttachBytes", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic,
-                                                null, new Type[] { typeof(byte[]) }, null);
-        }
-
-        /// <summary>
-        /// Creates delegate for AttachBytes method 
-        /// </summary>
-        /// <returns>Created delegate or null</returns>
-        private static CreateFromByteArrayDelegate TryGenerateCreateFromByteArrayMethod()
-        {
-            var attachBytesMethod = TryGetAttachBytesMethod();
-            if (attachBytesMethod != null)
-                return (CreateFromByteArrayDelegate)attachBytesMethod.CreateDelegate(typeof(CreateFromByteArrayDelegate));
-
-            return null;
-        }
-
-
-        /// <summary>
-        /// Initialize method
-        /// </summary>
-        /// <returns>Delegate to initialized method</returns>
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static CreateFromByteArrayDelegate InitCreateFromByteArrayMethod()
-        {
-            lock (_syncObj)
-            {
-                var result = Volatile.Read(ref _createFromByteArrayDelegate);
-                if (result == null)
-                {
-                    result = TryGenerateCreateFromByteArrayMethod() ?? new CreateFromByteArrayDelegate(CreateFromByteArrayFallback);
-                    Volatile.Write(ref _createFromByteArrayDelegate, result);
-                }
-                return result;
-            }
+            return true;
         }
 
         /// <summary>
@@ -105,8 +47,7 @@ namespace Qoollo.BobClient.Helpers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ByteString CreateFromByteArrayOptimized(byte[] array)
         {
-            var action = _createFromByteArrayDelegate ?? InitCreateFromByteArrayMethod();
-            return action(array);
+            return UnsafeByteOperations.UnsafeWrap(array);
         }
 
 
