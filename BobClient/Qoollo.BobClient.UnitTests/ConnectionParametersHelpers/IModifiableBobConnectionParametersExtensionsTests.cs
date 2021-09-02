@@ -139,5 +139,69 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
                 target.SetValue(key, value, allowCustomParameters: false);
             });
         }
+
+
+        [Fact]
+        public void GetValueTest()
+        {
+            ModifiableBobConnectionParametersMock source = new ModifiableBobConnectionParametersMock()
+            {
+                Host = "localhost",
+                Port = null,
+                User = "user",
+                Password = null,
+                MaxReceiveMessageLength = 100500,
+                MaxSendMessageLength = null,
+                ConnectionTimeout = TimeSpan.Parse("12:00:00"),
+                OperationTimeout = null
+            }
+            .WithCustomParam("Custom1", "Value1");
+
+            Assert.Equal("localhost", source.GetValue("Host", allowCustomParameters: true));
+            Assert.Null(source.GetValue("Port", allowCustomParameters: true));
+            Assert.Equal("localhost", source.GetValue("Address", allowCustomParameters: true));
+            Assert.Equal("localhost", source.GetValue("Server", allowCustomParameters: true));
+            Assert.Equal("user", source.GetValue("USER", allowCustomParameters: true));
+            Assert.Equal("user", source.GetValue("USER ID", allowCustomParameters: true));
+            Assert.Null(source.GetValue("Password", allowCustomParameters: true));
+            Assert.Equal("100500", source.GetValue("MaxReceiveMessageLength", allowCustomParameters: true));
+            Assert.Null(source.GetValue("MaxSendMessageLength", allowCustomParameters: true));
+            Assert.Equal("12:00:00", source.GetValue("ConnectionTimeout", allowCustomParameters: true));
+            Assert.Equal("12:00:00", source.GetValue("Connect Timeout", allowCustomParameters: true));
+            Assert.Null(source.GetValue("OperationTimeout", allowCustomParameters: true));
+
+            Assert.Equal("Value1", source.GetValue("Custom1", allowCustomParameters: true));
+
+            Assert.Throws<ArgumentException>(() => source.GetValue("Custom2", allowCustomParameters: true));
+
+
+            source.Port = 1000;
+
+            Assert.Equal("localhost", source.GetValue("Host", allowCustomParameters: true));
+            Assert.Equal("1000", source.GetValue("Port", allowCustomParameters: true));
+            Assert.Equal("localhost:1000", source.GetValue("Address", allowCustomParameters: true));
+        }
+
+
+        [Theory]
+        [InlineData("host", "localhost", false)]
+        [InlineData("HOST", "node1.bob.com", false)]
+
+        [InlineData("Port", "", false)]
+        [InlineData("Port", "32132", false)]
+        public void SetGetValueRoundtripTest(string key, string value, bool allowCustom, string expected = null)
+        {
+            ModifiableBobConnectionParametersMock target = new ModifiableBobConnectionParametersMock()
+            {
+                Host = "------",
+                User = "------",
+                Password = "-----"
+            };
+
+            target.SetValue(key, value, allowCustom);
+            var result = target.GetValue(key, allowCustom);
+
+            Assert.Equal(expected ?? value, result ?? "");
+        }
     }
 }

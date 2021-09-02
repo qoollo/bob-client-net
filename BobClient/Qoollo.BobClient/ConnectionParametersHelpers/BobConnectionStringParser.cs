@@ -4,6 +4,9 @@ using System.Text;
 
 namespace Qoollo.BobClient.ConnectionParametersHelpers
 {
+    /// <summary>
+    /// Connection string parser
+    /// </summary>
     internal static class BobConnectionStringParser
     {
         private static readonly HashSet<char> _keyStopCharacters = new HashSet<char>() { '=', ';' };
@@ -11,6 +14,9 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
 
         private static readonly char[] _connectionStringMarkers = new char[] { '=', ';' };
 
+        /// <summary>
+        /// Key value pair
+        /// </summary>
         internal struct KeyValuePair : IEquatable<KeyValuePair>
         {
             public KeyValuePair(string key, string value)
@@ -42,6 +48,13 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
             }
         }
 
+        /// <summary>
+        /// Extract substring after specified position, which is limited to specified number of characters
+        /// </summary>
+        /// <param name="str">Source string</param>
+        /// <param name="position">Start position</param>
+        /// <param name="maxCharacters">Max number of characters in result substring</param>
+        /// <returns>Substring</returns>
         private static string SubstringAfter(string str, int position, int maxCharacters = 8)
         {
             if (maxCharacters < str.Length - position)
@@ -50,11 +63,23 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
                 return str.Substring(position, str.Length - position);
         }
 
+        /// <summary>
+        /// Skips whitespaces by moving <paramref name="position"/> forward
+        /// </summary>
+        /// <param name="connectionString">Connection string</param>
+        /// <param name="position">Position</param>
         private static void SkipSpaces(string connectionString, ref int position)
         {
             while (position < connectionString.Length && char.IsWhiteSpace(connectionString[position]))
                 position++;
         }
+        /// <summary>
+        /// Read single token from connection string
+        /// </summary>
+        /// <param name="connectionString">Source connection string</param>
+        /// <param name="position">Current position inside connection string</param>
+        /// <param name="stopCharacters">Stop characters for token</param>
+        /// <returns>Token</returns>
         private static string ReadToken(string connectionString, ref int position, HashSet<char> stopCharacters)
         {
             SkipSpaces(connectionString, ref position);
@@ -103,6 +128,12 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
                 return connectionString.Substring(startPosition, position - startPosition).TrimEnd();
             }
         }
+        /// <summary>
+        /// Parses single key value pair from connection string
+        /// </summary>
+        /// <param name="connectionString">Source connection string</param>
+        /// <param name="position">Current position inside connection string</param>
+        /// <returns>Parsed key value pair</returns>
         private static KeyValuePair ParseKeyValue(string connectionString, ref int position)
         {
             SkipSpaces(connectionString, ref position);
@@ -134,6 +165,11 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
             return new KeyValuePair(key, value);
         }
 
+        /// <summary>
+        /// Parses connection string into list of <see cref="KeyValuePair"/>
+        /// </summary>
+        /// <param name="connectionString">Connection string</param>
+        /// <returns>Parsed values</returns>
         internal static List<KeyValuePair> ParseConnectionStringIntoKeyValues(string connectionString)
         {
             if (connectionString == null)
@@ -156,6 +192,13 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
             return result;
         }
 
+        /// <summary>
+        /// Parses connection string or node address into <paramref name="parameters"/>
+        /// </summary>
+        /// <param name="connectionString">Connection string or node address</param>
+        /// <param name="parameters">Target parameters</param>
+        /// <exception cref="ArgumentNullException">Null arguments</exception>
+        /// <exception cref="FormatException">Incorrect format</exception>
         public static void ParseConnectionStringInto(string connectionString, IModifiableBobConnectionParameters parameters)
         {
             if (connectionString == null)

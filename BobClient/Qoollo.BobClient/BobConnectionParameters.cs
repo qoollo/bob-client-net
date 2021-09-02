@@ -175,6 +175,17 @@ namespace Qoollo.BobClient
             return result;
         }
 
+        /// <summary>
+        /// Gets the value by the specified key 
+        /// </summary>
+        /// <param name="key">Key</param>
+        /// <param name="allowCustomParameters">If true, the CustomParameters dictionary is also used to retrieve the value</param>
+        /// <returns>Extracted value in string representation</returns>
+        public string GetValue(string key, bool allowCustomParameters = true)
+        {
+            return IModifiableBobConnectionParametersExtensions.GetValue(this, key, allowCustomParameters);
+        }
+
 
 
         string IModifiableBobConnectionParameters.Host { get { return Host; } set { Host = value; } }

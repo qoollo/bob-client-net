@@ -207,7 +207,7 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
                 };
                 yield return new object[]
                 {
-                    "address = node1.bob.com:19000; Custom1 = Value1; Custom2 = 'Value2'; \"Custom3\"=\"VALUE3\"",
+                    "address = node1.bob.com:19000; Custom1 = Value1; CUSTOM2 = 'Value2'; \"Custom3\"=\"VALUE3\"",
                     new ModifiableBobConnectionParametersMock()
                     {
                         Host = "node1.bob.com",

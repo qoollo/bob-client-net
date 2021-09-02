@@ -4,8 +4,17 @@ using System.Text;
 
 namespace Qoollo.BobClient.ConnectionParametersHelpers
 {
+    /// <summary>
+    /// Common methods for <see cref="IModifiableBobConnectionParameters"/>
+    /// </summary>
     internal static class IModifiableBobConnectionParametersExtensions
     {
+        /// <summary>
+        /// Parse time interval from string (as time and as number in milliseconds)
+        /// </summary>
+        /// <param name="forKey">Key name to generate Exception description</param>
+        /// <param name="value">Value to parse</param>
+        /// <returns>Parsed time interval</returns>
         private static TimeSpan ParseTimeInterval(string forKey, string value)
         {
             if (value == null)
@@ -29,7 +38,13 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
             }
         }
 
-
+        /// <summary>
+        /// Sets value for specified key
+        /// </summary>
+        /// <param name="parameters">Parameters that will be changed in this operation</param>
+        /// <param name="key">Key</param>
+        /// <param name="value">Value</param>
+        /// <param name="allowCustomParameters">If false, an exception will be thrown if the parameter does not match any known. Otherwise, the value will be written into CustomParameters</param>
         public static void SetValue(this IModifiableBobConnectionParameters parameters, string key, string value, bool allowCustomParameters)
         {
             if (parameters == null)
@@ -132,6 +147,58 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
                         throw new ArgumentException($"Unknown key: {key}", nameof(key));
                     parameters.CustomParameters[key] = value;
                     break;
+            }
+        }
+
+        /// <summary>
+        /// Gets value from parameters by specified key
+        /// </summary>
+        /// <param name="parameters">Parameters instance</param>
+        /// <param name="key">Key</param>
+        /// <param name="allowCustomParameters">If true, the CustomParameters dictionary is also used to retrieve the value</param>
+        /// <returns>Extracted value</returns>
+        public static string GetValue(this IModifiableBobConnectionParameters parameters, string key, bool allowCustomParameters)
+        {
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+            if (key == null)
+                throw new ArgumentNullException(nameof(key));
+            if (string.IsNullOrWhiteSpace(key))
+                throw new ArgumentException("Key cannot be an empty string", nameof(key));
+
+            switch (key.ToLower())
+            {
+                case "host":
+                    return parameters.Host;
+                case "port":
+                    return parameters.Port?.ToString();
+                case "address":
+                case "server":
+                    if (parameters.Host == null)
+                        return "";
+                    if (parameters.Port.HasValue)
+                        return (parameters.Host ?? "") + ":" + parameters.Port.Value.ToString();
+                    return parameters.Host ?? "";
+                case "user":
+                case "user id":
+                    return parameters.User;
+                case "password":
+                    return parameters.Password;
+                case "maxreceivemessagelength":
+                    return parameters.MaxReceiveMessageLength?.ToString();
+                case "maxsendmessagelength":
+                    return parameters.MaxSendMessageLength?.ToString();
+                case "operationtimeout":
+                    return parameters.OperationTimeout?.ToString();
+                case "connectiontimeout":
+                case "connect timeout":
+                    return parameters.ConnectionTimeout?.ToString();
+                default:
+                    if (!allowCustomParameters)
+                        throw new ArgumentException($"Unknown key: {key}", nameof(key));
+                    if (!parameters.CustomParameters.ContainsKey(key))
+                        throw new ArgumentException($"Key is unknown and not presented in CustomParameters dictionary: {key}", nameof(key));
+                    return parameters.CustomParameters[key];
             }
         }
     }
