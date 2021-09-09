@@ -21,8 +21,8 @@ namespace Qoollo.BobClient.UnitTests
 
             Assert.Null(bobParams.User);
             Assert.Null(bobParams.Password);
-            Assert.Null(bobParams.MaxSendMessageLength);
-            Assert.Null(bobParams.MaxReceiveMessageLength);
+            Assert.Null(bobParams.MaxSendMessageSize);
+            Assert.Null(bobParams.MaxReceiveMessageSize);
             Assert.Null(bobParams.OperationTimeout);
             Assert.Null(bobParams.ConnectionTimeout);
 

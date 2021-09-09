@@ -102,13 +102,13 @@ namespace Qoollo.BobClient
         public string Password { get; private set; }
 
         /// <summary>
-        /// Max receive message length. If not specified, 2 Gb is used
+        /// Max receive message size. If not specified, 2 Gb is used
         /// </summary>
-        public int? MaxReceiveMessageLength { get; private set; }
+        public int? MaxReceiveMessageSize { get; private set; }
         /// <summary>
-        /// Max send message length. If not specified, 2 Gb is used
+        /// Max send message size. If not specified, 2 Gb is used
         /// </summary>
-        public int? MaxSendMessageLength { get; private set; }
+        public int? MaxSendMessageSize { get; private set; }
 
         /// <summary>
         /// Timeout for all Bob operations. If not specified, 2 minutes is used
@@ -192,8 +192,8 @@ namespace Qoollo.BobClient
         int? IModifiableBobConnectionParameters.Port { get { return Port; } set { Port = value; } }
         string IModifiableBobConnectionParameters.User { get { return User; } set { User = value; } }
         string IModifiableBobConnectionParameters.Password { get { return Password; } set { Password = value; } }
-        int? IModifiableBobConnectionParameters.MaxReceiveMessageLength { get { return MaxReceiveMessageLength; } set { MaxReceiveMessageLength = value; } }
-        int? IModifiableBobConnectionParameters.MaxSendMessageLength { get { return MaxSendMessageLength; } set { MaxSendMessageLength = value; } }
+        int? IModifiableBobConnectionParameters.MaxReceiveMessageSize { get { return MaxReceiveMessageSize; } set { MaxReceiveMessageSize = value; } }
+        int? IModifiableBobConnectionParameters.MaxSendMessageSize { get { return MaxSendMessageSize; } set { MaxSendMessageSize = value; } }
         TimeSpan? IModifiableBobConnectionParameters.OperationTimeout { get { return OperationTimeout; } set { OperationTimeout = value; } }
         TimeSpan? IModifiableBobConnectionParameters.ConnectionTimeout { get { return ConnectionTimeout; } set { ConnectionTimeout = value; } }
 

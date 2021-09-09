@@ -33,11 +33,13 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
         [InlineData(nameof(IModifiableBobConnectionParameters.Password), "password", "Password@#$%", null)]
         [InlineData(nameof(IModifiableBobConnectionParameters.Password), "Password", "", null)]
 
-        [InlineData(nameof(IModifiableBobConnectionParameters.MaxReceiveMessageLength), "MaxReceiveMessageLength", "65535", null)]
-        [InlineData(nameof(IModifiableBobConnectionParameters.MaxReceiveMessageLength), "MaxReceiveMessageLength", "  ", "")]
+        [InlineData(nameof(IModifiableBobConnectionParameters.MaxReceiveMessageSize), "MaxReceiveMessageSize", "65535", null)]
+        [InlineData(nameof(IModifiableBobConnectionParameters.MaxReceiveMessageSize), "MaxReceiveMessageSize", "  ", "")]
+        [InlineData(nameof(IModifiableBobConnectionParameters.MaxReceiveMessageSize), "MaxReceiveMessageLength", "500000", null)]
 
-        [InlineData(nameof(IModifiableBobConnectionParameters.MaxSendMessageLength), "MaxSendMessageLength", "65535", null)]
-        [InlineData(nameof(IModifiableBobConnectionParameters.MaxSendMessageLength), "MaxSendMessageLength", "  ", "")]
+        [InlineData(nameof(IModifiableBobConnectionParameters.MaxSendMessageSize), "MaxSendMessageSize", "65535", null)]
+        [InlineData(nameof(IModifiableBobConnectionParameters.MaxSendMessageSize), "MaxSendMessageSize", "  ", "")]
+        [InlineData(nameof(IModifiableBobConnectionParameters.MaxSendMessageSize), "MaxSendMessageLength", "500000", null)]
 
         [InlineData(nameof(IModifiableBobConnectionParameters.OperationTimeout), "OperationTimeout", "10000", "00:00:10")]
         [InlineData(nameof(IModifiableBobConnectionParameters.OperationTimeout), "OperationTimeout", "00:00:13", "00:00:13")]
@@ -115,11 +117,11 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
         [InlineData("Address", "node1.bob.com:-1")]
         [InlineData("Address", "node1.bob.com:65600")]
 
-        [InlineData("MaxReceiveMessageLength", "-10")]
-        [InlineData("MaxReceiveMessageLength", "abc")]
+        [InlineData("MaxReceiveMessageSize", "-10")]
+        [InlineData("MaxReceiveMessageSize", "abc")]
 
-        [InlineData("MaxSendMessageLength", "-10")]
-        [InlineData("MaxSendMessageLength", "abc")]
+        [InlineData("MaxSendMessageSize", "-10")]
+        [InlineData("MaxSendMessageSize", "abc")]
 
         [InlineData("OperationTimeout", "-1")]
         [InlineData("OperationTimeout", "abc")]
@@ -150,8 +152,8 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
                 Port = null,
                 User = "user",
                 Password = null,
-                MaxReceiveMessageLength = 100500,
-                MaxSendMessageLength = null,
+                MaxReceiveMessageSize = 100500,
+                MaxSendMessageSize = null,
                 ConnectionTimeout = TimeSpan.Parse("12:00:00"),
                 OperationTimeout = null
             }
@@ -164,7 +166,9 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
             Assert.Equal("user", source.GetValue("USER", allowCustomParameters: true));
             Assert.Equal("user", source.GetValue("USER ID", allowCustomParameters: true));
             Assert.Null(source.GetValue("Password", allowCustomParameters: true));
+            Assert.Equal("100500", source.GetValue("MaxReceiveMessageSize", allowCustomParameters: true));
             Assert.Equal("100500", source.GetValue("MaxReceiveMessageLength", allowCustomParameters: true));
+            Assert.Null(source.GetValue("MaxSendMessageSize", allowCustomParameters: true));
             Assert.Null(source.GetValue("MaxSendMessageLength", allowCustomParameters: true));
             Assert.Equal("12:00:00", source.GetValue("ConnectionTimeout", allowCustomParameters: true));
             Assert.Equal("12:00:00", source.GetValue("Connect Timeout", allowCustomParameters: true));

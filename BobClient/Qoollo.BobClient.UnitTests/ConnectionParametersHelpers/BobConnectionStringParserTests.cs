@@ -155,8 +155,8 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
                         Port = 19000,
                         User = "user",
                         Password = "!@#$%=;",
-                        MaxSendMessageLength = 1024,
-                        MaxReceiveMessageLength = 2048
+                        MaxSendMessageSize = 1024,
+                        MaxReceiveMessageSize = 2048
                     }
                 };
                 yield return new object[]

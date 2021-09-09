@@ -28,13 +28,13 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
         string Password { get; set; }
 
         /// <summary>
-        /// Max receive message length
+        /// Max receive message size
         /// </summary>
-        int? MaxReceiveMessageLength { get; set; }
+        int? MaxReceiveMessageSize { get; set; }
         /// <summary>
-        /// Max send message length
+        /// Max send message size
         /// </summary>
-        int? MaxSendMessageLength { get; set; }
+        int? MaxSendMessageSize { get; set; }
 
         /// <summary>
         /// Operation timeout

@@ -97,25 +97,27 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
                     else
                         parameters.Password = value;
                     break;
+                case "maxreceivemessagesize":
                 case "maxreceivemessagelength":
                     if (string.IsNullOrWhiteSpace(value))
-                        parameters.MaxReceiveMessageLength = null;
-                    else if (!int.TryParse(value, out int maxReceiveMessageLengthVal))
+                        parameters.MaxReceiveMessageSize = null;
+                    else if (!int.TryParse(value, out int maxReceiveMessageSizeVal))
                         throw new FormatException($"Unable to parse '{key}' value: {value}");
-                    else if (maxReceiveMessageLengthVal < 0)
+                    else if (maxReceiveMessageSizeVal < 0)
                         throw new FormatException($"'{key}' cannot be negative: {value}");
                     else
-                        parameters.MaxReceiveMessageLength = maxReceiveMessageLengthVal;
+                        parameters.MaxReceiveMessageSize = maxReceiveMessageSizeVal;
                     break;
+                case "maxsendmessagesize":
                 case "maxsendmessagelength":
                     if (string.IsNullOrWhiteSpace(value))
-                        parameters.MaxSendMessageLength = null;
-                    else if (!int.TryParse(value, out int maxSendMessageLengthVal))
+                        parameters.MaxSendMessageSize = null;
+                    else if (!int.TryParse(value, out int maxSendMessageSizeVal))
                         throw new FormatException($"Unable to parse '{key}' value: {value}");
-                    else if (maxSendMessageLengthVal < 0)
+                    else if (maxSendMessageSizeVal < 0)
                         throw new FormatException($"'{key}' cannot be negative: {value}");
                     else
-                        parameters.MaxSendMessageLength = maxSendMessageLengthVal;
+                        parameters.MaxSendMessageSize = maxSendMessageSizeVal;
                     break;
                 case "operationtimeout":
                     if (string.IsNullOrWhiteSpace(value))
@@ -184,10 +186,12 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
                     return parameters.User;
                 case "password":
                     return parameters.Password;
+                case "maxreceivemessagesize":
                 case "maxreceivemessagelength":
-                    return parameters.MaxReceiveMessageLength?.ToString();
+                    return parameters.MaxReceiveMessageSize?.ToString();
+                case "maxsendmessagesize":
                 case "maxsendmessagelength":
-                    return parameters.MaxSendMessageLength?.ToString();
+                    return parameters.MaxSendMessageSize?.ToString();
                 case "operationtimeout":
                     return parameters.OperationTimeout?.ToString();
                 case "connectiontimeout":

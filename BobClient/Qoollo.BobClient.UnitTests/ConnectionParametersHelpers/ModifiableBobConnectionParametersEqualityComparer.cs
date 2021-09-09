@@ -22,8 +22,8 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
                    x.Port == y.Port &&
                    x.User == y.User &&
                    x.Password == y.Password &&
-                   x.MaxReceiveMessageLength == y.MaxReceiveMessageLength &&
-                   x.MaxSendMessageLength == y.MaxSendMessageLength &&
+                   x.MaxReceiveMessageSize == y.MaxReceiveMessageSize &&
+                   x.MaxSendMessageSize == y.MaxSendMessageSize &&
                    x.OperationTimeout == y.OperationTimeout &&
                    x.ConnectionTimeout == y.ConnectionTimeout &&
                    x.CustomParameters.All((kv) => y.CustomParameters.ContainsKey(kv.Key) && y.CustomParameters[kv.Key] == kv.Value) &&

@@ -13,8 +13,8 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
         public int? Port { get; set; }
         public string User { get; set; }
         public string Password { get; set; }
-        public int? MaxReceiveMessageLength { get; set; }
-        public int? MaxSendMessageLength { get; set; }
+        public int? MaxReceiveMessageSize { get; set; }
+        public int? MaxSendMessageSize { get; set; }
         public TimeSpan? OperationTimeout { get; set; }
         public TimeSpan? ConnectionTimeout { get; set; }
 
