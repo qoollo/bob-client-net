@@ -193,6 +193,30 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
 
         [InlineData("Port", "", false)]
         [InlineData("Port", "32132", false)]
+
+        [InlineData("Address", "node2.bob.com:1222", false)]
+
+        [InlineData("User ID", "", false)]
+        [InlineData("USER", "BobUser", false)]
+
+        [InlineData("Password", "", false)]
+        [InlineData("Password", "Pass", false)]
+
+        [InlineData("MaxReceiveMessageSize", "", false)]
+        [InlineData("MaxReceiveMessageSize", "50000", false)]
+        [InlineData("MaxReceiveMessageLength", "50000", false)]
+
+        [InlineData("MaxSendMessageSize", "", false)]
+        [InlineData("MaxSendMessageSize", "50000", false)]
+        [InlineData("MaxSendMessageLength", "50000", false)]
+
+        [InlineData("OperationTimeout", "", false)]
+        [InlineData("OperationTimeout", "00:00:10", false)]
+
+        [InlineData("ConnectionTimeout", "", false)]
+        [InlineData("ConnectionTimeout", "00:00:10", false)]
+
+        [InlineData("Custom1", "CustomVal", true)]
         public void SetGetValueRoundtripTest(string key, string value, bool allowCustom, string expected = null)
         {
             ModifiableBobConnectionParametersMock target = new ModifiableBobConnectionParametersMock()
