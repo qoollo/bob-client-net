@@ -186,6 +186,24 @@ namespace Qoollo.BobClient
             return IModifiableBobConnectionParametersExtensions.GetValue(this, key, allowCustomParameters);
         }
 
+        /// <summary>
+        /// Converts connection parameters to its string representation
+        /// </summary>
+        /// <param name="includePassword">When True password is included into string representation, otherwise it is not</param>
+        /// <returns>String representation</returns>
+        public string ToString(bool includePassword)
+        {
+            return IModifiableBobConnectionParametersExtensions.ToString(this, includePassword);
+        }
+
+        /// <summary>
+        /// Converts connection parameters to its string representation (password not included)
+        /// </summary>
+        /// <returns>String representation</returns>
+        public override string ToString()
+        {
+            return this.ToString(includePassword: false);
+        }
 
 
         string IModifiableBobConnectionParameters.Host { get { return Host; } set { Host = value; } }

@@ -231,5 +231,83 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
 
             Assert.Equal(expected ?? value, result ?? "");
         }
+
+
+        public static IEnumerable<object[]> ToStringConversionSamples
+        {
+            get
+            {
+                yield return new object[]
+                {
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node.bob.com",
+                        Port = 123
+                    },
+                    "Address = node.bob.com:123"
+                };
+                yield return new object[]
+                {
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "",
+                        Port = 123,
+                        User = "'''"
+                    },
+                    "Port = 123; User = \"'''\""
+                };
+                yield return new object[]
+                {
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node.bob.com",
+                        User = "user",
+                        Password = "pass=ord"
+                    },
+                    "Address = node.bob.com; User = user; Password = 'pass=ord'"
+                };
+                yield return new object[]
+                {
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node.bob.com",
+                        User = "user",
+                        Password = "",
+                        MaxReceiveMessageSize = 100500,
+                        MaxSendMessageSize = 100500
+                    },
+                    "Address = node.bob.com; User = user; MaxReceiveMessageSize = 100500; MaxSendMessageSize = 100500"
+                };
+                yield return new object[]
+                {
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node.bob.com",
+                        User = "user",
+                        Password = "",
+                        OperationTimeout = TimeSpan.Parse("00:10:00"),
+                        ConnectionTimeout = TimeSpan.Parse("00:12:00.22")
+                    },
+                    "Address = node.bob.com; User = user; OperationTimeout = 00:10:00; ConnectionTimeout = 00:12:00.2200000"
+                };
+                yield return new object[]
+                {
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "127.0.0.1",
+                    }.WithCustomParam("Custom1", "Value")
+                     .WithCustomParam("Custom2", "'''")
+                     .WithCustomParam("'''", "'''"),
+                    "Address = 127.0.0.1; Custom1 = Value; Custom2 = \"'''\"; \"'''\" = \"'''\""
+                };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(ToStringConversionSamples))]
+        public void ToStringTest(ModifiableBobConnectionParametersMock parameters, string expected)
+        {
+            Assert.Equal(expected, parameters.ToString(includePassword: true));
+        }
     }
 }

@@ -94,10 +94,25 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
             }
 
             int startPosition = position;
+            bool hasDoubleQuote = false;
             if (quote != null)
             {
-                while (position < connectionString.Length && connectionString[position] != quote.GetValueOrDefault())
-                    position++;
+                while (true)
+                {
+                    while (position < connectionString.Length && connectionString[position] != quote.GetValueOrDefault())
+                        position++;
+
+                    // Process quotes pair
+                    if (position + 1 < connectionString.Length && connectionString[position + 1] == quote.GetValueOrDefault())
+                    {
+                        hasDoubleQuote = true;
+                        position += 2;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
             }
             else
             {
@@ -121,7 +136,12 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
                 if (position < connectionString.Length && !stopCharacters.Contains(connectionString[position]))
                     throw new FormatException($"Bob connection string token has characters after the closing quotation mark, which is prohibited. Position: {position}, Token: '{connectionString.Substring(startPosition - 1, position - startPosition + 2)}'");
 
-                return connectionString.Substring(startPosition, endPosition - startPosition);
+                string valueSubstring = connectionString.Substring(startPosition, endPosition - startPosition);
+
+                if (hasDoubleQuote)
+                    valueSubstring = valueSubstring.Replace(new string(quote.Value, 2), new string(quote.Value, 1));
+
+                return valueSubstring;
             }
             else // Stopped on stopCharacter
             {

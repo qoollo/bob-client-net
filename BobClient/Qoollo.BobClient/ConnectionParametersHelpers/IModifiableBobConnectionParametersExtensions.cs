@@ -9,6 +9,9 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
     /// </summary>
     internal static class IModifiableBobConnectionParametersExtensions
     {
+        private static readonly char[] _connectionStringMarkers = new char[] { '=', ';' };
+
+
         /// <summary>
         /// Parse time interval from string (as time and as number in milliseconds)
         /// </summary>
@@ -204,6 +207,103 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
                         throw new ArgumentException($"Key is unknown and not presented in CustomParameters dictionary: {key}", nameof(key));
                     return parameters.CustomParameters[key];
             }
+        }
+
+
+
+        /// <summary>
+        /// Escapes connection string token
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <returns>Escaped value</returns>
+        private static string EscapeConnectionStringToken(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return value;
+
+            if (value[0] == '\'')
+            {
+                return "\"" + value.Replace("\"", "\"\"") + "\"";
+            }
+            else if (value[0] == '"')
+            {
+                return "'" + value.Replace("'", "''") + "'";
+            }
+            else if (value.IndexOfAny(_connectionStringMarkers) >= 0)
+            {
+                return "'" + value.Replace("'", "''") + "'";
+            }
+            else
+            {
+                return value;
+            }
+        }
+
+        /// <summary>
+        /// Append connection string key-value pair
+        /// </summary>
+        /// <param name="stringBuilder">String builder</param>
+        /// <param name="key">Key</param>
+        /// <param name="value">Value</param>
+        /// <param name="ending">Optional ending</param>
+        /// <returns>String builder with appended key-value pair</returns>
+        private static StringBuilder AppendConnectionStringValue(this StringBuilder stringBuilder, string key, string value, string ending)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+                throw new FormatException("Key cannot be empty string");
+            if (string.IsNullOrWhiteSpace(value))
+                return stringBuilder;
+
+            stringBuilder.Append(key).Append(" = ").Append(value);
+
+            if (ending != null)
+                stringBuilder.Append(ending);
+
+            return stringBuilder;
+        }
+
+        /// <summary>
+        /// Converts parameters to its string representation
+        /// </summary>
+        /// <param name="parameters">Parameters instance</param>
+        /// <param name="includePassword">When True password is included into string representation, otherwise it is not</param>
+        /// <returns>String representation</returns>
+        public static string ToString(this IModifiableBobConnectionParameters parameters, bool includePassword)
+        {
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+
+            const string pairEnding = "; ";
+
+            StringBuilder result = new StringBuilder();
+
+            if (!string.IsNullOrWhiteSpace(parameters.Host))
+            {
+                if (parameters.Port.HasValue)
+                    result.Append("Address = ").Append(parameters.Host).Append(":").Append(parameters.Port.Value).Append(pairEnding);
+                else
+                    result.Append("Address = ").Append(parameters.Host).Append(pairEnding);
+            }
+            else if (parameters.Port.HasValue)
+            {
+                result.AppendConnectionStringValue("Port", parameters.Port.Value.ToString(), pairEnding);
+            }
+
+            result.AppendConnectionStringValue("User", EscapeConnectionStringToken(parameters.User), pairEnding);
+            if (includePassword)
+                result.AppendConnectionStringValue("Password", EscapeConnectionStringToken(parameters.Password), pairEnding);
+            result.AppendConnectionStringValue("MaxReceiveMessageSize", parameters.MaxReceiveMessageSize?.ToString(), pairEnding);
+            result.AppendConnectionStringValue("MaxSendMessageSize", parameters.MaxSendMessageSize?.ToString(), pairEnding);
+            result.AppendConnectionStringValue("OperationTimeout", parameters.OperationTimeout?.ToString(), pairEnding);
+            result.AppendConnectionStringValue("ConnectionTimeout", parameters.ConnectionTimeout?.ToString(), pairEnding);
+
+            foreach (var customParam in parameters.CustomParameters)
+                result.AppendConnectionStringValue(EscapeConnectionStringToken(customParam.Key), EscapeConnectionStringToken(customParam.Value), pairEnding);
+
+            if (result.Length == 0)
+                return "";
+
+            return result.ToString(0, result.Length - pairEnding.Length);
         }
     }
 }

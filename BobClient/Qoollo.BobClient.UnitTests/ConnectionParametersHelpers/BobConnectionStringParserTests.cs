@@ -148,6 +148,50 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
                 };
                 yield return new object[]
                 {
+                    "address = node1.bob.com:19000 ; 'User' = 'us''er'; PASSWORD = ''",
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node1.bob.com",
+                        Port = 19000,
+                        User = "us'er",
+                        Password = null
+                    }
+                };
+                yield return new object[]
+                {
+                    "address = node1.bob.com:19000 ; 'User' = \"us\"\"er\"; PASSWORD = \"\"",
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node1.bob.com",
+                        Port = 19000,
+                        User = "us\"er",
+                        Password = null
+                    }
+                };
+                yield return new object[]
+                {
+                    "address = node1.bob.com:19000 ; 'User' = ''''; PASSWORD = \"\"\"\"",
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node1.bob.com",
+                        Port = 19000,
+                        User = "'",
+                        Password = "\""
+                    }
+                };
+                yield return new object[]
+                {
+                    "address = node1.bob.com:19000 ; 'User' = abc''def; PASSWORD = password",
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node1.bob.com",
+                        Port = 19000,
+                        User = "abc''def",
+                        Password = "password"
+                    }
+                };
+                yield return new object[]
+                {
                     "address = node1.bob.com:19000; User = 'user'; Password = '!@#$%=;'; MaxSendMessageLength = 1024; MaxReceiveMessageLength = 2048",
                     new ModifiableBobConnectionParametersMock()
                     {
@@ -256,6 +300,7 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
                 yield return new object[] { "   " };
                 yield return new object[] { "Host = '127.0.0.1" };
                 yield return new object[] { "Host = " };
+                yield return new object[] { "Password = '''" };
                 yield return new object[] { "''Address = 127.0.0.1" };
                 yield return new object[] { "Address = host:123123123" };
                 yield return new object[] { "Port = 123123123" };

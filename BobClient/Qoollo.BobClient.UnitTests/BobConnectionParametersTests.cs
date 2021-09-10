@@ -78,6 +78,7 @@ namespace Qoollo.BobClient.UnitTests
         [Theory]
         [InlineData("Address = 127.0.0.1; User = 'user'; Password = '!@#$%=;'; MaxSendMessageLength = 1024;", "Address", "127.0.0.1")]
         [InlineData("Address = 127.0.0.1:8081; Timeout = 00:00:10", "Address", "127.0.0.1:8081")]
+        [InlineData("Host = 127.0.0.1; Port = 8081; Timeout = 00:00:10", "Address", "127.0.0.1:8081")]
         [InlineData("Address = 127.0.0.1; User = 'user'; Password = '!@#$%=;'; MaxSendMessageLength = 1024;", "User", "user")]
         [InlineData("Address = 127.0.0.1; User = 'user'; Password = '!@#$%=;'; MaxSendMessageLength = 1024;", "Password", "!@#$%=;")]
         [InlineData("Address = 127.0.0.1; User = 'user'; Password = '!@#$%=;'; MaxSendMessageLength = 1024;", "MaxSendMessageLength", "1024")]
