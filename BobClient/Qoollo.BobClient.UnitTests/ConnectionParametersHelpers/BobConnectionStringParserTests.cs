@@ -148,12 +148,12 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
                 };
                 yield return new object[]
                 {
-                    "address = node1.bob.com:19000 ; 'User' = 'us''er'; PASSWORD = ''",
+                    "address = node1.bob.com:19000 ; 'User' = 'u''s''e''r'; PASSWORD = ''",
                     new ModifiableBobConnectionParametersMock()
                     {
                         Host = "node1.bob.com",
                         Port = 19000,
-                        User = "us'er",
+                        User = "u's'e'r",
                         Password = null
                     }
                 };

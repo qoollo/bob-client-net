@@ -229,6 +229,10 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
             {
                 return "'" + value.Replace("'", "''") + "'";
             }
+            else if (char.IsWhiteSpace(value[0]) || char.IsWhiteSpace(value[value.Length - 1]))
+            {
+                return "'" + value.Replace("'", "''") + "'";
+            }
             else if (value.IndexOfAny(_connectionStringMarkers) >= 0)
             {
                 return "'" + value.Replace("'", "''") + "'";
