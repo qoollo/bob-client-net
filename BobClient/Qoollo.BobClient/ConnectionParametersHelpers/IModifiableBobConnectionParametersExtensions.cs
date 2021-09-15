@@ -309,5 +309,68 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
 
             return result.ToString(0, result.Length - pairEnding.Length);
         }
+
+
+        /// <summary>
+        /// Returns false or throws exception based on <paramref name="exceptionBehaviour"/> value
+        /// </summary>
+        /// <param name="exceptionBehaviour">Controls exception behaviour</param>
+        /// <param name="message">Exception message</param>
+        /// <param name="value">Optional value to append to message</param>
+        /// <returns>False</returns>
+        private static bool ReturnOrThrowValidationError<T>(ValidationExceptionBehaviour exceptionBehaviour, string message, T value)
+        {
+            if (exceptionBehaviour != ValidationExceptionBehaviour.NoException)
+            {
+                if (value != null)
+                    message = message + ": " + value.ToString();
+
+                if (exceptionBehaviour == ValidationExceptionBehaviour.FormatException)
+                    throw new FormatException(message);
+
+                throw new InvalidBobConnectionParametersException(message);
+            }
+            return false;
+        }
+        /// <summary>
+        /// Validates connection parameters
+        /// </summary>
+        /// <param name="parameters">Parameters</param>
+        /// <param name="exceptionBehaviour">Controls exception behaviour</param>
+        /// <returns>True if valid, otherwise False or exception</returns>
+        public static bool Validate(this IModifiableBobConnectionParameters parameters, ValidationExceptionBehaviour exceptionBehaviour)
+        {
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+
+            if (string.IsNullOrWhiteSpace(parameters.Host))
+                return ReturnOrThrowValidationError(exceptionBehaviour, "Value cannot be an empty string for 'Host' parameter", (object)null);
+
+            if (parameters.Port.HasValue && (parameters.Port.Value < 0 || parameters.Port.Value > ushort.MaxValue))
+                return ReturnOrThrowValidationError(exceptionBehaviour, "'Port' is not in a valid range", parameters.Port.Value);
+
+            if (parameters.MaxReceiveMessageSize.HasValue && parameters.MaxReceiveMessageSize.Value < 0)
+                return ReturnOrThrowValidationError(exceptionBehaviour, "'MaxReceiveMessageSize' cannot be negative", parameters.MaxReceiveMessageSize.Value);
+
+            if (parameters.MaxSendMessageSize.HasValue && parameters.MaxSendMessageSize.Value < 0)
+                return ReturnOrThrowValidationError(exceptionBehaviour, "'MaxSendMessageSize' cannot be negative", parameters.MaxSendMessageSize.Value);
+
+            if (parameters.OperationTimeout.HasValue && parameters.OperationTimeout.Value < TimeSpan.Zero)
+                return ReturnOrThrowValidationError(exceptionBehaviour, "'OperationTimeout' cannot be negative", parameters.OperationTimeout.Value);
+
+            if (parameters.ConnectionTimeout.HasValue && parameters.ConnectionTimeout.Value < TimeSpan.Zero)
+                return ReturnOrThrowValidationError(exceptionBehaviour, "'ConnectionTimeout' cannot be negative", parameters.ConnectionTimeout.Value);
+
+            return true;
+        }
+        /// <summary>
+        /// Validates connection parameters
+        /// </summary>
+        /// <param name="parameters">Parameters</param>
+        /// <returns>True if valid, otherwise False</returns>
+        public static bool IsValid(this IModifiableBobConnectionParameters parameters)
+        {
+            return Validate(parameters, ValidationExceptionBehaviour.NoException);
+        }
     }
 }
