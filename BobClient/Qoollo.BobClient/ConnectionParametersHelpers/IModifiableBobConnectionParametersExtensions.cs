@@ -370,5 +370,35 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
         {
             return Validate(parameters, ValidationExceptionBehaviour.NoException);
         }
+
+
+        /// <summary>
+        /// Copies all values from <paramref name="sourceParameters"/> to <paramref name="targetParameters"/>
+        /// </summary>
+        /// <param name="targetParameters">Target to copy parameters into</param>
+        /// <param name="sourceParameters">Source parameters</param>
+        public static void CopyFrom(this IModifiableBobConnectionParameters targetParameters, IModifiableBobConnectionParameters sourceParameters)
+        {
+            if (targetParameters == null)
+                throw new ArgumentNullException(nameof(targetParameters));
+            if (sourceParameters == null)
+                throw new ArgumentNullException(nameof(sourceParameters));
+
+            targetParameters.Host = sourceParameters.Host;
+            targetParameters.Port = sourceParameters.Port;
+
+            targetParameters.User = sourceParameters.User;
+            targetParameters.Password = sourceParameters.Password;
+
+            targetParameters.MaxReceiveMessageSize = sourceParameters.MaxReceiveMessageSize;
+            targetParameters.MaxSendMessageSize = sourceParameters.MaxSendMessageSize;
+
+            targetParameters.OperationTimeout = sourceParameters.OperationTimeout;
+            targetParameters.ConnectionTimeout = sourceParameters.ConnectionTimeout;
+
+            targetParameters.CustomParameters.Clear();
+            foreach (var customParam in sourceParameters.CustomParameters)
+                targetParameters.CustomParameters.Add(customParam.Key, customParam.Value);
+        }
     }
 }

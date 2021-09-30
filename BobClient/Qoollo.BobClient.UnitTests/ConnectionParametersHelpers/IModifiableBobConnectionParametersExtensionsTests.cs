@@ -422,5 +422,78 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
             Assert.NotNull(connectionString);
             Assert.True(data.IsValid());
         }
+
+        [Fact]
+        public void CopyFromSimpleTest()
+        {
+            CopyFromAllParametersCoveredTest();
+
+            ModifiableBobConnectionParametersMock source = new ModifiableBobConnectionParametersMock()
+            {
+                Host = "host",
+                Port = 123,
+                User = "user",
+                Password = "pass",
+                MaxReceiveMessageSize = 100,
+                MaxSendMessageSize = -100,
+                ConnectionTimeout = TimeSpan.MaxValue,
+                OperationTimeout = TimeSpan.FromSeconds(10)
+            }.WithCustomParam("Custom1", "111");
+
+            ModifiableBobConnectionParametersMock target = new ModifiableBobConnectionParametersMock()
+            {
+                Host = "qwerty",
+                Port = null,
+                User = "---",
+                Password = null,
+                MaxReceiveMessageSize = null,
+                MaxSendMessageSize = null,
+                ConnectionTimeout = TimeSpan.FromHours(1),
+                OperationTimeout = TimeSpan.FromHours(1)
+            }.WithCustomParam("ToBeCleared", "111");
+
+            Assert.NotEqual(source, target);
+
+            target.CopyFrom(source);
+            Assert.Equal(source, target);
+        }
+
+        [Fact]
+        public void CopyFromAllParametersCoveredTest()
+        {
+            HashSet<string> properties = new HashSet<string>(typeof(IModifiableBobConnectionParameters).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance).Select(o => o.Name));
+
+            HashSet<string> knownProperties = new HashSet<string>()
+            {
+                nameof(IModifiableBobConnectionParameters.Host),
+                nameof(IModifiableBobConnectionParameters.Port),
+
+                nameof(IModifiableBobConnectionParameters.User),
+                nameof(IModifiableBobConnectionParameters.Password),
+
+                nameof(IModifiableBobConnectionParameters.MaxReceiveMessageSize),
+                nameof(IModifiableBobConnectionParameters.MaxSendMessageSize),
+
+                nameof(IModifiableBobConnectionParameters.OperationTimeout),
+                nameof(IModifiableBobConnectionParameters.ConnectionTimeout),
+
+                nameof(IModifiableBobConnectionParameters.CustomParameters),
+            };
+
+            Assert.True(properties.SetEquals(knownProperties));
+        }
+
+
+        [Theory]
+        [MemberData(nameof(ParseConnectionStringIntoTestData))]
+        public void CopyFromTheoryTest(string connectionString, ModifiableBobConnectionParametersMock data)
+        {
+            Assert.NotNull(connectionString);
+
+            ModifiableBobConnectionParametersMock target = new ModifiableBobConnectionParametersMock();
+            target.CopyFrom(data);
+
+            Assert.Equal(data, target);
+        }
     }
 }
