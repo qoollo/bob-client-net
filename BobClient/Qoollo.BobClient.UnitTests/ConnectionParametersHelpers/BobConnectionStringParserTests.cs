@@ -148,13 +148,24 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
                 };
                 yield return new object[]
                 {
+                    "address = node1.bob.com:19000 ; 'User' = ; PASSWORD = ''",
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node1.bob.com",
+                        Port = 19000,
+                        User = "",
+                        Password = ""
+                    }
+                };
+                yield return new object[]
+                {
                     "address = node1.bob.com:19000 ; 'User' = 'u''s''e''r'; PASSWORD = ''",
                     new ModifiableBobConnectionParametersMock()
                     {
                         Host = "node1.bob.com",
                         Port = 19000,
                         User = "u's'e'r",
-                        Password = null
+                        Password = ""
                     }
                 };
                 yield return new object[]
@@ -165,7 +176,7 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
                         Host = "node1.bob.com",
                         Port = 19000,
                         User = "us\"er",
-                        Password = null
+                        Password = ""
                     }
                 };
                 yield return new object[]
@@ -188,6 +199,17 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
                         Port = 19000,
                         User = "abc''def",
                         Password = "password"
+                    }
+                };
+                yield return new object[]
+                {
+                    "address = node1.bob.com:19000 ; User =    ab cd    ; PASSWORD =   ' ab cd '  ",
+                    new ModifiableBobConnectionParametersMock()
+                    {
+                        Host = "node1.bob.com",
+                        Port = 19000,
+                        User = "ab cd",
+                        Password = " ab cd "
                     }
                 };
                 yield return new object[]

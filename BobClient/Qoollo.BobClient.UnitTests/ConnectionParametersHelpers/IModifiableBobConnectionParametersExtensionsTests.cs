@@ -104,34 +104,22 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
 
 
         [Theory]
-        [InlineData("host", "")]
-        [InlineData("HOST", "   ")]
-
-        [InlineData("Port", "-1")]
-        [InlineData("Port", "65600")]
         [InlineData("Port", "asdasdasd")]
 
-        [InlineData("Address", "")]
         [InlineData("Address", "localhost:")]
         [InlineData("Address", ":22")]
         [InlineData("Address", "node1.bob.com:-1")]
         [InlineData("Address", "node1.bob.com:65600")]
 
-        [InlineData("MaxReceiveMessageSize", "-10")]
         [InlineData("MaxReceiveMessageSize", "abc")]
 
-        [InlineData("MaxSendMessageSize", "-10")]
         [InlineData("MaxSendMessageSize", "abc")]
 
-        [InlineData("OperationTimeout", "-1")]
         [InlineData("OperationTimeout", "abc")]
         [InlineData("OperationTimeout", "00:13:--")]
-        [InlineData("OperationTimeout", "-00:13:00")]
 
-        [InlineData("ConnectionTimeout", "-1")]
         [InlineData("ConnectionTimeout", "abc")]
         [InlineData("ConnectionTimeout", "00:13:--")]
-        [InlineData("ConnectionTimeout", "-00:13:00")]
         public void SetValueThrowsTest(string key, string value)
         {
             ModifiableBobConnectionParametersMock target = new ModifiableBobConnectionParametersMock();
@@ -193,6 +181,7 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
 
         [InlineData("Port", "", false)]
         [InlineData("Port", "32132", false)]
+        [InlineData("Port", "555555", false)]
 
         [InlineData("Address", "node2.bob.com:1222", false)]
 
@@ -200,21 +189,26 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
         [InlineData("USER", "BobUser", false)]
 
         [InlineData("Password", "", false)]
+        [InlineData("Password", "  ", false)]
         [InlineData("Password", "Pass", false)]
 
         [InlineData("MaxReceiveMessageSize", "", false)]
         [InlineData("MaxReceiveMessageSize", "50000", false)]
         [InlineData("MaxReceiveMessageLength", "50000", false)]
+        [InlineData("MaxReceiveMessageLength", "-50000", false)]
 
         [InlineData("MaxSendMessageSize", "", false)]
         [InlineData("MaxSendMessageSize", "50000", false)]
         [InlineData("MaxSendMessageLength", "50000", false)]
+        [InlineData("MaxSendMessageLength", "-50000", false)]
 
         [InlineData("OperationTimeout", "", false)]
         [InlineData("OperationTimeout", "00:00:10", false)]
+        [InlineData("OperationTimeout", "-00:00:10", false)]
 
         [InlineData("ConnectionTimeout", "", false)]
         [InlineData("ConnectionTimeout", "00:00:10", false)]
+        [InlineData("ConnectionTimeout", "-00:00:10", false)]
 
         [InlineData("Custom1", "CustomVal", true)]
         public void SetGetValueRoundtripTest(string key, string value, bool allowCustom, string expected = null)
@@ -230,6 +224,41 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
             var result = target.GetValue(key, allowCustom);
 
             Assert.Equal(expected ?? value, result ?? "");
+        }
+
+        [Fact]
+        public void SetValueCornerCaseTest()
+        {
+            ModifiableBobConnectionParametersMock target = new ModifiableBobConnectionParametersMock();
+
+            target.SetValue("Host", null, false);
+            Assert.Null(target.GetValue("Host", false));
+
+            target.SetValue("Host", "", false);
+            Assert.Equal("", target.GetValue("Host", false));
+
+            target.SetValue("Host", "  ", false);
+            Assert.Equal("  ", target.GetValue("Host", false));
+
+
+            target.SetValue("User", null, false);
+            Assert.Null(target.GetValue("User", false));
+
+            target.SetValue("User", "", false);
+            Assert.Equal("", target.GetValue("User", false));
+
+            target.SetValue("User", "  ", false);
+            Assert.Equal("  ", target.GetValue("User", false));
+
+
+            target.SetValue("Password", null, false);
+            Assert.Null(target.GetValue("Password", false));
+
+            target.SetValue("Password", "", false);
+            Assert.Equal("", target.GetValue("Password", false));
+
+            target.SetValue("Password", "  ", false);
+            Assert.Equal("  ", target.GetValue("Password", false));
         }
 
 
@@ -254,7 +283,7 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
                         Port = 123,
                         User = "'''"
                     },
-                    "Port = 123; User = \"'''\""
+                    "Host = ''; Port = 123; User = \"'''\""
                 };
                 yield return new object[]
                 {
@@ -276,7 +305,7 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
                         MaxReceiveMessageSize = 100500,
                         MaxSendMessageSize = 100500
                     },
-                    "Address = node.bob.com; User = user; MaxReceiveMessageSize = 100500; MaxSendMessageSize = 100500"
+                    "Address = node.bob.com; User = user; Password = ''; MaxReceiveMessageSize = 100500; MaxSendMessageSize = 100500"
                 };
                 yield return new object[]
                 {
@@ -288,7 +317,7 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
                         OperationTimeout = TimeSpan.Parse("00:10:00"),
                         ConnectionTimeout = TimeSpan.Parse("00:12:00.22")
                     },
-                    "Address = node.bob.com; User = user; OperationTimeout = 00:10:00; ConnectionTimeout = 00:12:00.2200000"
+                    "Address = node.bob.com; User = user; Password = ''; OperationTimeout = 00:10:00; ConnectionTimeout = 00:12:00.2200000"
                 };
                 yield return new object[]
                 {
@@ -337,6 +366,61 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
             var parsed = new ModifiableBobConnectionParametersMock();
             BobConnectionStringParser.ParseConnectionStringInto(stringRep, parsed);
             Assert.Equal(data, parsed);
+        }
+
+
+        [Theory]
+        [InlineData("host", null)]
+        [InlineData("host", "")]
+        [InlineData("HOST", "   ")]
+
+        [InlineData("Port", "-1")]
+        [InlineData("Port", "65600")]
+
+        [InlineData("Address", null)]
+        [InlineData("Address", "")]
+
+        [InlineData("MaxReceiveMessageSize", "-10")]
+
+        [InlineData("MaxSendMessageSize", "-10")]
+
+        [InlineData("OperationTimeout", "-1")]
+        [InlineData("OperationTimeout", "-00:13:00")]
+
+        [InlineData("ConnectionTimeout", "-1")]
+        [InlineData("ConnectionTimeout", "-00:13:00")]
+        public void ValidationTest(string key, string value)
+        {
+            ModifiableBobConnectionParametersMock target = new ModifiableBobConnectionParametersMock()
+            {
+                Host = "host"
+            };
+
+            Assert.True(target.IsValid());
+
+            target.SetValue(key, value, allowCustomParameters: false);
+
+            Assert.False(target.IsValid());
+            Assert.False(target.Validate(ValidationExceptionBehaviour.NoException));
+
+            Assert.Throws<FormatException>(() =>
+            {
+                target.Validate(ValidationExceptionBehaviour.FormatException);
+            });
+
+            Assert.Throws<InvalidBobConnectionParametersException>(() =>
+            {
+                target.Validate(ValidationExceptionBehaviour.InvalidConnectionParametersException);
+            });
+        }
+
+
+        [Theory]
+        [MemberData(nameof(ParseConnectionStringIntoTestData))]
+        public void ValidationForCorrectInputTest(string connectionString, ModifiableBobConnectionParametersMock data)
+        {
+            Assert.NotNull(connectionString);
+            Assert.True(data.IsValid());
         }
     }
 }

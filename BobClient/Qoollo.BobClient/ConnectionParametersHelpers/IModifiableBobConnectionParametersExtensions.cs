@@ -25,14 +25,10 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
 
             if (int.TryParse(value, out int intervalInMs))
             {
-                if (intervalInMs < 0)
-                    throw new FormatException($"'{forKey}' time interval cannot be negative: {value}");
                 return TimeSpan.FromMilliseconds(intervalInMs);
             }
             else if (TimeSpan.TryParse(value, out TimeSpan intervalTimeSpan))
             {
-                if (intervalTimeSpan < TimeSpan.Zero)
-                    throw new FormatException($"'{forKey}' time interval cannot be negative: {value}");
                 return intervalTimeSpan;
             }
             else
@@ -60,10 +56,6 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
             switch (key.ToLower())
             {
                 case "host":
-                    if (value == null)
-                        throw new ArgumentNullException(nameof(value), $"Value cannot be null for '{key}' parameter");
-                    if (string.IsNullOrWhiteSpace(value))
-                        throw new FormatException($"Value cannot be an empty string for '{key}' parameter");
                     parameters.Host = value;
                     break;
                 case "port":
@@ -71,34 +63,34 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
                         parameters.Port = null;
                     else if (!int.TryParse(value, out int portVal))
                         throw new FormatException($"Unable to parse 'port' value: {value}");
-                    else if (portVal < 0 || portVal > ushort.MaxValue)
-                        throw new FormatException($"'Port' is not in a valid range: {value}");
                     else
                         parameters.Port = portVal;
                     break;
                 case "address":
                 case "server":
                     if (value == null)
-                        throw new ArgumentNullException(nameof(value), $"Value cannot be null for '{key}' parameter");
-                    if (string.IsNullOrWhiteSpace(value))
-                        throw new FormatException($"Value cannot be an empty string for '{key}' parameter");
-                    BobNodeAddress.TryParseCore(value, true, out string addrHostVal, out int? addrPortVal);
-                    parameters.Host = addrHostVal;
-                    if (addrPortVal != null)
-                        parameters.Port = addrPortVal;
+                    {
+                        parameters.Host = null;
+                        parameters.Port = null;
+                    }
+                    else if (string.IsNullOrWhiteSpace(value))
+                    {
+                        parameters.Host = value;
+                    }
+                    else
+                    {
+                        BobNodeAddress.TryParseCore(value, true, out string addrHostVal, out int? addrPortVal);
+                        parameters.Host = addrHostVal;
+                        if (addrPortVal != null)
+                            parameters.Port = addrPortVal;
+                    }
                     break;
                 case "user":
                 case "user id":
-                    if (string.IsNullOrWhiteSpace(value))
-                        parameters.User = null;
-                    else
-                        parameters.User = value;
+                    parameters.User = value;
                     break;
                 case "password":
-                    if (string.IsNullOrWhiteSpace(value))
-                        parameters.Password = null;
-                    else
-                        parameters.Password = value;
+                    parameters.Password = value;
                     break;
                 case "maxreceivemessagesize":
                 case "maxreceivemessagelength":
@@ -106,8 +98,6 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
                         parameters.MaxReceiveMessageSize = null;
                     else if (!int.TryParse(value, out int maxReceiveMessageSizeVal))
                         throw new FormatException($"Unable to parse '{key}' value: {value}");
-                    else if (maxReceiveMessageSizeVal < 0)
-                        throw new FormatException($"'{key}' cannot be negative: {value}");
                     else
                         parameters.MaxReceiveMessageSize = maxReceiveMessageSizeVal;
                     break;
@@ -117,8 +107,6 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
                         parameters.MaxSendMessageSize = null;
                     else if (!int.TryParse(value, out int maxSendMessageSizeVal))
                         throw new FormatException($"Unable to parse '{key}' value: {value}");
-                    else if (maxSendMessageSizeVal < 0)
-                        throw new FormatException($"'{key}' cannot be negative: {value}");
                     else
                         parameters.MaxSendMessageSize = maxSendMessageSizeVal;
                     break;
@@ -179,8 +167,8 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
                     return parameters.Port?.ToString();
                 case "address":
                 case "server":
-                    if (parameters.Host == null)
-                        return "";
+                    if (string.IsNullOrWhiteSpace(parameters.Host))
+                        return null;
                     if (parameters.Port.HasValue)
                         return (parameters.Host ?? "") + ":" + parameters.Port.Value.ToString();
                     return parameters.Host ?? "";
@@ -218,8 +206,11 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
         /// <returns>Escaped value</returns>
         private static string EscapeConnectionStringToken(string value)
         {
-            if (string.IsNullOrEmpty(value))
+            if (value == null)
                 return value;
+
+            if (value.Length == 0)
+                return "''";
 
             if (value[0] == '\'')
             {
@@ -255,7 +246,7 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
         {
             if (string.IsNullOrWhiteSpace(key))
                 throw new FormatException("Key cannot be empty string");
-            if (string.IsNullOrWhiteSpace(value))
+            if (value == null)
                 return stringBuilder;
 
             stringBuilder.Append(key).Append(" = ").Append(value);
@@ -288,9 +279,16 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
                 else
                     result.Append("Address = ").Append(parameters.Host).Append(pairEnding);
             }
-            else if (parameters.Port.HasValue)
+            else
             {
-                result.AppendConnectionStringValue("Port", parameters.Port.Value.ToString(), pairEnding);
+                if (parameters.Host != null)
+                {
+                    result.AppendConnectionStringValue("Host", EscapeConnectionStringToken(parameters.Host), pairEnding);
+                }
+                if (parameters.Port.HasValue)
+                {
+                    result.AppendConnectionStringValue("Port", parameters.Port.Value.ToString(), pairEnding);
+                }
             }
 
             result.AppendConnectionStringValue("User", EscapeConnectionStringToken(parameters.User), pairEnding);

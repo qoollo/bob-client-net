@@ -243,6 +243,8 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
                 foreach (var keyValue in keyValues)
                     parameters.SetValue(keyValue.Key, keyValue.Value, allowCustomParameters: true);
             }
+
+            parameters.Validate(ValidationExceptionBehaviour.FormatException);
         }
     }
 }
