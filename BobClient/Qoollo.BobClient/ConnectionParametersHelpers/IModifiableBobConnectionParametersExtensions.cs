@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 namespace Qoollo.BobClient.ConnectionParametersHelpers
 {
@@ -353,10 +354,10 @@ namespace Qoollo.BobClient.ConnectionParametersHelpers
             if (parameters.MaxSendMessageSize.HasValue && parameters.MaxSendMessageSize.Value < 0)
                 return ReturnOrThrowValidationError(exceptionBehaviour, "'MaxSendMessageSize' cannot be negative", parameters.MaxSendMessageSize.Value);
 
-            if (parameters.OperationTimeout.HasValue && parameters.OperationTimeout.Value < TimeSpan.Zero)
+            if (parameters.OperationTimeout.HasValue && parameters.OperationTimeout.Value < TimeSpan.Zero && parameters.OperationTimeout.Value != Timeout.InfiniteTimeSpan)
                 return ReturnOrThrowValidationError(exceptionBehaviour, "'OperationTimeout' cannot be negative", parameters.OperationTimeout.Value);
 
-            if (parameters.ConnectionTimeout.HasValue && parameters.ConnectionTimeout.Value < TimeSpan.Zero)
+            if (parameters.ConnectionTimeout.HasValue && parameters.ConnectionTimeout.Value < TimeSpan.Zero && parameters.ConnectionTimeout.Value != Timeout.InfiniteTimeSpan)
                 return ReturnOrThrowValidationError(exceptionBehaviour, "'ConnectionTimeout' cannot be negative", parameters.ConnectionTimeout.Value);
 
             return true;

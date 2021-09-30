@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -384,10 +385,10 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
 
         [InlineData("MaxSendMessageSize", "-10")]
 
-        [InlineData("OperationTimeout", "-1")]
+        [InlineData("OperationTimeout", "-10")]
         [InlineData("OperationTimeout", "-00:13:00")]
 
-        [InlineData("ConnectionTimeout", "-1")]
+        [InlineData("ConnectionTimeout", "-10")]
         [InlineData("ConnectionTimeout", "-00:13:00")]
         public void ValidationTest(string key, string value)
         {
@@ -414,6 +415,18 @@ namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
             });
         }
 
+        [Fact]
+        public void InfiniteTimeoutValidationTest()
+        {
+            ModifiableBobConnectionParametersMock data = new ModifiableBobConnectionParametersMock()
+            {
+                Host = "host",
+                OperationTimeout = Timeout.InfiniteTimeSpan,
+                ConnectionTimeout = Timeout.InfiniteTimeSpan
+            };
+
+            Assert.True(data.IsValid());
+        }
 
         [Theory]
         [MemberData(nameof(ParseConnectionStringIntoTestData))]
