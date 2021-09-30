@@ -78,6 +78,22 @@ namespace Qoollo.BobClient
 
             BobConnectionStringParser.ParseConnectionStringInto(connectionString, this);
         }
+        /// <summary>
+        /// Copy constructor
+        /// </summary>
+        /// <param name="sourceParameters">Source parameters</param>
+        internal BobConnectionParameters(IModifiableBobConnectionParameters sourceParameters)
+        {
+            if (sourceParameters == null)
+                throw new ArgumentNullException(nameof(sourceParameters));
+
+            _customParameters = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            _nodeAddress = null;
+            Host = string.Empty;
+
+            IModifiableBobConnectionParametersExtensions.CopyFrom(targetParameters: this, sourceParameters: sourceParameters);
+            IModifiableBobConnectionParametersExtensions.Validate(this, ValidationExceptionBehaviour.InvalidConnectionParametersException);
+        }
 
         /// <summary>
         /// Host

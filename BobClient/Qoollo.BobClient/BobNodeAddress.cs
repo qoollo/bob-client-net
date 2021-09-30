@@ -34,6 +34,14 @@ namespace Qoollo.BobClient
 
             Address = host + ":" + port.ToString();
         }
+        /// <summary>
+        /// <see cref="BobNodeAddress"/> constructor with default port
+        /// </summary>
+        /// <param name="host">Node host</param>
+        public BobNodeAddress(string host)
+            : this(host, DefaultPort)
+        {
+        }
 
         /// <summary>
         /// Node Host

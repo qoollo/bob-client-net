@@ -90,5 +90,33 @@ namespace Qoollo.BobClient.UnitTests
 
             Assert.Equal(expected, bobParams.GetValue(parameter));
         }
+
+
+        [Theory]
+        [MemberData(nameof(ParseConnectionStringTestData))]
+        public void ParseToStringRoundtripTest(string connectionString, ModifiableBobConnectionParametersMock data)
+        {
+            Assert.NotNull(connectionString);
+            Assert.NotNull(data);
+
+            var initial = new BobConnectionParameters(connectionString);
+            var initialStr = initial.ToString(includePassword: true);
+            var secondary = new BobConnectionParameters(initialStr);
+            var secondaryStr = secondary.ToString(includePassword: true);
+
+            Assert.Equal(initial, secondary, ModifiableBobConnectionParametersEqualityComparer.Instance);
+            Assert.Equal(initialStr, secondaryStr);
+        }
+
+
+        [Fact]
+        public void ToStringHidePasswordTest()
+        {
+            var bobConnectionParams = new BobConnectionParameters("Address = node.bob.com; User = user; Password = password;");
+            var stringRep = bobConnectionParams.ToString();
+
+            Assert.DoesNotContain("Password", stringRep);
+            Assert.Contains("User", stringRep);
+        }
     }
 }
