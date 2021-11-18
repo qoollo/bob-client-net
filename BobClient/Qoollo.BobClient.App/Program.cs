@@ -23,27 +23,32 @@ namespace Qoollo.BobClient.App
         class ExecutionConfig
         {
             public RunMode RunMode { get; set; } = RunMode.Get | RunMode.Exists;
-            public int? DataLength { get; set; } = null;
             public ulong StartId { get; set; } = 0;
             public ulong? EndId { get; set; } = null;
-            public uint Count { get; set; } = 1000;
+            public uint Count { get; set; } = 1;
             public bool RandomMode { get; set; } = false;
             public bool Verbose { get; set; } = false;
             public int Timeout { get; set; } = 60;
             public uint ThreadCount { get; set; } = 1;
             public uint ExistsPackageSize { get; set; } = 100;
             public uint KeySize { get; set; } = sizeof(ulong);
+            public int? DataLength { get; set; } = null;
+            public string DataPatternHex { get; set; } = null;
+            public bool ValidateGet { get; set; } = false;
+            public string PutFileSourcePattern { get; set; } = null;
+            public string GetFileTargetPattern { get; set; } = null;
+            public int ProgressIntervalMs { get; set; } = 1000;
             public List<string> Nodes { get; set; } = new List<string>();
         }
 
-        static void PutTest(IBobApi<ulong> client, ulong startId, ulong endId, uint count, uint threadCount, bool randomWrite, bool verbose, byte[] data)
+        static void PutTest(IBobApi<ulong> client, ulong startId, ulong endId, uint count, uint threadCount, bool randomWrite, bool verbose, int progressIntervalMs, RecordBytesSource recordBytesSource)
         {
             if (endId < startId || count > endId - startId)
                 endId = startId + count;
 
             ParallelRandom random = new ParallelRandom((int)threadCount);
 
-            using (var progress = new ProgressTracker(1000, "Put", (int)count).Start())
+            using (var progress = new ProgressTracker(progressIntervalMs, "Put", (int)count).Start())
             {
                 //for (int i = 0; i < count; i++)
                 Parallel.For(0, (int)count, new ParallelOptions() { MaxDegreeOfParallelism = (int)threadCount },
@@ -55,7 +60,7 @@ namespace Qoollo.BobClient.App
 
                     try
                     {
-                        client.Put(currentId, data, default(CancellationToken));
+                        client.Put(currentId, recordBytesSource.GetData(currentId), default(CancellationToken));
                         progress.RegisterSuccess();
                     }
                     catch (Exception ex)
@@ -79,14 +84,14 @@ namespace Qoollo.BobClient.App
             }
         }
 
-        static void GetTest(IBobApi<ulong> client, ulong startId, ulong endId, uint count, uint threadCount, bool randomRead, bool verbose, int? expectedLength = null)
+        static void GetTest(IBobApi<ulong> client, ulong startId, ulong endId, uint count, uint threadCount, bool randomRead, bool verbose, int progressIntervalMs, RecordBytesSource recordBytesSource)
         {
             if (endId < startId || count > endId - startId)
                 endId = startId + count;
 
             ParallelRandom random = new ParallelRandom((int)threadCount);
 
-            using (var progress = new ProgressTracker(1000, "Get", (int)count).Start())
+            using (var progress = new ProgressTracker(progressIntervalMs, "Get", (int)count).Start())
             {
                 int keyNotFoundErrors = 0;
                 int lengthMismatchErrors = 0;
@@ -103,16 +108,17 @@ namespace Qoollo.BobClient.App
                     try
                     {
                         var result = client.Get(currentId, token: default(CancellationToken));
-                        if (expectedLength != null && expectedLength.Value != result.Length)
+                        if (!recordBytesSource.VerifyData(currentId, result))
                         {
                             lengthMismatchErrors++;
                             progress.RegisterError();
                             if (verbose)
-                                Console.WriteLine($"Error ({currentId}): Length mismatch. Expected length: {expectedLength.Value}, actual: {result.Length}");
+                                Console.WriteLine($"Error ({currentId}): Data mismatch");
                         }
                         else
                         {
                             progress.RegisterSuccess();
+                            recordBytesSource.StoreData(currentId, result);
                         }
                     }
                     catch (BobKeyNotFoundException)
@@ -143,7 +149,7 @@ namespace Qoollo.BobClient.App
             }
         }
 
-        static void ExistsTest(IBobApi<ulong> client, ulong startId, ulong endId, uint count, uint threadCount, uint packageSize, bool verbose)
+        static void ExistsTest(IBobApi<ulong> client, ulong startId, ulong endId, uint count, uint threadCount, uint packageSize, bool verbose, int progressIntervalMs)
         {
             if (endId < startId || count > endId - startId)
                 endId = startId + count;
@@ -151,7 +157,7 @@ namespace Qoollo.BobClient.App
             int expectedRequestsCount = (int)((count - 1) / packageSize) + 1;
             int totalExistedCount = 0;
 
-            using (var progress = new ProgressTracker(1000, "Exists", (int)count, () => $"Result: {Volatile.Read(ref totalExistedCount),8}/{count}").Start())
+            using (var progress = new ProgressTracker(progressIntervalMs, "Exists", (int)count, () => $"Result: {Volatile.Read(ref totalExistedCount),8}/{count}").Start())
             {
                 //for (int pckgNum = 0; pckgNum < expectedRequestsCount; pckgNum++)
                 Parallel.For(0, expectedRequestsCount, new ParallelOptions() { MaxDegreeOfParallelism = (int)threadCount },
@@ -194,21 +200,26 @@ namespace Qoollo.BobClient.App
 
         static void PrintHelp()
         {
-            Console.WriteLine("Bob client tests");
+            Console.WriteLine($"Bob client tests (version: v{System.Reflection.Assembly.GetExecutingAssembly().GetName().Version})");
             Console.WriteLine("Arguments:");
-            Console.WriteLine("  --mode   | -m  : Work mode combined by comma. Possible values: 'Get,Put,Exists'. Default: 'Get,Exists'");
-            Console.WriteLine("  --length | -l  : Set size of the single record. Default: 1024");
-            Console.WriteLine("  --start  | -s  : Start Id. Default: 0");
-            Console.WriteLine("  --end    | -e  : End Id (optional)");
-            Console.WriteLine("  --count  | -c  : Count of ids to process. Default: 1000");
-            Console.WriteLine("  --keySize      : Target key size in bytes. Default: 8");
-            Console.WriteLine("  --threads      : Number of threads. Default: 1");
-            Console.WriteLine("  --timeout      : Operation and connection timeout in seconds. Default: 60");
-            Console.WriteLine("  --random       : Random read/write mode. Default: false");
-            Console.WriteLine("  --verbose      : Enable verbose output for errors. Default: false");
-            Console.WriteLine("  --packageSize  : Exists package size. Default: 100");
-            Console.WriteLine("  --nodes        : Comma separated node addresses. Example: '127.0.0.1:20000, 127.0.0.2:20000'");
-            Console.WriteLine("  --help         : Print help");
+            Console.WriteLine("  --mode   | -m     : Work mode combined by comma. Possible values: 'Get,Put,Exists'. Default: 'Get,Exists'");
+            Console.WriteLine("  --length | -l     : Set size of the single record. Default: 1024");
+            Console.WriteLine("  --start  | -s     : Start Id. Default: 0");
+            Console.WriteLine("  --end    | -e     : End Id (optional)");
+            Console.WriteLine("  --count  | -c     : Count of ids to process. Default: 1");
+            Console.WriteLine("  --nodes  | -n     : Comma separated node addresses. Example: '127.0.0.1:20000, 127.0.0.2:20000'");
+            Console.WriteLine("  --keySize         : Target key size in bytes. Default: 8");
+            Console.WriteLine("  --threads         : Number of threads. Default: 1");
+            Console.WriteLine("  --timeout         : Operation and connection timeout in seconds. Default: 60");
+            Console.WriteLine("  --random          : Random read/write mode. Default: false");
+            Console.WriteLine("  --verbose         : Enable verbose output for errors. Default: false");
+            Console.WriteLine("  --packageSize     : Exists package size. Default: 100");
+            Console.WriteLine("  --hexDataPattern  : Data pattern as hex string (optional)");
+            Console.WriteLine("  --validateGet     : Validates data received by Get. Default: false");
+            Console.WriteLine("  --putFileSource   : Path to the file with source data. Supports '{key}' as pattern (optional)");
+            Console.WriteLine("  --getFileTarget   : Path to the file to store data from Get or to validate. Supports '{key}' as pattern (optional)");
+            Console.WriteLine("  --progressPeriod  : Progress printing period in milliseconds. Default: 1000");
+            Console.WriteLine("  --help            : Print help");
             Console.WriteLine();
         }
 
@@ -283,7 +294,31 @@ namespace Qoollo.BobClient.App
                             result.Verbose = true;
                         }
                         break;
+                    case "--hexdatapattern":
+                        result.DataPatternHex = args[i + 1];
+                        break;
+                    case "--validateGet":
+                        if (i + 1 < args.Length && bool.TryParse(args[i + 1], out bool validateGet))
+                        {
+                            result.ValidateGet = validateGet;
+                            i++;
+                        }
+                        else
+                        {
+                            result.ValidateGet = true;
+                        }
+                        break;
+                    case "--putfilesource":
+                        result.PutFileSourcePattern = args[i + 1];
+                        break;
+                    case "--getfiletarget":
+                        result.GetFileTargetPattern = args[i + 1];
+                        break;
+                    case "--progressperiod":
+                        result.ProgressIntervalMs = (int)uint.Parse(args[i + 1]);
+                        break;
                     case "--nodes":
+                    case "-n":
                         result.Nodes = args[i + 1].Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Select(o => o.Trim()).ToList();
                         i++;
                         break;
@@ -295,6 +330,9 @@ namespace Qoollo.BobClient.App
                         break;
                 }
             }
+
+            if (result.DataPatternHex != null && (result.GetFileTargetPattern != null || result.PutFileSourcePattern != null))
+                Console.WriteLine("HexDataPattern cannot be combined with GetFileTarget or PutFileSource");
 
             return result;
         }
@@ -310,6 +348,10 @@ namespace Qoollo.BobClient.App
                 {
                     RunMode = RunMode.Get | RunMode.Put | RunMode.Exists,
                     DataLength = 1024,
+                    DataPatternHex = null,
+                    ValidateGet = false,
+                    GetFileTargetPattern = null,
+                    PutFileSourcePattern = null,
                     StartId = 62000,
                     EndId = null,
                     Count = 20000,
@@ -319,6 +361,7 @@ namespace Qoollo.BobClient.App
                     Verbose = false,
                     Timeout = 60,
                     ThreadCount = 4,
+                    ProgressIntervalMs = 1000,
                     Nodes = new List<string>() { "10.5.5.127:20000", "10.5.5.128:20000" }
                 };
             }
@@ -333,13 +376,17 @@ namespace Qoollo.BobClient.App
                 return;
             }
 
-            byte[] sampleData = null;
-
-            if ((config.RunMode & RunMode.Put) != 0)
+            RecordBytesSource recordBytesSource = new NopRecordBytesSource();
+            if (config.ValidateGet || (config.RunMode & RunMode.Put) != 0)
             {
-                sampleData = new byte[config.DataLength ?? 1024];
-                for (int i = 0; i < sampleData.Length; i++)
-                    sampleData[i] = (byte)(i & byte.MaxValue);
+                if (config.DataPatternHex != null && config.DataLength != null)
+                    recordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex, config.DataLength.Value);
+                else if (config.DataPatternHex != null)
+                    recordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex);
+                else if (config.DataLength != null)
+                    recordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(config.DataLength.Value);
+                else
+                    recordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(1024);
             }
 
 
@@ -352,11 +399,11 @@ namespace Qoollo.BobClient.App
                 client.Open(TimeSpan.FromSeconds(config.Timeout), BobClusterOpenCloseMode.SkipErrors);
 
                 if ((config.RunMode & RunMode.Put) != 0)
-                    PutTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.RandomMode, config.Verbose, sampleData);
+                    PutTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.RandomMode, config.Verbose, config.ProgressIntervalMs, recordBytesSource);
                 if ((config.RunMode & RunMode.Get) != 0)
-                    GetTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.RandomMode, config.Verbose, config.DataLength);
+                    GetTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.RandomMode, config.Verbose, config.ProgressIntervalMs, recordBytesSource);
                 if ((config.RunMode & RunMode.Exists) != 0)
-                    ExistsTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.ExistsPackageSize, config.Verbose);
+                    ExistsTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.ExistsPackageSize, config.Verbose, config.ProgressIntervalMs);
 
                 client.Close();
             }

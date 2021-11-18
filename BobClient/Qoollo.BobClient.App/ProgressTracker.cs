@@ -16,13 +16,17 @@ namespace Qoollo.BobClient.App
 
         private volatile int _currentCount;
         private volatile int _currentErrorCount;
+        private volatile int _currentCountFromPreviousTick;
         private readonly int _totalCount;
 
         private readonly string _operationDescription;
 
         private readonly Stopwatch _stopwatch;
+        private readonly Stopwatch _deltaStopwatch;
 
         private readonly Func<string> _customMessageBuilder;
+
+        private readonly object _printSync;
 
         public ProgressTracker(int intervalMs, string operationDescription, int totalCount, Func<string> customMessageBuilder = null)
         {
@@ -41,12 +45,16 @@ namespace Qoollo.BobClient.App
             _totalCount = totalCount;
             _currentCount = 0;
             _currentErrorCount = 0;
+            _currentCountFromPreviousTick = 0;
 
             _operationDescription = operationDescription;
 
             _stopwatch = new Stopwatch();
+            _deltaStopwatch = new Stopwatch();
 
             _customMessageBuilder = customMessageBuilder;
+
+            _printSync = new object();
 
             _isDisposed = false;
         }
@@ -98,13 +106,23 @@ namespace Qoollo.BobClient.App
 
         public void Print()
         {
-            int currentErrorCount = _currentErrorCount;
-            long currentCount = _currentCount;
+            lock (_printSync)
+            {
+                int currentErrorCount = _currentErrorCount;
+                int currentCount = _currentCount;
+                int currentCountFromPreviousTick = _currentCountFromPreviousTick;
 
-            if (_customMessageBuilder != null)
-                Console.WriteLine($"{_operationDescription}: {currentCount,8}/{TotalCount},   {_customMessageBuilder()},   Errors: {currentErrorCount,5},   RPS: {(currentCount * 1000) / _stopwatch.ElapsedMilliseconds,4}");
-            else
-                Console.WriteLine($"{_operationDescription}: {currentCount,8}/{TotalCount},   Errors: {currentErrorCount,5},   RPS: {(currentCount * 1000) / _stopwatch.ElapsedMilliseconds,4}");
+                double averageRps = ((long)currentCount * 1000) / _stopwatch.ElapsedMilliseconds;
+                double instantaneousRps = ((long)(currentCount - currentCountFromPreviousTick) * 1000) / _deltaStopwatch.ElapsedMilliseconds;
+
+                _deltaStopwatch.Restart();
+                _currentCountFromPreviousTick = currentCount;
+
+                if (_customMessageBuilder != null)
+                    Console.WriteLine($"{_operationDescription}: {currentCount,8}/{TotalCount},   {_customMessageBuilder()},   Errors: {currentErrorCount,5},   RPS: {averageRps,4},   TickRPS: {instantaneousRps,4}");
+                else
+                    Console.WriteLine($"{_operationDescription}: {currentCount,8}/{TotalCount},   Errors: {currentErrorCount,5},   RPS: {averageRps,4},   TickRPS: {instantaneousRps,4}");
+            }
         }
 
         public void Dispose()
