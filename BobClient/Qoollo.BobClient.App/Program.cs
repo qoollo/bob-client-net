@@ -60,8 +60,19 @@ namespace Qoollo.BobClient.App
 
                     try
                     {
-                        client.Put(currentId, recordBytesSource.GetData(currentId), default(CancellationToken));
-                        progress.RegisterSuccess();
+                        if (recordBytesSource.TryGetData(currentId, out byte[] curData))
+                        {
+                            client.Put(currentId, curData, default(CancellationToken));
+                            progress.RegisterSuccess();
+                        }
+                        else
+                        {
+                            progress.RegisterError();
+                            if (verbose)
+                            {
+                                Console.WriteLine($"Error ({currentId}): Data source for key is not found");
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -84,7 +95,7 @@ namespace Qoollo.BobClient.App
             }
         }
 
-        static void GetTest(IBobApi<ulong> client, ulong startId, ulong endId, uint count, uint threadCount, bool randomRead, bool verbose, int progressIntervalMs, RecordBytesSource recordBytesSource)
+        static void GetTest(IBobApi<ulong> client, ulong startId, ulong endId, uint count, uint threadCount, bool randomRead, bool validationMode, bool verbose, int progressIntervalMs, RecordBytesSource recordBytesSource)
         {
             if (endId < startId || count > endId - startId)
                 endId = startId + count;
@@ -108,7 +119,7 @@ namespace Qoollo.BobClient.App
                     try
                     {
                         var result = client.Get(currentId, token: default(CancellationToken));
-                        if (!recordBytesSource.VerifyData(currentId, result))
+                        if (validationMode && !recordBytesSource.VerifyData(currentId, result))
                         {
                             lengthMismatchErrors++;
                             progress.RegisterError();
@@ -118,7 +129,8 @@ namespace Qoollo.BobClient.App
                         else
                         {
                             progress.RegisterSuccess();
-                            recordBytesSource.StoreData(currentId, result);
+                            if (!validationMode)
+                                recordBytesSource.StoreData(currentId, result);
                         }
                     }
                     catch (BobKeyNotFoundException)
@@ -214,8 +226,8 @@ namespace Qoollo.BobClient.App
             Console.WriteLine("  --random          : Random read/write mode. Default: false");
             Console.WriteLine("  --verbose         : Enable verbose output for errors. Default: false");
             Console.WriteLine("  --packageSize     : Exists package size. Default: 100");
-            Console.WriteLine("  --hexDataPattern  : Data pattern as hex string (optional)");
             Console.WriteLine("  --validateGet     : Validates data received by Get. Default: false");
+            Console.WriteLine("  --hexDataPattern  : Data pattern as hex string (optional)");
             Console.WriteLine("  --putFileSource   : Path to the file with source data. Supports '{key}' as pattern (optional)");
             Console.WriteLine("  --getFileTarget   : Path to the file to store data from Get or to validate. Supports '{key}' as pattern (optional)");
             Console.WriteLine("  --progressPeriod  : Progress printing period in milliseconds. Default: 1000");
@@ -376,17 +388,37 @@ namespace Qoollo.BobClient.App
                 return;
             }
 
-            RecordBytesSource recordBytesSource = new NopRecordBytesSource();
-            if (config.ValidateGet || (config.RunMode & RunMode.Put) != 0)
+            RecordBytesSource putRecordBytesSource = new NopRecordBytesSource();
+            RecordBytesSource getRecordBytesSource = new NopRecordBytesSource();
+
+            if ((config.RunMode & RunMode.Put) != 0)
             {
-                if (config.DataPatternHex != null && config.DataLength != null)
-                    recordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex, config.DataLength.Value);
-                else if (config.DataPatternHex != null)
-                    recordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex);
+                if (!string.IsNullOrEmpty(config.DataPatternHex) && config.DataLength != null)
+                    putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex, config.DataLength.Value);
+                else if (!string.IsNullOrEmpty(config.DataPatternHex))
+                    putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex);
+                else if (!string.IsNullOrEmpty(config.PutFileSourcePattern))
+                    putRecordBytesSource = new FileRecordBytesSource(config.PutFileSourcePattern, disableStore: true);
                 else if (config.DataLength != null)
-                    recordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(config.DataLength.Value);
+                    putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(config.DataLength.Value);
                 else
-                    recordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(1024);
+                    putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(1024);
+            }
+
+            if ((config.RunMode & RunMode.Get) != 0 && (config.ValidateGet || !string.IsNullOrEmpty(config.GetFileTargetPattern)))
+            {
+                if (!string.IsNullOrEmpty(config.DataPatternHex) && config.DataLength != null)
+                    getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex, config.DataLength.Value);
+                else if (!string.IsNullOrEmpty(config.DataPatternHex))
+                    getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex);
+                else if (!string.IsNullOrEmpty(config.GetFileTargetPattern) && config.ValidateGet)
+                    getRecordBytesSource = new FileRecordBytesSource(config.GetFileTargetPattern, disableStore: true);
+                else if (!string.IsNullOrEmpty(config.GetFileTargetPattern))
+                    getRecordBytesSource = new FileRecordBytesSource(config.GetFileTargetPattern, disableStore: false);
+                else if (config.DataLength != null)
+                    getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(config.DataLength.Value);
+                else
+                    getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(1024);
             }
 
 
@@ -399,9 +431,9 @@ namespace Qoollo.BobClient.App
                 client.Open(TimeSpan.FromSeconds(config.Timeout), BobClusterOpenCloseMode.SkipErrors);
 
                 if ((config.RunMode & RunMode.Put) != 0)
-                    PutTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.RandomMode, config.Verbose, config.ProgressIntervalMs, recordBytesSource);
+                    PutTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.RandomMode, config.Verbose, config.ProgressIntervalMs, putRecordBytesSource);
                 if ((config.RunMode & RunMode.Get) != 0)
-                    GetTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.RandomMode, config.Verbose, config.ProgressIntervalMs, recordBytesSource);
+                    GetTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.RandomMode, config.ValidateGet, config.Verbose, config.ProgressIntervalMs, getRecordBytesSource);
                 if ((config.RunMode & RunMode.Exists) != 0)
                     ExistsTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.ExistsPackageSize, config.Verbose, config.ProgressIntervalMs);
 

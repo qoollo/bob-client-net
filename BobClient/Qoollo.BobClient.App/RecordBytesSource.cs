@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,7 +9,7 @@ namespace Qoollo.BobClient.App
 {
     public abstract class RecordBytesSource : IDisposable
     {
-        public abstract byte[] GetData(ulong key);
+        public abstract bool TryGetData(ulong key, out byte[] data);
         public abstract void StoreData(ulong key, byte[] data);
         public abstract bool VerifyData(ulong key, byte[] data);
 
@@ -25,7 +26,7 @@ namespace Qoollo.BobClient.App
 
     public class NopRecordBytesSource : RecordBytesSource
     {
-        public override byte[] GetData(ulong key) { throw new InvalidOperationException("Record is not available"); }
+        public override bool TryGetData(ulong key, out byte[] data) { data = null; return false; }
         public override void StoreData(ulong key, byte[] data) { }
         public override bool VerifyData(ulong key, byte[] data) { return data != null; }
     }
@@ -34,7 +35,7 @@ namespace Qoollo.BobClient.App
     {
         public SizeOnlyRecordBytesSource(int? dataLength) { DataLength = dataLength; }
         public int? DataLength { get; }
-        public override byte[] GetData(ulong key) { throw new InvalidOperationException("Record is not available"); }
+        public override bool TryGetData(ulong key, out byte[] data) { data = null; return false; }
         public override void StoreData(ulong key, byte[] data) { }
         public override bool VerifyData(ulong key, byte[] data) { return data != null && (!DataLength.HasValue || (data.Length == DataLength.Value)); }
     }
@@ -95,7 +96,11 @@ namespace Qoollo.BobClient.App
 
         public byte[] DataArray { get; }
 
-        public override byte[] GetData(ulong key) { return DataArray; }
+        public override bool TryGetData(ulong key, out byte[] data)
+        {
+            data = DataArray;
+            return true;
+        }
         public override void StoreData(ulong key, byte[] data) { }
         public override bool VerifyData(ulong key, byte[] data) 
         {
@@ -106,6 +111,75 @@ namespace Qoollo.BobClient.App
 
             for (int i = 0; i < data.Length; i++)
                 if (data[i] != DataArray[i])
+                    return false;
+
+            return true;
+        }
+    }
+
+
+
+    public class FileRecordBytesSource : RecordBytesSource
+    {
+        private readonly string _pathPattern;
+        private readonly bool _hasKeyPattern;
+        private readonly bool _disableStore;
+
+        public FileRecordBytesSource(string pathPattern, bool disableStore)
+        {
+            _pathPattern = pathPattern ?? throw new ArgumentNullException(nameof(pathPattern));
+            _hasKeyPattern = _pathPattern.Contains("{key}");
+
+            _disableStore = disableStore;
+        }
+
+        private string GetPathForKey(ulong key)
+        {
+            if (!_hasKeyPattern)
+                return _pathPattern;
+
+            return _pathPattern.Replace("{key}", key.ToString());
+        }
+
+        public override bool TryGetData(ulong key, out byte[] data)
+        {
+            string path = GetPathForKey(key);
+
+            if (!File.Exists(path))
+            {
+                data = null;
+                return false;
+            }
+
+            data = File.ReadAllBytes(path);
+            return true;
+        }
+        public override void StoreData(ulong key, byte[] data) 
+        {
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
+            if (_disableStore)
+                throw new InvalidOperationException("Store is disabled");
+
+            string path = GetPathForKey(key);
+            File.WriteAllBytes(path, data);
+        }
+        public override bool VerifyData(ulong key, byte[] data)
+        {
+            if (data == null)
+                return false;
+
+            string path = GetPathForKey(key);
+            if (!File.Exists(path))
+                return false;
+
+            var dataOrig = File.ReadAllBytes(path);
+
+            if (dataOrig.Length != data.Length)
+                return false;
+
+            for (int i = 0; i < data.Length; i++)
+                if (data[i] != dataOrig[i])
                     return false;
 
             return true;
