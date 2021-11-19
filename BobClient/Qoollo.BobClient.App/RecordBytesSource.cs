@@ -47,7 +47,7 @@ namespace Qoollo.BobClient.App
             if (hex == null)
                 throw new ArgumentNullException(nameof(hex));
             if (hex.Length % 2 != 0)
-                throw new ArgumentException("Incorrect hex string");
+                throw new ArgumentException($"Incorrect hex string: {hex}");
 
             byte[] result = new byte[hex.Length / 2];
             for (int i = 0; i < result.Length; i++)

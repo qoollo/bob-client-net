@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -26,7 +27,7 @@ namespace Qoollo.BobClient.App
 
         private readonly Func<string> _customMessageBuilder;
 
-        private readonly object _printSync;
+        private readonly object _syncObj;
 
         public ProgressTracker(int intervalMs, string operationDescription, int totalCount, Func<string> customMessageBuilder = null)
         {
@@ -54,10 +55,12 @@ namespace Qoollo.BobClient.App
 
             _customMessageBuilder = customMessageBuilder;
 
-            _printSync = new object();
+            _syncObj = new object();
 
             _isDisposed = false;
         }
+
+        public bool IsStarted { get { return _timer.Enabled; } }
 
         public int TotalCount { get { return _totalCount; } }
         public int CurrentCount { get { return _currentCount; } }
@@ -69,8 +72,15 @@ namespace Qoollo.BobClient.App
         {
             if (!_isDisposed)
             {
-                _timer.Enabled = true;
-                _stopwatch.Start();
+                lock (_syncObj)
+                {
+                    if (!_timer.Enabled)
+                    {
+                        _timer.Enabled = true;
+                        _stopwatch.Start();
+                        _deltaStopwatch.Start();
+                    }
+                }
             }
 
             return this;
@@ -106,22 +116,22 @@ namespace Qoollo.BobClient.App
 
         public void Print()
         {
-            lock (_printSync)
+            lock (_syncObj)
             {
                 int currentErrorCount = _currentErrorCount;
                 int currentCount = _currentCount;
                 int currentCountFromPreviousTick = _currentCountFromPreviousTick;
 
-                double averageRps = ((long)currentCount * 1000) / _stopwatch.ElapsedMilliseconds;
-                double instantaneousRps = ((long)(currentCount - currentCountFromPreviousTick) * 1000) / _deltaStopwatch.ElapsedMilliseconds;
+                double averageRps = (double)((long)currentCount * 1000) / _stopwatch.ElapsedMilliseconds;
+                double instantaneousRps = (double)((long)(currentCount - currentCountFromPreviousTick) * 1000) / _deltaStopwatch.ElapsedMilliseconds;
 
                 _deltaStopwatch.Restart();
                 _currentCountFromPreviousTick = currentCount;
 
                 if (_customMessageBuilder != null)
-                    Console.WriteLine($"{_operationDescription}: {currentCount,8}/{TotalCount},   {_customMessageBuilder()},   Errors: {currentErrorCount,5},   RPS: {averageRps,4},   TickRPS: {instantaneousRps,4}");
+                    Console.WriteLine($"{_operationDescription}: {currentCount,8}/{TotalCount},   {_customMessageBuilder()},   Errors: {currentErrorCount,5},   RPS: {averageRps.ToString("F1", CultureInfo.InvariantCulture),6},   TickRPS: {instantaneousRps.ToString("F0", CultureInfo.InvariantCulture),4}");
                 else
-                    Console.WriteLine($"{_operationDescription}: {currentCount,8}/{TotalCount},   Errors: {currentErrorCount,5},   RPS: {averageRps,4},   TickRPS: {instantaneousRps,4}");
+                    Console.WriteLine($"{_operationDescription}: {currentCount,8}/{TotalCount},   Errors: {currentErrorCount,5},   RPS: {averageRps.ToString("F1", CultureInfo.InvariantCulture),6},   TickRPS: {instantaneousRps.ToString("F0", CultureInfo.InvariantCulture),4}");
             }
         }
 
@@ -129,6 +139,7 @@ namespace Qoollo.BobClient.App
         {
             _isDisposed = true;
             _stopwatch.Stop();
+            _deltaStopwatch.Stop();
             _timer.Stop();
             _timer.Dispose();
         }

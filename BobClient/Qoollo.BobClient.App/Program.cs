@@ -48,12 +48,21 @@ namespace Qoollo.BobClient.App
 
             ParallelRandom random = new ParallelRandom((int)threadCount);
 
-            using (var progress = new ProgressTracker(progressIntervalMs, "Put", (int)count).Start())
+            bool isInitialRun = true;
+            Barrier bar = new Barrier((int)threadCount);
+
+            using (var progress = new ProgressTracker(progressIntervalMs, "Put", (int)count))
             {
-                //for (int i = 0; i < count; i++)
                 Parallel.For(0, (int)count, new ParallelOptions() { MaxDegreeOfParallelism = (int)threadCount },
                 (int i) =>
                 {
+                    if (isInitialRun)
+                    {
+                        bar.SignalAndWait();
+                        progress.Start();
+                        isInitialRun = false;
+                    }
+
                     ulong currentId = startId + (ulong)i;
                     if (randomWrite)
                         currentId = startId + (ulong)random.Next(i, maxValue: (int)(endId - startId));
@@ -102,16 +111,25 @@ namespace Qoollo.BobClient.App
 
             ParallelRandom random = new ParallelRandom((int)threadCount);
 
-            using (var progress = new ProgressTracker(progressIntervalMs, "Get", (int)count).Start())
+            using (var progress = new ProgressTracker(progressIntervalMs, "Get", (int)count))
             {
                 int keyNotFoundErrors = 0;
                 int lengthMismatchErrors = 0;
                 int otherErrors = 0;
 
-                //for (uint i = 0; i < count; i++)
+                bool isInitialRun = true;
+                Barrier bar = new Barrier((int)threadCount);
+
                 Parallel.For(0, (int)count, new ParallelOptions() { MaxDegreeOfParallelism = (int)threadCount },
                 (int i) =>
                 {
+                    if (isInitialRun)
+                    {
+                        bar.SignalAndWait();
+                        progress.Start();
+                        isInitialRun = false;
+                    }
+
                     ulong currentId = startId + (ulong)i;
                     if (randomRead)
                         currentId = startId + (ulong)random.Next(i, maxValue: (int)(endId - startId));
@@ -169,12 +187,21 @@ namespace Qoollo.BobClient.App
             int expectedRequestsCount = (int)((count - 1) / packageSize) + 1;
             int totalExistedCount = 0;
 
-            using (var progress = new ProgressTracker(progressIntervalMs, "Exists", (int)count, () => $"Result: {Volatile.Read(ref totalExistedCount),8}/{count}").Start())
+            bool isInitialRun = true;
+            Barrier bar = new Barrier((int)threadCount);
+
+            using (var progress = new ProgressTracker(progressIntervalMs, "Exists", (int)count, () => $"Result: {Volatile.Read(ref totalExistedCount),8}/{count}"))
             {
-                //for (int pckgNum = 0; pckgNum < expectedRequestsCount; pckgNum++)
                 Parallel.For(0, expectedRequestsCount, new ParallelOptions() { MaxDegreeOfParallelism = (int)threadCount },
                 (int pckgNum) =>
                 {
+                    if (isInitialRun)
+                    {
+                        bar.SignalAndWait();
+                        progress.Start();
+                        isInitialRun = false;
+                    }
+
                     int i = (int)(pckgNum * packageSize);
                     ulong[] ids = new ulong[Math.Min(packageSize, count - i)];
                     for (int j = 0; j < ids.Length; j++)
@@ -308,8 +335,9 @@ namespace Qoollo.BobClient.App
                         break;
                     case "--hexdatapattern":
                         result.DataPatternHex = args[i + 1];
+                        i++;
                         break;
-                    case "--validateGet":
+                    case "--validateget":
                         if (i + 1 < args.Length && bool.TryParse(args[i + 1], out bool validateGet))
                         {
                             result.ValidateGet = validateGet;
@@ -322,12 +350,15 @@ namespace Qoollo.BobClient.App
                         break;
                     case "--putfilesource":
                         result.PutFileSourcePattern = args[i + 1];
+                        i++;
                         break;
                     case "--getfiletarget":
                         result.GetFileTargetPattern = args[i + 1];
+                        i++;
                         break;
                     case "--progressperiod":
                         result.ProgressIntervalMs = (int)uint.Parse(args[i + 1]);
+                        i++;
                         break;
                     case "--nodes":
                     case "-n":
@@ -350,7 +381,7 @@ namespace Qoollo.BobClient.App
         }
 
 
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             ExecutionConfig config = new ExecutionConfig();
 
@@ -385,40 +416,48 @@ namespace Qoollo.BobClient.App
             if (config.Nodes.Count == 0)
             {
                 Console.WriteLine("Node addresses not specified");
-                return;
+                return -1;
             }
 
             RecordBytesSource putRecordBytesSource = new NopRecordBytesSource();
             RecordBytesSource getRecordBytesSource = new NopRecordBytesSource();
 
-            if ((config.RunMode & RunMode.Put) != 0)
+            try
             {
-                if (!string.IsNullOrEmpty(config.DataPatternHex) && config.DataLength != null)
-                    putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex, config.DataLength.Value);
-                else if (!string.IsNullOrEmpty(config.DataPatternHex))
-                    putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex);
-                else if (!string.IsNullOrEmpty(config.PutFileSourcePattern))
-                    putRecordBytesSource = new FileRecordBytesSource(config.PutFileSourcePattern, disableStore: true);
-                else if (config.DataLength != null)
-                    putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(config.DataLength.Value);
-                else
-                    putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(1024);
-            }
+                if ((config.RunMode & RunMode.Put) != 0)
+                {
+                    if (!string.IsNullOrEmpty(config.DataPatternHex) && config.DataLength != null)
+                        putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex, config.DataLength.Value);
+                    else if (!string.IsNullOrEmpty(config.DataPatternHex))
+                        putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex);
+                    else if (!string.IsNullOrEmpty(config.PutFileSourcePattern))
+                        putRecordBytesSource = new FileRecordBytesSource(config.PutFileSourcePattern, disableStore: true);
+                    else if (config.DataLength != null)
+                        putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(config.DataLength.Value);
+                    else
+                        putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(1024);
+                }
 
-            if ((config.RunMode & RunMode.Get) != 0 && (config.ValidateGet || !string.IsNullOrEmpty(config.GetFileTargetPattern)))
+                if ((config.RunMode & RunMode.Get) != 0 && (config.ValidateGet || !string.IsNullOrEmpty(config.GetFileTargetPattern)))
+                {
+                    if (!string.IsNullOrEmpty(config.DataPatternHex) && config.DataLength != null)
+                        getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex, config.DataLength.Value);
+                    else if (!string.IsNullOrEmpty(config.DataPatternHex))
+                        getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex);
+                    else if (!string.IsNullOrEmpty(config.GetFileTargetPattern) && config.ValidateGet)
+                        getRecordBytesSource = new FileRecordBytesSource(config.GetFileTargetPattern, disableStore: true);
+                    else if (!string.IsNullOrEmpty(config.GetFileTargetPattern))
+                        getRecordBytesSource = new FileRecordBytesSource(config.GetFileTargetPattern, disableStore: false);
+                    else if (config.DataLength != null)
+                        getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(config.DataLength.Value);
+                    else
+                        getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(1024);
+                }
+            }
+            catch (Exception ex)
             {
-                if (!string.IsNullOrEmpty(config.DataPatternHex) && config.DataLength != null)
-                    getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex, config.DataLength.Value);
-                else if (!string.IsNullOrEmpty(config.DataPatternHex))
-                    getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex);
-                else if (!string.IsNullOrEmpty(config.GetFileTargetPattern) && config.ValidateGet)
-                    getRecordBytesSource = new FileRecordBytesSource(config.GetFileTargetPattern, disableStore: true);
-                else if (!string.IsNullOrEmpty(config.GetFileTargetPattern))
-                    getRecordBytesSource = new FileRecordBytesSource(config.GetFileTargetPattern, disableStore: false);
-                else if (config.DataLength != null)
-                    getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(config.DataLength.Value);
-                else
-                    getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(1024);
+                Console.WriteLine($"Error: {ex.Message}");
+                return -1;
             }
 
 
@@ -439,6 +478,8 @@ namespace Qoollo.BobClient.App
 
                 client.Close();
             }
+
+            return 0;
         }
     }
 }
