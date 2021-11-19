@@ -1,0 +1,63 @@
+name: build
+
+on:
+  pull_request:
+      types: [ opened, synchronize, reopened, ready_for_review, labeled, unlabeled ]
+  push:
+    branches: [ master ]
+    
+jobs:
+
+  build-nuget:
+    runs-on: ubuntu-latest
+    env:
+      CONFIGURATION: "release"
+    steps:
+      - name: Checks-out repository 
+        uses: actions/checkout@v2
+      - name: Build nuget
+        run: |
+          dotnet pack BobClient/Qoollo.BobClient/Qoollo.BobClient.csproj -c $CONFIGURATION -o nuget
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: qoollo-bobClient-nuget
+          path: nuget
+
+
+  build-client-app-linux:
+    runs-on: ubuntu-latest
+    env:
+      CONFIGURATION: "release"
+      RUNTIME: "linux-x64"
+      FRAMEWORK: "net5.0"
+    steps:
+      - name: Checks-out repository 
+        uses: actions/checkout@v2
+      - name: Build client
+        run: |
+          dotnet publish -c $CONFIGURATION -r $RUNTIME -f $FRAMEWORK -o publish BobClient/Qoollo.BobClient.App/Qoollo.BobClient.App.csproj
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: qoollo-bobClient-app-linux
+          path: publish
+
+
+  build-client-app-windows:
+    runs-on: ubuntu-latest
+    env:
+      CONFIGURATION: "release"
+      RUNTIME: "win-x64"
+      FRAMEWORK: "net5.0"
+    steps:
+      - name: Checks-out repository 
+        uses: actions/checkout@v2
+      - name: Build client
+        run: |
+          dotnet publish -c $CONFIGURATION -r $RUNTIME -f $FRAMEWORK -o publish BobClient/Qoollo.BobClient.App/Qoollo.BobClient.App.csproj
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: qoollo-bobClient-app-win
+          path: publish
