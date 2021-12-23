@@ -13,11 +13,14 @@ namespace Qoollo.BobClient.App
     public class ProgressTracker : IDisposable
     {
         private readonly System.Timers.Timer _timer;
+        private readonly int _timerInterval;
         private volatile bool _isDisposed;
 
         private volatile int _currentCount;
         private volatile int _currentErrorCount;
         private volatile int _currentCountFromPreviousTick;
+        private double _minRps;
+        private double _maxRps;
         private readonly int _totalCount;
 
         private readonly string _operationDescription;
@@ -25,11 +28,12 @@ namespace Qoollo.BobClient.App
         private readonly Stopwatch _stopwatch;
         private readonly Stopwatch _deltaStopwatch;
 
+        private readonly bool _autoPrintMsg;
         private readonly Func<string> _customMessageBuilder;
 
         private readonly object _syncObj;
 
-        public ProgressTracker(int intervalMs, string operationDescription, int totalCount, Func<string> customMessageBuilder = null)
+        public ProgressTracker(int intervalMs, string operationDescription, int totalCount, bool autoPrintMsg = true, Func<string> customMessageBuilder = null)
         {
             if (intervalMs <= 0)
                 throw new ArgumentOutOfRangeException(nameof(intervalMs));
@@ -39,6 +43,7 @@ namespace Qoollo.BobClient.App
                 throw new ArgumentNullException(nameof(operationDescription));
 
             _timer = new System.Timers.Timer(intervalMs);
+            _timerInterval = intervalMs;
             _timer.AutoReset = true;
             _timer.Enabled = false;
             _timer.Elapsed += TimerElapsed;
@@ -47,12 +52,15 @@ namespace Qoollo.BobClient.App
             _currentCount = 0;
             _currentErrorCount = 0;
             _currentCountFromPreviousTick = 0;
+            _minRps = double.MaxValue;
+            _maxRps = double.MinValue;
 
             _operationDescription = operationDescription;
 
             _stopwatch = new Stopwatch();
             _deltaStopwatch = new Stopwatch();
 
+            _autoPrintMsg = autoPrintMsg;
             _customMessageBuilder = customMessageBuilder;
 
             _syncObj = new object();
@@ -67,6 +75,10 @@ namespace Qoollo.BobClient.App
         public int CurrentErrorCount { get { return _currentErrorCount; } }
 
         public long ElapsedMilliseconds { get { return _stopwatch.ElapsedMilliseconds; } }
+
+        public double AvgRps { get { return (double)((long)CurrentCount * 1000) / _stopwatch.ElapsedMilliseconds; } }
+        public double MinRps { get { return _minRps != double.MaxValue ? _minRps : AvgRps; } }
+        public double MaxRps { get { return _maxRps != double.MinValue ? _maxRps : AvgRps; } }
 
         public ProgressTracker Start()
         {
@@ -125,13 +137,23 @@ namespace Qoollo.BobClient.App
                 double averageRps = (double)((long)currentCount * 1000) / _stopwatch.ElapsedMilliseconds;
                 double instantaneousRps = (double)((long)(currentCount - currentCountFromPreviousTick) * 1000) / _deltaStopwatch.ElapsedMilliseconds;
 
+                if (_deltaStopwatch.ElapsedMilliseconds >= _timerInterval / 2)
+                {
+                    if (instantaneousRps > 0 || _stopwatch.ElapsedMilliseconds > _timerInterval * 1.5)
+                        _minRps = Math.Min(_minRps, instantaneousRps);
+                    _maxRps = Math.Max(_maxRps, instantaneousRps);
+                }
+
                 _deltaStopwatch.Restart();
                 _currentCountFromPreviousTick = currentCount;
 
-                if (_customMessageBuilder != null)
-                    Console.WriteLine($"{_operationDescription}: {currentCount,8}/{TotalCount},   {_customMessageBuilder()},   Errors: {currentErrorCount,5},   RPS: {averageRps.ToString("F1", CultureInfo.InvariantCulture),6},   TickRPS: {instantaneousRps.ToString("F0", CultureInfo.InvariantCulture),4}");
-                else
-                    Console.WriteLine($"{_operationDescription}: {currentCount,8}/{TotalCount},   Errors: {currentErrorCount,5},   RPS: {averageRps.ToString("F1", CultureInfo.InvariantCulture),6},   TickRPS: {instantaneousRps.ToString("F0", CultureInfo.InvariantCulture),4}");
+                if (_autoPrintMsg)
+                {
+                    if (_customMessageBuilder != null)
+                        Console.WriteLine($"{_operationDescription}: {currentCount,8}/{TotalCount},   {_customMessageBuilder()},   Errors: {currentErrorCount,5},   RPS: {instantaneousRps.ToString("F0", CultureInfo.InvariantCulture),4}");
+                    else
+                        Console.WriteLine($"{_operationDescription}: {currentCount,8}/{TotalCount},   Errors: {currentErrorCount,5},   RPS: {instantaneousRps.ToString("F0", CultureInfo.InvariantCulture),4}");
+                }
             }
         }
 
