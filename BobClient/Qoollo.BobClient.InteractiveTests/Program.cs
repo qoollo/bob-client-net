@@ -10,154 +10,201 @@ namespace Qoollo.BobClient.InteractiveTests
 {
     class Program
     {
-        [Flags]
-        enum RunMode
+        static void PutTest(IBobApi client, ulong startId, ulong endId, uint count, uint threadCount, bool randomWrite, VerbosityLevel verbosity, int progressIntervalMs, RecordBytesSource recordBytesSource)
         {
-            None = 0,
-            Get = 1,
-            Put = 2,
-            Exists = 4
-        }
+            if (endId < startId || count > endId - startId)
+                endId = startId + count;
 
-        class ExecutionConfig
-        {
-            public RunMode RunMode { get; set; } = RunMode.Get | RunMode.Exists;
-            public int DataLength { get; set; } = 1024;
-            public ulong StartId { get; set; } = 0;
-            public int Count { get; set; } = 1000;
-            public List<string> Nodes { get; set; } = new List<string>();
-        }
+            ParallelRandom random = new ParallelRandom((int)threadCount);
 
-        static void PutTest(IBobApi client, ulong startId, int count, byte[] data)
-        {
-            Stopwatch sw = Stopwatch.StartNew();
-            for (int i = 0; i < count; i++)
+            bool isInitialRun = true;
+            Barrier bar = new Barrier((int)threadCount);
+
+            using (var progress = new ProgressTracker(progressIntervalMs, "Put", (int)count, autoPrintMsg: verbosity != VerbosityLevel.Min))
             {
-                try
+                Parallel.For(0, (int)count, new ParallelOptions() { MaxDegreeOfParallelism = (int)threadCount },
+                (int i) =>
                 {
-                    client.Put(startId + (ulong)i, data, default(CancellationToken));
-                    if (i % 100 == 0)
-                        Console.WriteLine($"Put {startId + (ulong)i}: Ok");
-                }
-                catch
-                {
-                    Console.WriteLine($"Put {startId + (ulong)i}: Error");
-                }
-            }
+                    if (isInitialRun)
+                    {
+                        bar.SignalAndWait();
+                        progress.Start();
+                        isInitialRun = false;
+                    }
 
-            Console.WriteLine($"Put finished in {sw.ElapsedMilliseconds}ms. Rps: {(double)(1000 * count) / sw.ElapsedMilliseconds}");
+                    ulong currentId = startId + (ulong)i;
+                    if (randomWrite)
+                        currentId = startId + (ulong)random.Next(i, maxValue: (int)(endId - startId));
+
+                    try
+                    {
+                        if (recordBytesSource.TryGetData(currentId, out byte[] curData))
+                        {
+                            client.Put(currentId, curData, default(CancellationToken));
+                            progress.RegisterSuccess();
+                        }
+                        else
+                        {
+                            progress.RegisterError();
+                            if (verbosity == VerbosityLevel.Max)
+                            {
+                                Console.WriteLine($"Error ({currentId}): Data source for key is not found");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        progress.RegisterError();
+                        if (verbosity == VerbosityLevel.Max)
+                        {
+                            Console.WriteLine($"Error ({currentId}): {ex.Message}");
+                            Console.WriteLine(ex.ToString());
+                        }
+                    }
+                });
+
+                progress.Dispose();
+                progress.Print();
+
+                Console.WriteLine($"Put finished in {progress.ElapsedMilliseconds}ms. AvgRps: {Math.Round(progress.AvgRps, 2)}, MinRps: {Math.Round(progress.MinRps, 2)}, MaxRps: {Math.Round(progress.MaxRps, 2)}");
+                if (progress.CurrentErrorCount > 0)
+                    Console.WriteLine($"Errors: {progress.CurrentErrorCount}");
+                Console.WriteLine();
+            }
         }
 
-        static void GetTest(IBobApi client, ulong startId, int count, byte[] expectedData = null)
+        static void GetTest(IBobApi client, ulong startId, ulong endId, uint count, uint threadCount, bool randomRead, bool validationMode, VerbosityLevel verbosity, int progressIntervalMs, RecordBytesSource recordBytesSource)
         {
-            Stopwatch sw = Stopwatch.StartNew();
-            for (int i = 0; i < count; i++)
+            if (endId < startId || count > endId - startId)
+                endId = startId + count;
+
+            ParallelRandom random = new ParallelRandom((int)threadCount);
+
+            using (var progress = new ProgressTracker(progressIntervalMs, "Get", (int)count, autoPrintMsg: verbosity != VerbosityLevel.Min))
             {
-                try
-                {
-                    var result = client.Get(startId + (ulong)i, fullGet: false, token: default(CancellationToken));
-                    if (expectedData != null && result.Length != expectedData.Length)
-                        Console.WriteLine("Result length mismatch");
-                    if (i % 100 == 0)
-                        Console.WriteLine($"Get {startId + (ulong)i}: Ok");
-                }
-                catch (BobKeyNotFoundException)
-                {
-                    Console.WriteLine($"Get {startId + (ulong)i}: Key not found");
-                }
-                catch
-                {
-                    Console.WriteLine($"Get {startId + (ulong)i}: Error");
-                }
-            }
+                int keyNotFoundErrors = 0;
+                int lengthMismatchErrors = 0;
+                int otherErrors = 0;
 
-            Console.WriteLine($"Get finished in {sw.ElapsedMilliseconds}ms. Rps: {(double)(1000 * count) / sw.ElapsedMilliseconds}");
+                bool isInitialRun = true;
+                Barrier bar = new Barrier((int)threadCount);
+
+                Parallel.For(0, (int)count, new ParallelOptions() { MaxDegreeOfParallelism = (int)threadCount },
+                (int i) =>
+                {
+                    if (isInitialRun)
+                    {
+                        bar.SignalAndWait();
+                        progress.Start();
+                        isInitialRun = false;
+                    }
+
+                    ulong currentId = startId + (ulong)i;
+                    if (randomRead)
+                        currentId = startId + (ulong)random.Next(i, maxValue: (int)(endId - startId));
+
+                    try
+                    {
+                        var result = client.Get(currentId, fullGet: false, token: default(CancellationToken));
+                        if (validationMode && !recordBytesSource.VerifyData(currentId, result))
+                        {
+                            lengthMismatchErrors++;
+                            progress.RegisterError();
+                            if (verbosity == VerbosityLevel.Max)
+                                Console.WriteLine($"Error ({currentId}): Data mismatch");
+                        }
+                        else
+                        {
+                            progress.RegisterSuccess();
+                            if (!validationMode)
+                                recordBytesSource.StoreData(currentId, result);
+                        }
+                    }
+                    catch (BobKeyNotFoundException)
+                    {
+                        keyNotFoundErrors++;
+                        progress.RegisterError();
+                        if (verbosity == VerbosityLevel.Max)
+                            Console.WriteLine($"Error ({currentId}): Key not found");
+                    }
+                    catch (Exception ex)
+                    {
+                        otherErrors++;
+                        progress.RegisterError();
+                        if (verbosity == VerbosityLevel.Max)
+                        {
+                            Console.WriteLine($"Error ({currentId}): {ex.Message}");
+                            Console.WriteLine(ex.ToString());
+                        }
+                    }
+                });
+                progress.Dispose();
+                progress.Print();
+
+                Console.WriteLine($"Get finished in {progress.ElapsedMilliseconds}ms. AvgRps: {Math.Round(progress.AvgRps, 2)}, MinRps: {Math.Round(progress.MinRps, 2)}, MaxRps: {Math.Round(progress.MaxRps, 2)}");
+                if (progress.CurrentErrorCount > 0)
+                    Console.WriteLine($"KeyNotFound: {keyNotFoundErrors}, LengthMismatch: {lengthMismatchErrors}, OtherErrors: {otherErrors}");
+                Console.WriteLine();
+            }
         }
 
-        static void ExistsTest(IBobApi client, ulong startId, int count)
+        static void ExistsTest(IBobApi client, ulong startId, ulong endId, uint count, uint threadCount, uint packageSize, VerbosityLevel verbosity, int progressIntervalMs)
         {
-            const int packageSize = 100;
+            if (endId < startId || count > endId - startId)
+                endId = startId + count;
 
-            Stopwatch sw = Stopwatch.StartNew();
+            int expectedRequestsCount = (int)((count - 1) / packageSize) + 1;
+            int totalExistedCount = 0;
 
-            for (int i = 0; i < count; i += packageSize)
+            bool isInitialRun = true;
+            Barrier bar = new Barrier((int)threadCount);
+
+            using (var progress = new ProgressTracker(progressIntervalMs, "Exists", (int)count, autoPrintMsg: verbosity != VerbosityLevel.Min, customMessageBuilder: () => $"Result: {Volatile.Read(ref totalExistedCount),8}/{count}"))
             {
-                ulong[] ids = new ulong[Math.Min(packageSize, count - i)];
-                for (int j = 0; j < ids.Length; j++)
-                    ids[j] = startId + (ulong)i + (ulong)j;
+                Parallel.For(0, expectedRequestsCount, new ParallelOptions() { MaxDegreeOfParallelism = (int)threadCount },
+                (int pckgNum) =>
+                {
+                    if (isInitialRun)
+                    {
+                        bar.SignalAndWait();
+                        progress.Start();
+                        isInitialRun = false;
+                    }
 
-                try
-                {
-                    var result = client.Exists(ids, fullGet: false, token: default(CancellationToken));
-                    int existedCount = result.Count(o => o == true);
-                    Console.WriteLine($"Exists {startId + (ulong)i} - {startId + (ulong)i + (ulong)ids.Length}: {existedCount}/{ids.Length}");
-                }
-                catch
-                {
-                    Console.WriteLine($"Exists {startId + (ulong)i} - {startId + (ulong)i + (ulong)ids.Length}: Error");
-                }
+                    int i = (int)(pckgNum * packageSize);
+                    ulong[] ids = new ulong[Math.Min(packageSize, count - i)];
+                    for (int j = 0; j < ids.Length; j++)
+                        ids[j] = startId + (ulong)i + (ulong)j;
+
+                    try
+                    {
+                        var result = client.Exists(ids, fullGet: false, token: default(CancellationToken));
+                        int existedCount = result.Count(o => o == true);
+                        Interlocked.Add(ref totalExistedCount, existedCount);
+                        progress.RegisterEvents(ids.Length, isError: false);
+                    }
+                    catch (Exception ex)
+                    {
+                        progress.RegisterEvents(ids.Length, isError: true);
+                        if (verbosity == VerbosityLevel.Max)
+                        {
+                            Console.WriteLine($"Error ({ids[0]} - {ids[ids.Length - 1]}): {ex.Message}");
+                            Console.WriteLine(ex.ToString());
+                        }
+                    }
+                });
+
+                progress.Dispose();
+                progress.Print();
+
+                Console.WriteLine($"Exists finished in {progress.ElapsedMilliseconds}ms. AvgRps: {Math.Round(progress.AvgRps, 2)}, MinRps: {Math.Round(progress.MinRps, 2)}, MaxRps: {Math.Round(progress.MaxRps, 2)}, Rps for packages: {Math.Round((double)(1000 * expectedRequestsCount) / progress.ElapsedMilliseconds, 2)}");
+                Console.WriteLine($"Exists result: {totalExistedCount}/{count}");
+                if (progress.CurrentErrorCount > 0)
+                    Console.WriteLine($"Errors: {progress.CurrentErrorCount}");
+                Console.WriteLine();
             }
-
-            Console.WriteLine($"Exists finished in {sw.ElapsedMilliseconds}ms. Rps: {(double)(1000 * count) / sw.ElapsedMilliseconds}");
         }
 
-
-        static void PrintHelp()
-        {
-            Console.WriteLine("Bob client tests");
-            Console.WriteLine("Arguments:");
-            Console.WriteLine("  --mode   | -m  : Work mode combined by comma. Possible values: 'Get,Put,Exists'");
-            Console.WriteLine("  --length | -l  : Set size of the single record");
-            Console.WriteLine("  --start  | -s  : Start Id");
-            Console.WriteLine("  --count  | -c  : Count of ids to process");
-            Console.WriteLine("  --nodes        : Comma separated node addresses. Example: '127.0.0.1:20000, 127.0.0.2:20000'");
-            Console.WriteLine("  --help         : Print help");
-            Console.WriteLine();
-        }
-
-        static ExecutionConfig ParseConfigFromArgs(string[] args)
-        {
-            var result = new ExecutionConfig();
-
-            for (int i = 0; i < args.Length; i++)
-            {
-                switch (args[i].ToLowerInvariant())
-                {
-                    case "--mode":
-                    case "-m":
-                        result.RunMode = (RunMode)Enum.Parse(typeof(RunMode), args[i + 1]);
-                        i++;
-                        break;
-                    case "--length":
-                    case "-l":
-                        result.DataLength = int.Parse(args[i + 1]);
-                        i++;
-                        break;
-                    case "--start":
-                    case "-s":
-                        result.StartId = ulong.Parse(args[i + 1]);
-                        i++;
-                        break;
-                    case "--count":
-                    case "-c":
-                        result.Count = int.Parse(args[i + 1]);
-                        i++;
-                        break;
-                    case "--nodes":
-                        result.Nodes = args[i + 1].Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Select(o => o.Trim()).ToList();
-                        i++;
-                        break;
-                    case "--help":
-                        PrintHelp();
-                        break;
-                    default:
-                        Console.WriteLine($"Unknown argument: {args[i]}. Use '--help' to get help");
-                        break;
-                }
-            }
-
-            return result;
-        }
 
         static BobClusterBuilder CreateClusterBuilder(IEnumerable<string> nodes)
         {
@@ -168,45 +215,103 @@ namespace Qoollo.BobClient.InteractiveTests
             return result;
         }
 
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
-            ExecutionConfig config = new ExecutionConfig()
+            ExecutionConfig config = new ExecutionConfig();
+
+            if (args.Length == 1 && args[0] == ":test")
             {
-                RunMode = RunMode.Get | RunMode.Put | RunMode.Exists,
-                DataLength = 1024,
-                StartId = 30000,
-                Count = 1000,
-                Nodes = new List<string>() { "10.5.5.127:20000", "10.5.5.128:20000" }
-            };
-
-
-            if (args.Length > 0)
-                config = ParseConfigFromArgs(args);
+                config = new ExecutionConfig()
+                {
+                    RunMode = RunMode.Get | RunMode.Put | RunMode.Exists,
+                    DataLength = 1024,
+                    DataPatternHex = null,
+                    ValidateGet = false,
+                    GetFileTargetPattern = null,
+                    PutFileSourcePattern = null,
+                    StartId = 62000,
+                    EndId = null,
+                    Count = 20000,
+                    ExistsPackageSize = 100,
+                    KeySize = sizeof(ulong),
+                    RandomMode = true,
+                    Verbosisty = VerbosityLevel.Normal,
+                    Timeout = 60,
+                    ThreadCount = 4,
+                    ProgressIntervalMs = 1000,
+                    Nodes = new List<string>() { "10.5.5.127:20000", "10.5.5.128:20000" }
+                };
+            }
+            else if (args.Length > 0)
+            {
+                config = CommandLineParametersParser.ParseConfigFromArgs(args);
+            }
 
             if (config.Nodes.Count == 0)
             {
                 Console.WriteLine("Node addresses not specified");
-                return;
+                return -1;
             }
 
-            byte[] sampleData = Enumerable.Range(0, config.DataLength).Select(o => (byte)(o % byte.MaxValue)).ToArray();
+            RecordBytesSource putRecordBytesSource = new NopRecordBytesSource();
+            RecordBytesSource getRecordBytesSource = new NopRecordBytesSource();
+
+            try
+            {
+                if ((config.RunMode & RunMode.Put) != 0)
+                {
+                    if (!string.IsNullOrEmpty(config.DataPatternHex) && config.DataLength != null)
+                        putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex, config.DataLength.Value);
+                    else if (!string.IsNullOrEmpty(config.DataPatternHex))
+                        putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex);
+                    else if (!string.IsNullOrEmpty(config.PutFileSourcePattern))
+                        putRecordBytesSource = new FileRecordBytesSource(config.PutFileSourcePattern, disableStore: true);
+                    else if (config.DataLength != null)
+                        putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(config.DataLength.Value);
+                    else
+                        putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(1024);
+                }
+
+                if ((config.RunMode & RunMode.Get) != 0 && (config.ValidateGet || !string.IsNullOrEmpty(config.GetFileTargetPattern)))
+                {
+                    if (!string.IsNullOrEmpty(config.DataPatternHex) && config.DataLength != null)
+                        getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex, config.DataLength.Value);
+                    else if (!string.IsNullOrEmpty(config.DataPatternHex))
+                        getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex);
+                    else if (!string.IsNullOrEmpty(config.GetFileTargetPattern) && config.ValidateGet)
+                        getRecordBytesSource = new FileRecordBytesSource(config.GetFileTargetPattern, disableStore: true);
+                    else if (!string.IsNullOrEmpty(config.GetFileTargetPattern))
+                        getRecordBytesSource = new FileRecordBytesSource(config.GetFileTargetPattern, disableStore: false);
+                    else if (config.DataLength != null)
+                        getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(config.DataLength.Value);
+                    else
+                        getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(1024);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                return -1;
+            }
 
             using (var client = CreateClusterBuilder(config.Nodes)
                 .WithOperationTimeout(TimeSpan.FromSeconds(10))
                 .WithNodeSelectionPolicy(new SequentialNodeSelectionPolicy())
                 .Build())
             {
-                client.Open(TimeSpan.FromSeconds(10));
+                client.Open(TimeSpan.FromSeconds(config.Timeout));
 
                 if ((config.RunMode & RunMode.Put) != 0)
-                    PutTest(client, config.StartId, config.Count, sampleData);
+                    PutTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.RandomMode, config.Verbosisty, config.ProgressIntervalMs, putRecordBytesSource);
                 if ((config.RunMode & RunMode.Get) != 0)
-                    GetTest(client, config.StartId, config.Count, expectedData: sampleData);
+                    GetTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.RandomMode, config.ValidateGet, config.Verbosisty, config.ProgressIntervalMs, getRecordBytesSource);
                 if ((config.RunMode & RunMode.Exists) != 0)
-                    ExistsTest(client, config.StartId, config.Count);
+                    ExistsTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.ExistsPackageSize, config.Verbosisty, config.ProgressIntervalMs);
 
                 client.Close();
             }
+
+            return 0;
         }
     }
 }
