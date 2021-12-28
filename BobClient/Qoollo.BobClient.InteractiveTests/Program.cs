@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +11,11 @@ namespace Qoollo.BobClient.InteractiveTests
 {
     class Program
     {
+        static string RoundToStr(double val)
+        {
+            return Math.Round(val, 2).ToString(CultureInfo.InvariantCulture);
+        }
+
         static void PutTest(IBobApi client, ulong startId, ulong endId, uint count, uint threadCount, bool randomWrite, VerbosityLevel verbosity, int progressIntervalMs, RecordBytesSource recordBytesSource)
         {
             if (endId < startId || count > endId - startId)
@@ -66,9 +72,10 @@ namespace Qoollo.BobClient.InteractiveTests
                 progress.Dispose();
                 progress.Print();
 
-                Console.WriteLine($"Put finished in {progress.ElapsedMilliseconds}ms. AvgRps: {Math.Round(progress.AvgRps, 2)}, MinRps: {Math.Round(progress.MinRps, 2)}, MaxRps: {Math.Round(progress.MaxRps, 2)}");
+                var stat = progress.GetProgressStats();
+                Console.WriteLine($"Put finished in {stat.ElapsedMilliseconds}ms. RpsAvg: {RoundToStr(stat.RpsAvg)}, RpsDev: {RoundToStr(stat.RpsDev)}, RpsMedian: {RoundToStr(stat.RpsMedian)}, Rps10P: {RoundToStr(stat.Rps10P)}, Rps90P: {RoundToStr(stat.Rps90P)}, RpsMin: {RoundToStr(stat.RpsMin)}, RpsMax: {RoundToStr(stat.RpsMax)}");
                 if (progress.CurrentErrorCount > 0)
-                    Console.WriteLine($"Errors: {progress.CurrentErrorCount}");
+                    Console.WriteLine($"Errors: {stat.ErrorCount}");
                 Console.WriteLine();
             }
         }
@@ -108,7 +115,7 @@ namespace Qoollo.BobClient.InteractiveTests
                         var result = client.Get(currentId, fullGet: false, token: default(CancellationToken));
                         if (validationMode && !recordBytesSource.VerifyData(currentId, result))
                         {
-                            lengthMismatchErrors++;
+                            Interlocked.Increment(ref lengthMismatchErrors);
                             progress.RegisterError();
                             if (verbosity == VerbosityLevel.Max)
                                 Console.WriteLine($"Error ({currentId}): Data mismatch");
@@ -122,14 +129,14 @@ namespace Qoollo.BobClient.InteractiveTests
                     }
                     catch (BobKeyNotFoundException)
                     {
-                        keyNotFoundErrors++;
+                        Interlocked.Increment(ref keyNotFoundErrors);
                         progress.RegisterError();
                         if (verbosity == VerbosityLevel.Max)
                             Console.WriteLine($"Error ({currentId}): Key not found");
                     }
                     catch (Exception ex)
                     {
-                        otherErrors++;
+                        Interlocked.Increment(ref otherErrors);
                         progress.RegisterError();
                         if (verbosity == VerbosityLevel.Max)
                         {
@@ -141,9 +148,10 @@ namespace Qoollo.BobClient.InteractiveTests
                 progress.Dispose();
                 progress.Print();
 
-                Console.WriteLine($"Get finished in {progress.ElapsedMilliseconds}ms. AvgRps: {Math.Round(progress.AvgRps, 2)}, MinRps: {Math.Round(progress.MinRps, 2)}, MaxRps: {Math.Round(progress.MaxRps, 2)}");
+                var stat = progress.GetProgressStats();
+                Console.WriteLine($"Get finished in {stat.ElapsedMilliseconds}ms. RpsAvg: {RoundToStr(stat.RpsAvg)}, RpsDev: {RoundToStr(stat.RpsDev)}, RpsMedian: {RoundToStr(stat.RpsMedian)}, Rps10P: {RoundToStr(stat.Rps10P)}, Rps90P: {RoundToStr(stat.Rps90P)}, RpsMin: {RoundToStr(stat.RpsMin)}, RpsMax: {RoundToStr(stat.RpsMax)}");
                 if (progress.CurrentErrorCount > 0)
-                    Console.WriteLine($"KeyNotFound: {keyNotFoundErrors}, LengthMismatch: {lengthMismatchErrors}, OtherErrors: {otherErrors}");
+                    Console.WriteLine($"KeyNotFound: {Volatile.Read(ref keyNotFoundErrors)}, LengthMismatch: {Volatile.Read(ref lengthMismatchErrors)}, OtherErrors: {Volatile.Read(ref otherErrors)}");
                 Console.WriteLine();
             }
         }
@@ -197,10 +205,11 @@ namespace Qoollo.BobClient.InteractiveTests
                 progress.Dispose();
                 progress.Print();
 
-                Console.WriteLine($"Exists finished in {progress.ElapsedMilliseconds}ms. AvgRps: {Math.Round(progress.AvgRps, 2)}, MinRps: {Math.Round(progress.MinRps, 2)}, MaxRps: {Math.Round(progress.MaxRps, 2)}, Rps for packages: {Math.Round((double)(1000 * expectedRequestsCount) / progress.ElapsedMilliseconds, 2)}");
+                var stat = progress.GetProgressStats();
+                Console.WriteLine($"Exists finished in {stat.ElapsedMilliseconds}ms. RpsAvg: {RoundToStr(stat.RpsAvg)}, RpsDev: {RoundToStr(stat.RpsDev)}, RpsMedian: {RoundToStr(stat.RpsMedian)}, Rps10P: {RoundToStr(stat.Rps10P)}, Rps90P: {RoundToStr(stat.Rps90P)}, RpsMin: {RoundToStr(stat.RpsMin)}, RpsMax: {RoundToStr(stat.RpsMax)}, Packages Per Second: {RoundToStr((double)(1000 * expectedRequestsCount) / stat.ElapsedMilliseconds)}");
                 Console.WriteLine($"Exists result: {totalExistedCount}/{count}");
                 if (progress.CurrentErrorCount > 0)
-                    Console.WriteLine($"Errors: {progress.CurrentErrorCount}");
+                    Console.WriteLine($"Errors: {stat.ErrorCount}");
                 Console.WriteLine();
             }
         }
@@ -293,6 +302,10 @@ namespace Qoollo.BobClient.InteractiveTests
                 Console.WriteLine($"Error: {ex.Message}");
                 return -1;
             }
+
+            ThreadPool.GetMinThreads(out int workerThreadsMin, out int completionPortThreadsMin);
+            ThreadPool.GetMaxThreads(out int workerThreadsMax, out _);
+            ThreadPool.SetMinThreads(Math.Min(Math.Max(workerThreadsMin, (int)config.ThreadCount), workerThreadsMax), completionPortThreadsMin);
 
             using (var client = CreateClusterBuilder(config.Nodes)
                 .WithOperationTimeout(TimeSpan.FromSeconds(10))

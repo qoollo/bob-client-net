@@ -10,6 +10,60 @@ using System.Timers;
 
 namespace Qoollo.BobClient.InteractiveTests
 {
+    public class ProgressStats
+    {
+        public ProgressStats(IReadOnlyList<double> rpsList, int totalCount, int errorCount, long elapsedMilliseconds)
+        {
+            if (rpsList == null)
+                throw new ArgumentNullException(nameof(rpsList));
+            if (totalCount < 0)
+                throw new ArgumentOutOfRangeException(nameof(totalCount));
+            if (errorCount < 0)
+                throw new ArgumentOutOfRangeException(nameof(errorCount));
+            if (elapsedMilliseconds < 0)
+                throw new ArgumentOutOfRangeException(nameof(elapsedMilliseconds));
+
+            TotalCount = totalCount;
+            ErrorCount = errorCount;
+            ElapsedMilliseconds = elapsedMilliseconds;
+            ProcessedCount = rpsList.Count;
+
+            if (rpsList.Count > 0)
+            {
+                List<double> rpsListCopy = rpsList.ToList();
+                if (rpsListCopy.Count > 1 && rpsListCopy[0] == 0.0)
+                    rpsListCopy.RemoveAt(0);
+
+                RpsAvg = rpsListCopy.Average();
+                RpsDev = Math.Sqrt(rpsListCopy.Average(o => (o - RpsAvg) * (o - RpsAvg)));
+                RpsMax = rpsListCopy.Max();
+                RpsMin = rpsListCopy.Min();
+
+                rpsListCopy.Sort();
+                if (rpsListCopy.Count % 2 == 1)
+                    RpsMedian = rpsListCopy[rpsListCopy.Count / 2];
+                else
+                    RpsMedian = (rpsListCopy[(rpsListCopy.Count / 2) - 1] + rpsListCopy[rpsListCopy.Count / 2]) / 2.0;
+
+                Rps10P = rpsListCopy[(int)(rpsListCopy.Count * 0.1)];
+                Rps90P = rpsListCopy[(int)(rpsListCopy.Count * 0.9)];
+            }
+        }
+
+        public int TotalCount { get; }
+        public int ErrorCount { get; }
+        public long ElapsedMilliseconds { get; }
+
+        public int ProcessedCount { get; }
+        public double RpsAvg { get; }
+        public double RpsDev { get; }
+        public double RpsMin { get; }
+        public double RpsMax { get; }
+        public double RpsMedian { get; }
+        public double Rps10P { get; }
+        public double Rps90P { get; }
+    }
+
     public class ProgressTracker : IDisposable
     {
         private readonly System.Timers.Timer _timer;
@@ -19,8 +73,7 @@ namespace Qoollo.BobClient.InteractiveTests
         private volatile int _currentCount;
         private volatile int _currentErrorCount;
         private volatile int _currentCountFromPreviousTick;
-        private double _minRps;
-        private double _maxRps;
+        private readonly List<double> _rpsList;
         private readonly int _totalCount;
 
         private readonly string _operationDescription;
@@ -52,8 +105,7 @@ namespace Qoollo.BobClient.InteractiveTests
             _currentCount = 0;
             _currentErrorCount = 0;
             _currentCountFromPreviousTick = 0;
-            _minRps = double.MaxValue;
-            _maxRps = double.MinValue;
+            _rpsList = new List<double>();
 
             _operationDescription = operationDescription;
 
@@ -77,8 +129,28 @@ namespace Qoollo.BobClient.InteractiveTests
         public long ElapsedMilliseconds { get { return _stopwatch.ElapsedMilliseconds; } }
 
         public double AvgRps { get { return (double)((long)CurrentCount * 1000) / _stopwatch.ElapsedMilliseconds; } }
-        public double MinRps { get { return _minRps != double.MaxValue ? _minRps : AvgRps; } }
-        public double MaxRps { get { return _maxRps != double.MinValue ? _maxRps : AvgRps; } }
+
+
+        public ProgressStats GetProgressStats()
+        {
+            List<double> rpsListCopy = null;
+            int totalCount = 0;
+            int errorCount = 0;
+            long elapsedMilliseconds = 0;
+
+            lock (_syncObj)
+            {
+                rpsListCopy = _rpsList.ToList();
+                totalCount = _totalCount;
+                errorCount = _currentErrorCount;
+                elapsedMilliseconds = _stopwatch.ElapsedMilliseconds;
+            }
+
+
+
+            return new ProgressStats(rpsListCopy, totalCount, errorCount, elapsedMilliseconds);
+        }
+
 
         public ProgressTracker Start()
         {
@@ -134,15 +206,9 @@ namespace Qoollo.BobClient.InteractiveTests
                 int currentCount = _currentCount;
                 int currentCountFromPreviousTick = _currentCountFromPreviousTick;
 
-                double averageRps = (double)((long)currentCount * 1000) / _stopwatch.ElapsedMilliseconds;
                 double instantaneousRps = (double)((long)(currentCount - currentCountFromPreviousTick) * 1000) / _deltaStopwatch.ElapsedMilliseconds;
 
-                if (_deltaStopwatch.ElapsedMilliseconds >= _timerInterval / 2)
-                {
-                    if (instantaneousRps > 0 || _stopwatch.ElapsedMilliseconds > _timerInterval * 1.5)
-                        _minRps = Math.Min(_minRps, instantaneousRps);
-                    _maxRps = Math.Max(_maxRps, instantaneousRps);
-                }
+                _rpsList.Add(instantaneousRps);
 
                 _deltaStopwatch.Restart();
                 _currentCountFromPreviousTick = currentCount;
