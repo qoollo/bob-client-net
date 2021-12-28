@@ -296,7 +296,7 @@ namespace Qoollo.BobClient.App
 
             ThreadPool.GetMinThreads(out int workerThreadsMin, out int completionPortThreadsMin);
             ThreadPool.GetMaxThreads(out int workerThreadsMax, out _);
-            ThreadPool.SetMinThreads(Math.Min(Math.Max(workerThreadsMin, (int)config.ThreadCount), workerThreadsMax), completionPortThreadsMin);
+            ThreadPool.SetMinThreads(Math.Min(Math.Max(workerThreadsMin, (int)config.ThreadCount + 4), workerThreadsMax), completionPortThreadsMin);
 
             using (var client = new BobClusterBuilder<ulong>(config.Nodes)
                 .WithOperationTimeout(TimeSpan.FromSeconds(config.Timeout))
