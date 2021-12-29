@@ -505,10 +505,14 @@ namespace Qoollo.BobClient.UnitTests
 
             using (var client = BobNodeClientMockHelper.CreateMockedClient("Address = 127.0.0.1; OperationTimeout = 01:00:00", mock))
             {
+                var expectedDeadline = DateTime.UtcNow + TimeSpan.FromHours(1);
                 client.Get(BobKey.FromUInt64(1));
 
                 Assert.NotNull(deadline);
-                Assert.True((deadline.Value - DateTime.Now) < TimeSpan.FromMinutes(10));
+                var delta = (deadline.Value - expectedDeadline);
+                if (delta < TimeSpan.Zero)
+                    delta = -delta;
+                Assert.True(delta < TimeSpan.FromMinutes(10));
             }
         }
     }
