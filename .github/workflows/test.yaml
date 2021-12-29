@@ -1,4 +1,4 @@
-name: build
+name: test
 
 on:
   pull_request:
@@ -8,11 +8,11 @@ on:
     
 jobs:
 
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checks-out repository 
         uses: actions/checkout@v2
-      - name: Build
+      - name: Test
         run: |
-          dotnet build ./BobClient/
+          dotnet test ./BobClient/

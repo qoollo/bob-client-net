@@ -1,0 +1,123 @@
+name: build-release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+    
+jobs:
+
+  build-nuget:
+    runs-on: ubuntu-latest
+    env:
+      CONFIGURATION: "release"
+    steps:
+      - name: Checks-out repository 
+        uses: actions/checkout@v2
+      - name: Build nuget
+        run: |
+          dotnet pack BobClient/Qoollo.BobClient/Qoollo.BobClient.csproj -c $CONFIGURATION -o nuget
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: qoollo-bobClient-nuget
+          path: nuget
+
+  upload-nuget:
+    runs-on: ubuntu-latest
+    needs: build-nuget
+    environment: prod
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: qoollo-bobClient-nuget
+          path: nuget
+      - name: Upload nuget to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: nuget/Qoollo.BobClient.*.nuget
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
+
+
+  build-client-app-linux:
+    runs-on: ubuntu-latest
+    env:
+      CONFIGURATION: "release"
+      RUNTIME: "linux-x64"
+      FRAMEWORK: "net5.0"
+    steps:
+      - name: Checks-out repository 
+        uses: actions/checkout@v2
+      - name: Build client
+        run: |
+          dotnet publish -c $CONFIGURATION -r $RUNTIME -f $FRAMEWORK -o publish BobClient/Qoollo.BobClient.App/Qoollo.BobClient.App.csproj
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: qoollo-bobClient-app-linux
+          path: publish
+
+  upload-client-app-linux:
+    runs-on: ubuntu-latest
+    needs: build-client-app-linux
+    environment: prod
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: qoollo-bobClient-app-linux
+          path: client-app-linux
+      - name: Create zip
+        run: |
+          zip -r client-app-linux.zip client-app-linux/
+      - name: Upload client app for Linux to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: client-app-linux.zip
+          tag: ${{ github.ref }}
+          overwrite: true
+
+
+  build-client-app-windows:
+    runs-on: ubuntu-latest
+    env:
+      CONFIGURATION: "release"
+      RUNTIME: "win-x64"
+      FRAMEWORK: "net5.0"
+    steps:
+      - name: Checks-out repository 
+        uses: actions/checkout@v2
+      - name: Build client
+        run: |
+          dotnet publish -c $CONFIGURATION -r $RUNTIME -f $FRAMEWORK -o publish BobClient/Qoollo.BobClient.App/Qoollo.BobClient.App.csproj
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: qoollo-bobClient-app-windows
+          path: publish
+
+  upload-client-app-windows:
+    runs-on: ubuntu-latest
+    needs: build-client-app-windows
+    environment: prod
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: qoollo-bobClient-app-windows
+          path: client-app-windows
+      - name: Create zip
+        run: |
+          zip -r client-app-windows.zip client-app-windows/
+      - name: Upload client app for Windows to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: client-app-windows.zip
+          tag: ${{ github.ref }}
+          overwrite: true
