@@ -70,43 +70,41 @@ namespace Qoollo.BobClient
         /// <summary>
         /// <see cref="BobClusterClient"/> constructor
         /// </summary>
-        /// <param name="nodeAddress">List of nodes addresses</param>
-        /// <param name="operationTimeout">Operation timeout for every created node client</param>
+        /// <param name="nodeConnectionParameters">List of nodes connection parameters</param>
         /// <param name="nodeSelectionPolicyFactory">Factory to create node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
         /// <param name="operationRetryCount">The number of times the operation retries in case of failure (null - default value (no retries), 0 - no retries, >= 1 - number of retries after failure, -1 - number of retries is equal to number of nodes)</param>
         /// <param name="keySerializer">Serializer for <typeparamref name="TKey"/> (null for default serializer)</param>
         /// <param name="keySerializationPoolSize">Size of the Key serialization pool (null - shared pool, 0 or less - pool is disabled, 1 or greater - custom pool with specified size)</param>
-        public BobClusterClient(IEnumerable<NodeAddress> nodeAddress, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, int? operationRetryCount, BobKeySerializer<TKey> keySerializer, int? keySerializationPoolSize, TimeSpan operationTimeout)
-            : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), nodeSelectionPolicyFactory, operationRetryCount, keySerializer, keySerializationPoolSize)
+        public BobClusterClient(IEnumerable<BobConnectionParameters> nodeConnectionParameters, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, int? operationRetryCount, BobKeySerializer<TKey> keySerializer, int? keySerializationPoolSize)
+            : this(nodeConnectionParameters.Select(o => new BobNodeClient(o)).ToList(), nodeSelectionPolicyFactory, operationRetryCount, keySerializer, keySerializationPoolSize)
         {
         }
         /// <summary>
         /// <see cref="BobClusterClient"/> constructor
         /// </summary>
-        /// <param name="nodeAddress">List of nodes addresses</param>
-        public BobClusterClient(IEnumerable<NodeAddress> nodeAddress)
-            : this(nodeAddress, (BobNodeSelectionPolicyFactory)null, (int?)null, (BobKeySerializer<TKey>)null, (int?)null, BobNodeClient.DefaultOperationTimeout)
+        /// <param name="nodeConnectionParameters">List of nodes connection parameters</param>
+        public BobClusterClient(IEnumerable<BobConnectionParameters> nodeConnectionParameters)
+            : this(nodeConnectionParameters, (BobNodeSelectionPolicyFactory)null, (int?)null, (BobKeySerializer<TKey>)null, (int?)null)
         {
         }
         /// <summary>
         /// <see cref="BobClusterClient"/> constructor
         /// </summary>
-        /// <param name="nodeAddress">List of nodes addresses</param>
-        /// <param name="operationTimeout">Operation timeout for every created node client</param>
+        /// <param name="nodeConnectionStrings">List of connection strings to nodes</param>
         /// <param name="nodeSelectionPolicyFactory">Factory to create node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
         /// <param name="operationRetryCount">The number of times the operation retries in case of failure (null - default value (no retries), 0 - no retries, >= 1 - number of retries after failure, -1 - number of retries is equal to number of nodes)</param>
         /// <param name="keySerializer">Serializer for <typeparamref name="TKey"/> (null for default serializer)</param>
         /// <param name="keySerializationPoolSize">Size of the Key serialization pool (null - shared pool, 0 or less - pool is disabled, 1 or greater - custom pool with specified size)</param>
-        public BobClusterClient(IEnumerable<string> nodeAddress, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, int? operationRetryCount, BobKeySerializer<TKey> keySerializer, int? keySerializationPoolSize, TimeSpan operationTimeout)
-            : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), nodeSelectionPolicyFactory, operationRetryCount, keySerializer, keySerializationPoolSize)
+        public BobClusterClient(IEnumerable<string> nodeConnectionStrings, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, int? operationRetryCount, BobKeySerializer<TKey> keySerializer, int? keySerializationPoolSize)
+            : this(nodeConnectionStrings.Select(o => new BobNodeClient(o)).ToList(), nodeSelectionPolicyFactory, operationRetryCount, keySerializer, keySerializationPoolSize)
         {
         }
         /// <summary>
         /// <see cref="BobClusterClient"/> constructor
         /// </summary>
-        /// <param name="nodeAddress">List of nodes addresses</param>
-        public BobClusterClient(IEnumerable<string> nodeAddress)
-            : this(nodeAddress, (BobNodeSelectionPolicyFactory)null, (int?)null, (BobKeySerializer<TKey>)null, (int?)null, BobNodeClient.DefaultOperationTimeout)
+        /// <param name="nodeConnectionStrings">List of connection strings to nodes</param>
+        public BobClusterClient(IEnumerable<string> nodeConnectionStrings)
+            : this(nodeConnectionStrings, (BobNodeSelectionPolicyFactory)null, (int?)null, (BobKeySerializer<TKey>)null, (int?)null)
         {
         }
 
@@ -115,35 +113,12 @@ namespace Qoollo.BobClient
         /// The number of times the operation retries in case of failure
         /// </summary>
         internal int OperationRetryCount { get { return _innerCluster.OperationRetryCount; } }
+        /// <summary>
+        /// Connection parameters of all registered clients
+        /// </summary>
+        internal IEnumerable<BobConnectionParameters> ClientConnectionParameters { get { return _innerCluster.ClientConnectionParameters; } }
 
 
-        /// <summary>
-        /// Explicitly opens connection to every Bob node in cluster
-        /// </summary>
-        /// <param name="timeout">Timeout</param>
-        /// <param name="mode">Mode that contols open error handling</param>
-        /// <returns>Task to await</returns>
-        /// <exception cref="BobOperationException">Connection was not opened</exception>
-        /// <exception cref="TimeoutException">Specified timeout reached</exception>
-        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Incorrect timeout value</exception>
-        public Task OpenAsync(TimeSpan timeout, BobClusterOpenCloseMode mode)
-        {
-            return _innerCluster.OpenAsync(timeout, mode);
-        }
-        /// <summary>
-        /// Explicitly opens connection to every Bob node in cluster
-        /// </summary>
-        /// <param name="timeout">Timeout</param>
-        /// <returns>Task to await</returns>
-        /// <exception cref="BobOperationException">Connection was not opened</exception>
-        /// <exception cref="TimeoutException">Specified timeout reached</exception>
-        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Incorrect timeout value</exception>
-        public Task OpenAsync(TimeSpan timeout)
-        {
-            return _innerCluster.OpenAsync(timeout);
-        }
         /// <summary>
         /// Explicitly opens connection to every Bob node in cluster
         /// </summary>
@@ -166,31 +141,6 @@ namespace Qoollo.BobClient
         public Task OpenAsync()
         {
             return _innerCluster.OpenAsync();
-        }
-        /// <summary>
-        /// Explicitly opens connection to every Bob node in cluster
-        /// </summary>
-        /// <param name="timeout">Timeout</param>
-        /// <param name="mode">Mode that contols open error handling</param>
-        /// <exception cref="BobOperationException">Connection was not opened</exception>
-        /// <exception cref="TimeoutException">Specified timeout reached</exception>
-        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Incorrect timeout value</exception>
-        public void Open(TimeSpan timeout, BobClusterOpenCloseMode mode)
-        {
-            _innerCluster.Open(timeout, mode);
-        }
-        /// <summary>
-        /// Explicitly opens connection to every Bob node in cluster
-        /// </summary>
-        /// <param name="timeout">Timeout</param>
-        /// <exception cref="BobOperationException">Connection was not opened</exception>
-        /// <exception cref="TimeoutException">Specified timeout reached</exception>
-        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Incorrect timeout value</exception>
-        public void Open(TimeSpan timeout)
-        {
-            _innerCluster.Open(timeout);
         }
         /// <summary>
         /// Explicitly opens connection to every Bob node in cluster

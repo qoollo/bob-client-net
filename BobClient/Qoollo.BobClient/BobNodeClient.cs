@@ -40,22 +40,9 @@ namespace Qoollo.BobClient
     /// <summary>
     /// Client for a single Bob node
     /// </summary>
-    [System.Diagnostics.DebuggerDisplay("[Bob Node: {Address.Address}, State: {State}]")]
+    [System.Diagnostics.DebuggerDisplay("[Bob Node: {NodeAddress.Address}, State: {State}]")]
     public class BobNodeClient: IBobApi, IBobNodeClientStatus, IDisposable
     {
-        /// <summary>
-        /// Default operation timeout
-        /// </summary>
-        public static readonly TimeSpan DefaultOperationTimeout = TimeSpan.FromMinutes(2);
-        /// <summary>
-        /// Default max receive message size
-        /// </summary>
-        private const int DefaultMaxReceiveMessageSize = int.MaxValue - 64;
-        /// <summary>
-        /// Default max send message size
-        /// </summary>
-        private const int DefaultMaxSendMessageSize = int.MaxValue - 64;
-
         /// <summary>
         /// Returns timestamp in milliseconds
         /// </summary>
@@ -134,7 +121,7 @@ namespace Qoollo.BobClient
 
         // =========
 
-        private readonly NodeAddress _nodeAddress;
+        private readonly BobConnectionParameters _connectionParameters;
         private readonly TimeSpan _operationTimeout;
 
 #if GRPC_NET
@@ -152,32 +139,29 @@ namespace Qoollo.BobClient
         /// <summary>
         /// <see cref="BobNodeClient"/> constructor
         /// </summary>
-        /// <param name="nodeAddress">Address of a Bob node</param>
-        /// <param name="operationTimeout">Timeout for every operation</param>
-        public BobNodeClient(NodeAddress nodeAddress, TimeSpan operationTimeout)
+        /// <param name="connectionParameters">Node connection parameters</param>
+        public BobNodeClient(BobConnectionParameters connectionParameters)
         {
-            if (nodeAddress == null)
-                throw new ArgumentNullException(nameof(nodeAddress));
-            if (operationTimeout < TimeSpan.Zero && operationTimeout != Timeout.InfiniteTimeSpan)
-                throw new ArgumentOutOfRangeException(nameof(operationTimeout));
+            if (connectionParameters == null)
+                throw new ArgumentNullException(nameof(connectionParameters));
 
-            _nodeAddress = nodeAddress;
-            _operationTimeout = operationTimeout;
+            _connectionParameters = connectionParameters;
+            _operationTimeout = connectionParameters.OperationTimeout ?? BobConnectionParameters.DefaultOperationTimeout;
 
 #if GRPC_NET
-            _rpcChannel = Grpc.Net.Client.GrpcChannel.ForAddress(nodeAddress.GetAddressAsUri(), 
+            _rpcChannel = Grpc.Net.Client.GrpcChannel.ForAddress(connectionParameters.NodeAddress.GetAddressAsUri(), 
                                                                  new Grpc.Net.Client.GrpcChannelOptions() 
                                                                  { 
                                                                      Credentials = Grpc.Core.ChannelCredentials.Insecure,
-                                                                     MaxReceiveMessageSize = DefaultMaxReceiveMessageSize,
-                                                                     MaxSendMessageSize = DefaultMaxSendMessageSize
+                                                                     MaxReceiveMessageSize = connectionParameters.MaxReceiveMessageSize ?? BobConnectionParameters.DefaultMaxReceiveMessageSize,
+                                                                     MaxSendMessageSize = connectionParameters.MaxSendMessageSize ?? BobConnectionParameters.DefaultMaxSendMessageSize
                                                                  });
 #elif GRPC_LEGACY
-            _rpcChannel = new Grpc.Core.Channel(nodeAddress.Address, Grpc.Core.ChannelCredentials.Insecure, 
+            _rpcChannel = new Grpc.Core.Channel(connectionParameters.NodeAddress.Address, Grpc.Core.ChannelCredentials.Insecure, 
                 new Grpc.Core.ChannelOption[]
                 {
-                    new Grpc.Core.ChannelOption(Grpc.Core.ChannelOptions.MaxReceiveMessageLength, DefaultMaxReceiveMessageSize),
-                    new Grpc.Core.ChannelOption(Grpc.Core.ChannelOptions.MaxSendMessageLength, DefaultMaxSendMessageSize)
+                    new Grpc.Core.ChannelOption(Grpc.Core.ChannelOptions.MaxReceiveMessageLength, connectionParameters.MaxReceiveMessageSize ?? BobConnectionParameters.DefaultMaxReceiveMessageSize),
+                    new Grpc.Core.ChannelOption(Grpc.Core.ChannelOptions.MaxSendMessageLength, connectionParameters.MaxSendMessageSize ?? BobConnectionParameters.DefaultMaxSendMessageSize)
                 });
 #endif
 
@@ -190,27 +174,25 @@ namespace Qoollo.BobClient
         /// <summary>
         /// <see cref="BobNodeClient"/> constructor
         /// </summary>
-        /// <param name="nodeAddress">Address of a Bob node</param>
-        /// <param name="operationTimeout">Timeout for every operation</param>
-        public BobNodeClient(string nodeAddress, TimeSpan operationTimeout)
-            : this(new NodeAddress(nodeAddress), operationTimeout)
-        {
-        }
-        /// <summary>
-        /// <see cref="BobNodeClient"/> constructor
-        /// </summary>
-        /// <param name="nodeAddress">Address of a Bob node</param>
-        public BobNodeClient(string nodeAddress)
-            : this(nodeAddress, DefaultOperationTimeout)
+        /// <param name="connectionString">Connection string</param>
+        public BobNodeClient(string connectionString)
+            : this(new BobConnectionParameters(connectionString))
         {
         }
 
         /// <summary>
         /// Address of the Node
         /// </summary>
-        public NodeAddress Address
+        public BobNodeAddress NodeAddress
         {
-            get { return _nodeAddress; }
+            get { return _connectionParameters.NodeAddress; }
+        }
+        /// <summary>
+        /// Connection parameters
+        /// </summary>
+        public BobConnectionParameters ConnectionParameters
+        {
+            get { return _connectionParameters; }
         }
 
         /// <summary>
@@ -331,18 +313,17 @@ namespace Qoollo.BobClient
         /// <summary>
         /// Explicitly opens connection to the Bob node
         /// </summary>
-        /// <param name="timeout">Timeout</param>
         /// <returns>Task to await</returns>
         /// <exception cref="BobOperationException">Connection was not opened</exception>
         /// <exception cref="TimeoutException">Specified timeout reached</exception>
         /// <exception cref="ObjectDisposedException">Client was disposed</exception>
         /// <exception cref="ArgumentOutOfRangeException">Incorrect timeout value</exception>
-        public async Task OpenAsync(TimeSpan timeout)
+        public async Task OpenAsync()
         {
             if (_isDisposed)
                 throw new ObjectDisposedException(this.GetType().Name);
-            if (timeout < TimeSpan.Zero && timeout != Timeout.InfiniteTimeSpan)
-                throw new ArgumentOutOfRangeException(nameof(timeout));
+
+            TimeSpan timeout = ConnectionParameters.ConnectionTimeout ?? BobConnectionParameters.DefaultConnectionTimeout;
 
             try
             {
@@ -353,46 +334,24 @@ namespace Qoollo.BobClient
             catch (TaskCanceledException tce)
             {
                 OnMethodCancelledTimeouted();
-                throw new TimeoutException($"Connection timeout reached (node: {_nodeAddress}, speciefied timeout: {timeout})", tce);
+                throw new TimeoutException($"Connection timeout reached (node: {NodeAddress}, speciefied timeout: {timeout})", tce);
             }
             catch (Grpc.Core.RpcException rpce)
             {
                 if (IsOperationTimeoutError(rpce))
                 {
                     OnMethodCancelledTimeouted();
-                    throw new TimeoutException($"Connection timeout reached (node: {_nodeAddress}, speciefied timeout: {timeout})", rpce);
+                    throw new TimeoutException($"Connection timeout reached (node: {NodeAddress}, speciefied timeout: {timeout})", rpce);
                 }
 
                 OnMethodFailure();
-                throw new BobOperationException($"Connection failed to node {_nodeAddress}", rpce);
+                throw new BobOperationException($"Connection failed to node {NodeAddress}", rpce);
             }
             catch
             {
                 OnMethodFailure();
                 throw;
             }
-        }
-        /// <summary>
-        /// Explicitly opens connection to the Bob node
-        /// </summary>
-        /// <returns>Task to await</returns>
-        /// <exception cref="BobOperationException">Connection was not opened</exception>
-        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
-        public Task OpenAsync()
-        {
-            return OpenAsync(DefaultOperationTimeout);
-        }
-        /// <summary>
-        /// Explicitly opens connection to the Bob node
-        /// </summary>
-        /// <param name="timeout">Timeout</param>
-        /// <exception cref="BobOperationException">Connection was not opened</exception>
-        /// <exception cref="TimeoutException">Specified timeout reached</exception>
-        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Incorrect timeout value</exception>
-        public void Open(TimeSpan timeout)
-        {
-            OpenAsync(timeout).GetAwaiter().GetResult();
         }
         /// <summary>
         /// Explicitly opens connection to the Bob node
@@ -426,7 +385,7 @@ namespace Qoollo.BobClient
             catch (Grpc.Core.RpcException rpce)
             {
                 OnMethodFailure();
-                throw new BobOperationException($"Client closing failed for node {_nodeAddress}", rpce);
+                throw new BobOperationException($"Client closing failed for node {NodeAddress}", rpce);
             }
             catch
             {
@@ -475,7 +434,7 @@ namespace Qoollo.BobClient
                 if (answer.Error != null)
                 {
                     OnMethodFailure(); // Bob error is failure for the client too
-                    throw new BobOperationException($"Put operation failed for key: {key} on node: {_nodeAddress}. Code: {answer.Error.Code}, Description: {answer.Error.Desc}");
+                    throw new BobOperationException($"Put operation failed for key: {key} on node: {NodeAddress}. Code: {answer.Error.Code}, Description: {answer.Error.Desc}");
                 }
 
                 OnMethodSuccess();
@@ -490,11 +449,11 @@ namespace Qoollo.BobClient
                 if (IsOperationTimeoutError(e))
                 {
                     OnMethodCancelledTimeouted();
-                    throw new TimeoutException($"Put operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
+                    throw new TimeoutException($"Put operation timeout reached (node: {NodeAddress}, speciefied timeout: {_operationTimeout})", e);
                 }
 
                 OnMethodFailure();
-                throw new BobOperationException($"Put operation failed for key: {key} on node: {_nodeAddress}", e);
+                throw new BobOperationException($"Put operation failed for key: {key} on node: {NodeAddress}", e);
             }
             catch
             {
@@ -549,7 +508,7 @@ namespace Qoollo.BobClient
                 if (answer.Error != null)
                 {
                     OnMethodFailure(); // Bob error is failure for the client too
-                    throw new BobOperationException($"Put operation failed for key: {key} on node: {_nodeAddress}. Code: {answer.Error.Code}, Description: {answer.Error.Desc}");
+                    throw new BobOperationException($"Put operation failed for key: {key} on node: {NodeAddress}. Code: {answer.Error.Code}, Description: {answer.Error.Desc}");
                 }
 
                 OnMethodSuccess();
@@ -564,11 +523,11 @@ namespace Qoollo.BobClient
                 if (IsOperationTimeoutError(e))
                 {
                     OnMethodCancelledTimeouted();
-                    throw new TimeoutException($"Put operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
+                    throw new TimeoutException($"Put operation timeout reached (node: {NodeAddress}, speciefied timeout: {_operationTimeout})", e);
                 }
 
                 OnMethodFailure();
-                throw new BobOperationException($"Put operation failed for key: {key} on node: {_nodeAddress}", e);
+                throw new BobOperationException($"Put operation failed for key: {key} on node: {NodeAddress}", e);
             }
             catch
             {
@@ -625,11 +584,11 @@ namespace Qoollo.BobClient
                 if (IsOperationTimeoutError(e))
                 {
                     OnMethodCancelledTimeouted();
-                    throw new TimeoutException($"Ping operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
+                    throw new TimeoutException($"Ping operation timeout reached (node: {NodeAddress}, speciefied timeout: {_operationTimeout})", e);
                 }
 
                 OnMethodFailure();
-                throw new BobOperationException($"Ping operation failed on node: {_nodeAddress}", e);
+                throw new BobOperationException($"Ping operation failed on node: {NodeAddress}", e);
             }
             catch
             {
@@ -680,11 +639,11 @@ namespace Qoollo.BobClient
                 if (IsOperationTimeoutError(e))
                 {
                     OnMethodCancelledTimeouted();
-                    throw new TimeoutException($"Ping operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
+                    throw new TimeoutException($"Ping operation timeout reached (node: {NodeAddress}, speciefied timeout: {_operationTimeout})", e);
                 }
 
                 OnMethodFailure();
-                throw new BobOperationException($"Ping operation failed on node: {_nodeAddress}", e);
+                throw new BobOperationException($"Ping operation failed on node: {NodeAddress}", e);
             }
             catch
             {
@@ -749,7 +708,7 @@ namespace Qoollo.BobClient
                 if (IsOperationTimeoutError(e))
                 {
                     OnMethodCancelledTimeouted();
-                    throw new TimeoutException($"Get operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
+                    throw new TimeoutException($"Get operation timeout reached (node: {NodeAddress}, speciefied timeout: {_operationTimeout})", e);
                 }
                 if (IsKeyNotFoundError(e))
                 {
@@ -758,7 +717,7 @@ namespace Qoollo.BobClient
                 }
 
                 OnMethodFailure();
-                throw new BobOperationException($"Get operation failed for key: {key} on node: {_nodeAddress}", e);
+                throw new BobOperationException($"Get operation failed for key: {key} on node: {NodeAddress}", e);
             }
             catch
             {
@@ -840,7 +799,7 @@ namespace Qoollo.BobClient
                 if (IsOperationTimeoutError(e))
                 {
                     OnMethodCancelledTimeouted();
-                    throw new TimeoutException($"Get operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
+                    throw new TimeoutException($"Get operation timeout reached (node: {NodeAddress}, speciefied timeout: {_operationTimeout})", e);
                 }
                 if (IsKeyNotFoundError(e))
                 {
@@ -849,7 +808,7 @@ namespace Qoollo.BobClient
                 }
 
                 OnMethodFailure();
-                throw new BobOperationException($"Get operation failed for key: {key} on node: {_nodeAddress}", e);
+                throw new BobOperationException($"Get operation failed for key: {key} on node: {NodeAddress}", e);
             }
             catch
             {
@@ -931,11 +890,11 @@ namespace Qoollo.BobClient
                 if (IsOperationTimeoutError(e))
                 {
                     OnMethodCancelledTimeouted();
-                    throw new TimeoutException($"Exists operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
+                    throw new TimeoutException($"Exists operation timeout reached (node: {NodeAddress}, speciefied timeout: {_operationTimeout})", e);
                 }
 
                 OnMethodFailure();
-                throw new BobOperationException($"Exists operation failed on node: {_nodeAddress}.", e);
+                throw new BobOperationException($"Exists operation failed on node: {NodeAddress}.", e);
             }
             catch
             {
@@ -1099,11 +1058,11 @@ namespace Qoollo.BobClient
                 if (IsOperationTimeoutError(e))
                 {
                     OnMethodCancelledTimeouted();
-                    throw new TimeoutException($"Exists operation timeout reached (node: {_nodeAddress}, speciefied timeout: {_operationTimeout})", e);
+                    throw new TimeoutException($"Exists operation timeout reached (node: {NodeAddress}, speciefied timeout: {_operationTimeout})", e);
                 }
 
                 OnMethodFailure();
-                throw new BobOperationException($"Exists operation failed on node: {_nodeAddress}.", e);
+                throw new BobOperationException($"Exists operation failed on node: {NodeAddress}.", e);
             }
             catch
             {

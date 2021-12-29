@@ -12,7 +12,12 @@ namespace Qoollo.BobClient
         /// <summary>
         /// Address of the Node
         /// </summary>
-        NodeAddress Address { get; }
+        BobNodeAddress NodeAddress { get; }
+
+        /// <summary>
+        /// Connection parameters
+        /// </summary>
+        BobConnectionParameters ConnectionParameters { get; }
 
         /// <summary>
         /// State of the client

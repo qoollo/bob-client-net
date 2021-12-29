@@ -14,6 +14,73 @@ namespace Qoollo.BobClient
     /// </summary>
     public class BobClusterClient: IBobApi, IDisposable
     {
+        /// <summary>
+        /// Attempts to get OperationRetryCount value from ConnectionParameters of clients.
+        /// If some clients have OperationRetryCount in their connection strings and its values are the same, then method returns that value. Otherwise it returns 'null'
+        /// </summary>
+        /// <param name="clients">Clients collection</param>
+        /// <returns>OperationRetryCount value</returns>
+        private static int? TryGetOperationRetryCountFromNodesConnectionParameters(BobNodeClient[] clients)
+        {
+            if (clients == null)
+                throw new ArgumentNullException(nameof(clients));
+
+            int? result = null;
+
+            foreach (var client in clients)
+            {
+                var operationRetryCount = client.ConnectionParameters.OperationRetryCount;
+
+                if (result == null)
+                {
+                    result = operationRetryCount;
+                }
+                else if (operationRetryCount.HasValue && result.Value != operationRetryCount.Value)
+                {
+                    result = null;
+                    break;
+                }
+            }
+
+            return result;
+        }
+        /// <summary>
+        /// Attempts to get NodeSelectionPolicyFactory value from ConnectionParameters of clients.
+        /// If some clients have NodeSelectionPolicyFactory in their connection strings and its values are the same, then method returns that value. Otherwise it returns 'null'
+        /// </summary>
+        /// <param name="clients">Clients collection</param>
+        /// <returns>NodeSelectionPolicyFactory value</returns>
+        private static BobNodeSelectionPolicyFactory TryGetNodeSelectionPolicyFactoryFromNodesConnectionParameters(BobNodeClient[] clients)
+        {
+            if (clients == null)
+                throw new ArgumentNullException(nameof(clients));
+
+            KnownBobNodeSelectionPolicies? result = null;
+
+            foreach (var client in clients)
+            {
+                var nodeSelectionPolicy = client.ConnectionParameters.NodeSelectionPolicy;
+
+                if (result == null)
+                {
+                    result = nodeSelectionPolicy;
+                }
+                else if (nodeSelectionPolicy.HasValue && result.Value != nodeSelectionPolicy.Value)
+                {
+                    result = null;
+                    break;
+                }
+            }
+
+            if (result == null)
+                return null;
+
+            return BobNodeSelectionPolicyFactory.FromKnownNodeSelectionPolicy(result.Value);
+        }
+
+
+        // ===========
+
         private readonly BobNodeClient[] _clients;
         private readonly BobNodeSelectionPolicy _selectionPolicy;
         private readonly int _operationRetryCount;
@@ -37,6 +104,7 @@ namespace Qoollo.BobClient
                 if (_clients[i] == null)
                     throw new ArgumentNullException($"{nameof(clients)}[{i}]", "Client inside clients array cannot be null");
 
+            nodeSelectionPolicyFactory = nodeSelectionPolicyFactory ?? TryGetNodeSelectionPolicyFactoryFromNodesConnectionParameters(_clients);
             if (nodeSelectionPolicyFactory == null)
             {
                 if (_clients.Length == 1)
@@ -49,6 +117,7 @@ namespace Qoollo.BobClient
                 _selectionPolicy = nodeSelectionPolicyFactory.Create(_clients);
             }
 
+            operationRetryCount = operationRetryCount ?? TryGetOperationRetryCountFromNodesConnectionParameters(_clients);
             if (operationRetryCount == null)
                 _operationRetryCount = 0;
             else if (operationRetryCount.Value < 0)
@@ -67,39 +136,37 @@ namespace Qoollo.BobClient
         /// <summary>
         /// <see cref="BobClusterClient"/> constructor
         /// </summary>
-        /// <param name="nodeAddress">List of nodes addresses</param>
-        /// <param name="operationTimeout">Operation timeout for every created node client</param>
+        /// <param name="nodeConnectionParameters">List of nodes connection parameters</param>
         /// <param name="nodeSelectionPolicyFactory">Factory to create node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
         /// <param name="operationRetryCount">The number of times the operation retries in case of failure (null - default value (no retries), 0 - no retries, >= 1 - number of retries after failure, -1 - number of retries is equal to number of nodes)</param>
-        public BobClusterClient(IEnumerable<NodeAddress> nodeAddress, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, int? operationRetryCount, TimeSpan operationTimeout)
-            : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), nodeSelectionPolicyFactory, operationRetryCount)
+        public BobClusterClient(IEnumerable<BobConnectionParameters> nodeConnectionParameters, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, int? operationRetryCount)
+            : this(nodeConnectionParameters.Select(o => new BobNodeClient(o)).ToList(), nodeSelectionPolicyFactory, operationRetryCount)
         {
         }
         /// <summary>
         /// <see cref="BobClusterClient"/> constructor
         /// </summary>
-        /// <param name="nodeAddress">List of nodes addresses</param>
-        public BobClusterClient(IEnumerable<NodeAddress> nodeAddress)
-            : this(nodeAddress, (BobNodeSelectionPolicyFactory)null, (int?)null, BobNodeClient.DefaultOperationTimeout)
+        /// <param name="nodeConnectionParameters">List of nodes connection parameters</param>
+        public BobClusterClient(IEnumerable<BobConnectionParameters> nodeConnectionParameters)
+            : this(nodeConnectionParameters, (BobNodeSelectionPolicyFactory)null, (int?)null)
         {
         }
         /// <summary>
         /// <see cref="BobClusterClient"/> constructor
         /// </summary>
-        /// <param name="nodeAddress">List of nodes addresses</param>
-        /// <param name="operationTimeout">Operation timeout for every created node client</param>
+        /// <param name="nodeConnectionStrings">List of connection strings to nodes</param>
         /// <param name="nodeSelectionPolicyFactory">Factory to create node selection policy (null for <see cref="SequentialNodeSelectionPolicy"/>)</param>
         /// <param name="operationRetryCount">The number of times the operation retries in case of failure (null - default value (no retries), 0 - no retries, >= 1 - number of retries after failure, -1 - number of retries is equal to number of nodes)</param>
-        public BobClusterClient(IEnumerable<string> nodeAddress, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, int? operationRetryCount, TimeSpan operationTimeout)
-            : this(nodeAddress.Select(o => new BobNodeClient(o, operationTimeout)).ToList(), nodeSelectionPolicyFactory, operationRetryCount)
+        public BobClusterClient(IEnumerable<string> nodeConnectionStrings, BobNodeSelectionPolicyFactory nodeSelectionPolicyFactory, int? operationRetryCount)
+            : this(nodeConnectionStrings.Select(o => new BobNodeClient(o)).ToList(), nodeSelectionPolicyFactory, operationRetryCount)
         {
         }
         /// <summary>
         /// <see cref="BobClusterClient"/> constructor
         /// </summary>
-        /// <param name="nodeAddress">List of nodes addresses</param>
-        public BobClusterClient(IEnumerable<string> nodeAddress)
-            : this(nodeAddress, (BobNodeSelectionPolicyFactory)null, (int?)null, BobNodeClient.DefaultOperationTimeout)
+        /// <param name="nodeConnectionStrings">List of connection strings to nodes</param>
+        public BobClusterClient(IEnumerable<string> nodeConnectionStrings)
+            : this(nodeConnectionStrings, (BobNodeSelectionPolicyFactory)null, (int?)null)
         {
         }
 
@@ -107,54 +174,12 @@ namespace Qoollo.BobClient
         /// The number of times the operation retries in case of failure
         /// </summary>
         internal int OperationRetryCount { get { return _operationRetryCount; } }
-
-
         /// <summary>
-        /// Explicitly opens connection to every Bob node in cluster
+        /// Connection parameters of all registered clients
         /// </summary>
-        /// <param name="timeout">Timeout</param>
-        /// <param name="mode">Mode that contols open error handling</param>
-        /// <returns>Task to await</returns>
-        /// <exception cref="BobOperationException">Connection was not opened</exception>
-        /// <exception cref="TimeoutException">Specified timeout reached</exception>
-        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Incorrect timeout value</exception>
-        public async Task OpenAsync(TimeSpan timeout, BobClusterOpenCloseMode mode)
-        {
-            if (timeout < TimeSpan.Zero && timeout != Timeout.InfiniteTimeSpan)
-                throw new ArgumentOutOfRangeException(nameof(timeout));
+        internal IEnumerable<BobConnectionParameters> ClientConnectionParameters { get { return _clients.Select(o => o.ConnectionParameters); } }
 
-            for (int i = 0; i < _clients.Length; i++)
-            {
-                try
-                {
-                    await _clients[i].OpenAsync(timeout);
-                }
-                catch (BobOperationException)
-                {
-                    if (mode == BobClusterOpenCloseMode.ThrowOnFirstError)
-                        throw;
-                }
-                catch (TimeoutException)
-                {
-                    if (mode == BobClusterOpenCloseMode.ThrowOnFirstError)
-                        throw;
-                }
-            }
-        }
-        /// <summary>
-        /// Explicitly opens connection to every Bob node in cluster
-        /// </summary>
-        /// <param name="timeout">Timeout</param>
-        /// <returns>Task to await</returns>
-        /// <exception cref="BobOperationException">Connection was not opened</exception>
-        /// <exception cref="TimeoutException">Specified timeout reached</exception>
-        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Incorrect timeout value</exception>
-        public Task OpenAsync(TimeSpan timeout)
-        {
-            return OpenAsync(timeout, BobClusterOpenCloseMode.ThrowOnFirstError);
-        }
+
         /// <summary>
         /// Explicitly opens connection to every Bob node in cluster
         /// </summary>
@@ -193,50 +218,6 @@ namespace Qoollo.BobClient
         public Task OpenAsync()
         {
             return OpenAsync(BobClusterOpenCloseMode.ThrowOnFirstError);
-        }
-        /// <summary>
-        /// Explicitly opens connection to every Bob node in cluster
-        /// </summary>
-        /// <param name="timeout">Timeout</param>
-        /// <param name="mode">Mode that contols open error handling</param>
-        /// <exception cref="BobOperationException">Connection was not opened</exception>
-        /// <exception cref="TimeoutException">Specified timeout reached</exception>
-        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Incorrect timeout value</exception>
-        public void Open(TimeSpan timeout, BobClusterOpenCloseMode mode)
-        {
-            if (timeout < TimeSpan.Zero && timeout != Timeout.InfiniteTimeSpan)
-                throw new ArgumentOutOfRangeException(nameof(timeout));
-
-            for (int i = 0; i < _clients.Length; i++)
-            {
-                try
-                {
-                    _clients[i].Open(timeout);
-                }
-                catch (BobOperationException)
-                {
-                    if (mode == BobClusterOpenCloseMode.ThrowOnFirstError)
-                        throw;
-                }
-                catch (TimeoutException)
-                {
-                    if (mode == BobClusterOpenCloseMode.ThrowOnFirstError)
-                        throw;
-                }
-            }
-        }
-        /// <summary>
-        /// Explicitly opens connection to every Bob node in cluster
-        /// </summary>
-        /// <param name="timeout">Timeout</param>
-        /// <exception cref="BobOperationException">Connection was not opened</exception>
-        /// <exception cref="TimeoutException">Specified timeout reached</exception>
-        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Incorrect timeout value</exception>
-        public void Open(TimeSpan timeout)
-        {
-            Open(timeout, BobClusterOpenCloseMode.ThrowOnFirstError);
         }
         /// <summary>
         /// Explicitly opens connection to every Bob node in cluster

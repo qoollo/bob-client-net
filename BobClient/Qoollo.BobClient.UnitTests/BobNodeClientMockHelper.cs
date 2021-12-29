@@ -32,9 +32,9 @@ namespace Qoollo.BobClient.UnitTests
             public int RequestsWithFullGet { get; set; } = 0;
         }
 
-        public static BobNodeClient CreateMockedClient(Mock<BobStorage.BobApi.BobApiClient> rpcClientMock, TimeSpan? timeout = null)
+        public static BobNodeClient CreateMockedClient(string connectionString, Mock<BobStorage.BobApi.BobApiClient> rpcClientMock)
         {
-            var result = new BobNodeClient("127.0.0.1", timeout ?? TimeSpan.FromSeconds(16));
+            var result = new BobNodeClient(connectionString);
             var rpcClientField = result.GetType().GetField("_rpcClient", BindingFlags.NonPublic | BindingFlags.Instance);
             rpcClientField.SetValue(result, rpcClientMock.Object);
             return result;
@@ -171,9 +171,9 @@ namespace Qoollo.BobClient.UnitTests
 
             return CreateMockedBobApiClient(pingFunc, getFunc, putFunc, existsFunc);
         }
-        public static BobNodeClient CreateMockedClientWithData(ConcurrentDictionary<BobKey, byte[]> data, MockClientBehaviour behaviour = null, MockClientStat stat = null, TimeSpan? timeout = null)
+        public static BobNodeClient CreateMockedClientWithData(ConcurrentDictionary<BobKey, byte[]> data, MockClientBehaviour behaviour = null, MockClientStat stat = null)
         {
-            return CreateMockedClient(CreateDataAccessMockedBobApiClient(data, behaviour ?? new MockClientBehaviour(), stat ?? new MockClientStat()), timeout);
+            return CreateMockedClient("Address = 127.0.0.1; OperationTimeout = 00:00:01; ConnectionTimeout = 00:00:01", CreateDataAccessMockedBobApiClient(data, behaviour ?? new MockClientBehaviour(), stat ?? new MockClientStat()));
         }
     }
 }

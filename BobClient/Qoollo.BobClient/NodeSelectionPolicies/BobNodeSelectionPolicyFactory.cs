@@ -18,6 +18,27 @@ namespace Qoollo.BobClient.NodeSelectionPolicies
         {
             return new DelegateBobNodeSelectionPolicyFactory(creationFunc);
         }
+        /// <summary>
+        /// Creates factory by <see cref="KnownBobNodeSelectionPolicies"/>
+        /// </summary>
+        /// <param name="policy">Known policy</param>
+        /// <returns>Created factory</returns>
+        internal static BobNodeSelectionPolicyFactory FromKnownNodeSelectionPolicy(KnownBobNodeSelectionPolicies policy)
+        {
+            switch (policy)
+            {
+                case KnownBobNodeSelectionPolicies.First:
+                    return FirstNodeSelectionPolicy.Factory;
+                case KnownBobNodeSelectionPolicies.Sequential:
+                    return SequentialNodeSelectionPolicy.Factory;
+                case KnownBobNodeSelectionPolicies.FirstWorking:
+                    return FirstWorkingNodeSelectionPolicy.Factory;
+                case KnownBobNodeSelectionPolicies.SequentialWorking:
+                    return SequentialWorkingNodeSelectionPolicy.CreateFactory();
+                default:
+                    throw new ArgumentException($"Unknown node selection policy: {policy}", nameof(policy));
+            }
+        }
 
         /// <summary>
         /// Creates node selection policy

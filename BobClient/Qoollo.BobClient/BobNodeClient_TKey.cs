@@ -16,15 +16,9 @@ namespace Qoollo.BobClient
     /// Client for a single Bob node
     /// </summary>
     /// <typeparam name="TKey">Type of the Key</typeparam>
-    [System.Diagnostics.DebuggerDisplay("[Bob Node: {Address.Address}, State: {State}]")]
+    [System.Diagnostics.DebuggerDisplay("[Bob Node: {NodeAddress.Address}, State: {State}]")]
     public class BobNodeClient<TKey>: IBobApi<TKey>, IBobNodeClientStatus, IDisposable
     {
-        /// <summary>
-        /// Default operation timeout
-        /// </summary>
-        public static readonly TimeSpan DefaultOperationTimeout = BobNodeClient.DefaultOperationTimeout;
-
-
         private readonly BobNodeClient _innerClient;
         private readonly BobKeySerializer<TKey> _keySerializer;
         private readonly ByteArrayPool _keySerializationPool;
@@ -47,6 +41,7 @@ namespace Qoollo.BobClient
             else
                 throw new ArgumentException($"KeySerializer is null and no default key serializer found for key type '{typeof(TKey).Name}'", nameof(keySerializer));
 
+            keySerializationPoolSize = keySerializationPoolSize ?? innerClient.ConnectionParameters.KeySerializationPoolSize;
             if (keySerializationPoolSize == null)
                 _keySerializationPool = SharedKeySerializationArrayPools.GetOrCreateSharedPool(_keySerializer);
             else if (keySerializationPoolSize.Value > 0)
@@ -58,47 +53,43 @@ namespace Qoollo.BobClient
         /// <summary>
         /// <see cref="BobNodeClient"/> constructor
         /// </summary>
-        /// <param name="nodeAddress">Address of a Bob node</param>
-        /// <param name="operationTimeout">Timeout for every operation</param>
+        /// <param name="connectionParameters">Node connection parameters</param>
         /// <param name="keySerializer">Serializer for <typeparamref name="TKey"/> (null for default serializer)</param>
         /// <param name="keySerializationPoolSize">Size of the Key serialization pool (null - shared pool, 0 or less - pool is disabled, 1 or greater - custom pool with specified size)</param>
-        public BobNodeClient(NodeAddress nodeAddress, TimeSpan operationTimeout, BobKeySerializer<TKey> keySerializer, int? keySerializationPoolSize)
-            : this(new BobNodeClient(nodeAddress, operationTimeout), keySerializer, keySerializationPoolSize)
+        public BobNodeClient(BobConnectionParameters connectionParameters, BobKeySerializer<TKey> keySerializer, int? keySerializationPoolSize)
+            : this(new BobNodeClient(connectionParameters), keySerializer, keySerializationPoolSize)
         {
         }
         /// <summary>
         /// <see cref="BobNodeClient"/> constructor
         /// </summary>
-        /// <param name="nodeAddress">Address of a Bob node</param>
-        /// <param name="operationTimeout">Timeout for every operation</param>
-        public BobNodeClient(NodeAddress nodeAddress, TimeSpan operationTimeout)
-            : this(new BobNodeClient(nodeAddress, operationTimeout), null, null)
+        /// <param name="connectionParameters">Node connection parameters</param>
+        public BobNodeClient(BobConnectionParameters connectionParameters)
+            : this(new BobNodeClient(connectionParameters), null, null)
         {
         }
         /// <summary>
         /// <see cref="BobNodeClient"/> constructor
         /// </summary>
-        /// <param name="nodeAddress">Address of a Bob node</param>
-        /// <param name="operationTimeout">Timeout for every operation</param>
-        public BobNodeClient(string nodeAddress, TimeSpan operationTimeout)
-            : this(new NodeAddress(nodeAddress), operationTimeout)
-        {
-        }
-        /// <summary>
-        /// <see cref="BobNodeClient"/> constructor
-        /// </summary>
-        /// <param name="nodeAddress">Address of a Bob node</param>
-        public BobNodeClient(string nodeAddress)
-            : this(nodeAddress, DefaultOperationTimeout)
+        /// <param name="connectionString">Connection string</param>
+        public BobNodeClient(string connectionString)
+            : this(new BobConnectionParameters(connectionString))
         {
         }
 
         /// <summary>
         /// Address of the Node
         /// </summary>
-        public NodeAddress Address
+        public BobNodeAddress NodeAddress
         {
-            get { return _innerClient.Address; }
+            get { return _innerClient.NodeAddress; }
+        }
+        /// <summary>
+        /// Connection parameters
+        /// </summary>
+        public BobConnectionParameters ConnectionParameters
+        {
+            get { return _innerClient.ConnectionParameters; }
         }
 
         /// <summary>
@@ -129,22 +120,11 @@ namespace Qoollo.BobClient
         /// <summary>
         /// Explicitly opens connection to the Bob node
         /// </summary>
-        /// <param name="timeout">Timeout</param>
         /// <returns>Task to await</returns>
         /// <exception cref="BobOperationException">Connection was not opened</exception>
         /// <exception cref="TimeoutException">Specified timeout reached</exception>
         /// <exception cref="ObjectDisposedException">Client was disposed</exception>
         /// <exception cref="ArgumentOutOfRangeException">Incorrect timeout value</exception>
-        public Task OpenAsync(TimeSpan timeout)
-        {
-            return _innerClient.OpenAsync(timeout);
-        }
-        /// <summary>
-        /// Explicitly opens connection to the Bob node
-        /// </summary>
-        /// <returns>Task to await</returns>
-        /// <exception cref="BobOperationException">Connection was not opened</exception>
-        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
         public Task OpenAsync()
         {
             return _innerClient.OpenAsync();
@@ -152,20 +132,10 @@ namespace Qoollo.BobClient
         /// <summary>
         /// Explicitly opens connection to the Bob node
         /// </summary>
-        /// <param name="timeout">Timeout</param>
         /// <exception cref="BobOperationException">Connection was not opened</exception>
         /// <exception cref="TimeoutException">Specified timeout reached</exception>
         /// <exception cref="ObjectDisposedException">Client was disposed</exception>
         /// <exception cref="ArgumentOutOfRangeException">Incorrect timeout value</exception>
-        public void Open(TimeSpan timeout)
-        {
-            _innerClient.Open(timeout);
-        }
-        /// <summary>
-        /// Explicitly opens connection to the Bob node
-        /// </summary>
-        /// <exception cref="BobOperationException">Connection was not opened</exception>
-        /// <exception cref="ObjectDisposedException">Client was disposed</exception>
         public void Open()
         {
             _innerClient.Open();

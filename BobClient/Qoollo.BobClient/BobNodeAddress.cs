@@ -57,6 +57,17 @@ namespace Qoollo.BobClient
         public string Address { get; }
 
         /// <summary>
+        /// Convert address to valid URI
+        /// </summary>
+        internal Uri GetAddressAsUri(string protocol = "http")
+        {
+            if (Address.IndexOf("://", StringComparison.OrdinalIgnoreCase) < 0)
+                return new Uri(protocol + "://" + Address);
+
+            return new Uri(Address);
+        }
+
+        /// <summary>
         /// Throws <see cref="FormatException"/> if <paramref name="throwFormatException"/> is true. Otherwise returns 'false'
         /// </summary>
         /// <param name="throwFormatException">'true' to throw <see cref="FormatException"/></param>

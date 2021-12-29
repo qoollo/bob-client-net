@@ -265,7 +265,7 @@ namespace Qoollo.BobClient.UnitTests
             var behaviour = new BobNodeClientMockHelper.MockClientBehaviour();
             var stat = new BobNodeClientMockHelper.MockClientStat();
 
-            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, stat, TimeSpan.FromSeconds(1)))
+            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, stat))
             {
                 client.Open();
                 Assert.Equal(BobNodeClientState.Ready, client.State);
@@ -293,7 +293,7 @@ namespace Qoollo.BobClient.UnitTests
             var behaviour = new BobNodeClientMockHelper.MockClientBehaviour();
             var stat = new BobNodeClientMockHelper.MockClientStat();
 
-            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, stat, TimeSpan.FromSeconds(1)))
+            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, stat))
             {
                 client.Open();
                 Assert.Equal(BobNodeClientState.Ready, client.State);
@@ -323,7 +323,7 @@ namespace Qoollo.BobClient.UnitTests
             var behaviour = new BobNodeClientMockHelper.MockClientBehaviour();
             var stat = new BobNodeClientMockHelper.MockClientStat();
 
-            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, stat, TimeSpan.FromSeconds(1)))
+            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, stat))
             {
                 client.Open();
                 Assert.Equal(BobNodeClientState.Ready, client.State);
@@ -353,7 +353,7 @@ namespace Qoollo.BobClient.UnitTests
             var behaviour = new BobNodeClientMockHelper.MockClientBehaviour();
             var stat = new BobNodeClientMockHelper.MockClientStat();
 
-            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, stat, TimeSpan.FromSeconds(1)))
+            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, stat))
             {
                 client.Open();
                 Assert.Equal(BobNodeClientState.Ready, client.State);
@@ -393,7 +393,7 @@ namespace Qoollo.BobClient.UnitTests
             var behaviour = new BobNodeClientMockHelper.MockClientBehaviour();
             var stat = new BobNodeClientMockHelper.MockClientStat();
 
-            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, stat, TimeSpan.FromSeconds(1)))
+            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, stat))
             {
                 client.Open();
                 Assert.Equal(BobNodeClientState.Ready, client.State);
@@ -433,7 +433,7 @@ namespace Qoollo.BobClient.UnitTests
             var behaviour = new BobNodeClientMockHelper.MockClientBehaviour();
             var stat = new BobNodeClientMockHelper.MockClientStat();
 
-            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, stat, TimeSpan.FromSeconds(1)))
+            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data, behaviour, stat))
             {
                 client.Open();
 
@@ -449,6 +449,66 @@ namespace Qoollo.BobClient.UnitTests
 
                 client.Get(BobKey.FromUInt64(10));
                 Assert.True(client.TimeSinceLastOperationMs < 100);
+            }
+        }
+
+
+        [Fact]
+        public void ConnectionStringParametersPassedTest()
+        {
+            using (var client = new BobNodeClient("Address = 127.0.0.1; User = user; Password = pass; ConnectionTimeout = 00:00:33; OperationTimeout = 00:00:22"))
+            {
+                Assert.Equal("127.0.0.1", client.ConnectionParameters.Host);
+                Assert.Equal("user", client.ConnectionParameters.User);
+                Assert.Equal("pass", client.ConnectionParameters.Password);
+                Assert.Equal(TimeSpan.Parse("00:00:33"), client.ConnectionParameters.ConnectionTimeout);
+                Assert.Equal(TimeSpan.Parse("00:00:22"), client.ConnectionParameters.OperationTimeout);
+            }
+        }
+
+        [Fact]
+        public void ConnectionParametersPassedTest()
+        {
+            BobConnectionParametersBuilder brld = new BobConnectionParametersBuilder()
+            {
+                Host = "127.0.0.1",
+                User = "user",
+                Password = "pass",
+                ConnectionTimeout = TimeSpan.Parse("00:00:33"),
+                OperationTimeout = TimeSpan.Parse("00:00:22")
+            };
+
+            using (var client = new BobNodeClient(brld.Build()))
+            {
+                Assert.Equal("127.0.0.1", client.ConnectionParameters.Host);
+                Assert.Equal("user", client.ConnectionParameters.User);
+                Assert.Equal("pass", client.ConnectionParameters.Password);
+                Assert.Equal(TimeSpan.Parse("00:00:33"), client.ConnectionParameters.ConnectionTimeout);
+                Assert.Equal(TimeSpan.Parse("00:00:22"), client.ConnectionParameters.OperationTimeout);
+            }
+        }
+
+        [Fact]
+        public void OperationTimeoutIsUsedTest()
+        {
+            var data = new ConcurrentDictionary<BobKey, byte[]>();
+            data[BobKey.FromUInt64(1)] = new byte[] { 1, 2, 3 };
+
+            DateTime? deadline = null;
+
+            var mock = BobNodeClientMockHelper.CreateDataAccessMockedBobApiClient(data, new BobNodeClientMockHelper.MockClientBehaviour(), new BobNodeClientMockHelper.MockClientStat(),
+                getFunc: (req, opt) =>
+                {
+                    deadline = opt.Deadline;
+                    return new BobStorage.Blob() { Data = Google.Protobuf.ByteString.CopyFrom(new byte[] { 1, 2, 3 }) };
+                });
+
+            using (var client = BobNodeClientMockHelper.CreateMockedClient("Address = 127.0.0.1; OperationTimeout = 01:00:00", mock))
+            {
+                client.Get(BobKey.FromUInt64(1));
+
+                Assert.NotNull(deadline);
+                Assert.True((deadline.Value - DateTime.Now) < TimeSpan.FromMinutes(10));
             }
         }
     }

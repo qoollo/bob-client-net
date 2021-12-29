@@ -300,11 +300,12 @@ namespace Qoollo.BobClient.App
 
             using (var client = new BobClusterBuilder<ulong>(config.Nodes)
                 .WithOperationTimeout(TimeSpan.FromSeconds(config.Timeout))
+                .WithConnectionTimeout(TimeSpan.FromSeconds(config.Timeout))
                 .WithKeySerializer(new CustomSizeUInt64BobKeySerializer((int)config.KeySize))
                 .WithSequentialNodeSelectionPolicy()
                 .Build())
             {
-                client.Open(TimeSpan.FromSeconds(config.Timeout), BobClusterOpenCloseMode.ThrowOnFirstError);
+                client.Open(BobClusterOpenCloseMode.ThrowOnFirstError);
 
                 if ((config.RunMode & RunMode.Put) != 0)
                     PutTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.RandomMode, config.Verbosisty, config.ProgressIntervalMs, putRecordBytesSource);

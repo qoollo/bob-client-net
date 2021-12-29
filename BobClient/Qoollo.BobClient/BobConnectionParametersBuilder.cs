@@ -18,11 +18,11 @@ namespace Qoollo.BobClient
         /// <summary>
         /// Default max receive message length
         /// </summary>
-        public const int DefaultMaxReceiveMessageLength = BobConnectionParameters.DefaultMaxReceiveMessageLength;
+        public const int DefaultMaxReceiveMessageLength = BobConnectionParameters.DefaultMaxReceiveMessageSize;
         /// <summary>
         /// Default max send message length
         /// </summary>
-        public const int DefaultMaxSendMessageLength = BobConnectionParameters.DefaultMaxSendMessageLength;
+        public const int DefaultMaxSendMessageLength = BobConnectionParameters.DefaultMaxSendMessageSize;
         /// <summary>
         /// Default operation timeout
         /// </summary>
@@ -128,7 +128,7 @@ namespace Qoollo.BobClient
         public BobNodeAddress NodeAddress { get { return new BobNodeAddress(Host, Port ?? BobNodeAddress.DefaultPort); } }
 
         /// <summary>
-        /// User name for authorization. If not specified, an insecure connection is used 
+        /// User name for authentication. If not specified, an insecure connection is used 
         /// </summary>
         public string User { get; set; }
         /// <summary>
