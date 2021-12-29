@@ -2,7 +2,7 @@ name: build-artifacts
 
 on:
   push:
-    branches: [ master, feature/5_different_key_types_support ]
+    branches: [ master ]
 
 jobs:
 
