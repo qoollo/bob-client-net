@@ -1,4 +1,3 @@
-﻿  
 syntax = "proto3";
 
 package bob_storage;
@@ -34,7 +33,7 @@ message ExistRequest {
 
 // Blob id
 message BlobKey {
-    uint64 key = 1; //Inner id representation
+    bytes key = 1; //Inner id representation
 }
 
 // Data blob
@@ -45,7 +44,7 @@ message Blob {
 
 // Blob metadata
 message BlobMeta {
-    int64 timestamp = 1; // timestamp for data version
+    uint64 timestamp = 1; // timestamp for data version
 }
 
 // Operation status

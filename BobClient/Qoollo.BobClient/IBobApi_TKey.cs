@@ -6,7 +6,8 @@ namespace Qoollo.BobClient
     /// <summary>
     /// Bob api
     /// </summary>
-    public interface IBobApi
+    /// <typeparam name="TKey">Type of the Key</typeparam>
+    public interface IBobApi<TKey>
     {
         /// <summary>
         /// Writes data to Bob
@@ -15,7 +16,7 @@ namespace Qoollo.BobClient
         /// <param name="data">Binary data</param>
         /// <param name="token">Cancellation token</param>
         /// <returns>Operation result</returns>
-        void Put(BobKey key, byte[] data, CancellationToken token);
+        void Put(TKey key, byte[] data, CancellationToken token);
 
         /// <summary>
         /// Writes data to Bob asynchronously
@@ -24,7 +25,7 @@ namespace Qoollo.BobClient
         /// <param name="data">binary data</param>
         /// <param name="token">Cancellation token</param>
         /// <returns>Operation result</returns>
-        Task PutAsync(BobKey key, byte[] data, CancellationToken token);
+        Task PutAsync(TKey key, byte[] data, CancellationToken token);
 
         /// <summary>
         /// Reads data from Bob
@@ -32,7 +33,7 @@ namespace Qoollo.BobClient
         /// <param name="key">Key</param>
         /// <param name="token">Cancellation token</param>
         /// <returns>Operation result</returns>
-        byte[] Get(BobKey key, CancellationToken token);
+        byte[] Get(TKey key, CancellationToken token);
 
         /// <summary>
         /// Reads data from Bob asynchronously
@@ -40,7 +41,7 @@ namespace Qoollo.BobClient
         /// <param name="key">Key</param>
         /// <param name="token">Cancellation token</param>
         /// <returns>Operation result with data</returns>
-        Task<byte[]> GetAsync(BobKey key, CancellationToken token);
+        Task<byte[]> GetAsync(TKey key, CancellationToken token);
 
         /// <summary>
         /// Checks data presented in Bob
@@ -48,7 +49,7 @@ namespace Qoollo.BobClient
         /// <param name="keys">Keys array</param>
         /// <param name="token">Cancellation token</param>
         /// <returns>Operation result</returns>
-        bool[] Exists(BobKey[] keys, CancellationToken token);
+        bool[] Exists(TKey[] keys, CancellationToken token);
 
         /// <summary>
         /// Asynchronously checks data presented in Bob
@@ -56,6 +57,6 @@ namespace Qoollo.BobClient
         /// <param name="keys">Keys array</param>
         /// <param name="token">Cancellation token</param>
         /// <returns>Operation result</returns>
-        Task<bool[]> ExistsAsync(BobKey[] keys, CancellationToken token);
+        Task<bool[]> ExistsAsync(TKey[] keys, CancellationToken token);
     }
 }

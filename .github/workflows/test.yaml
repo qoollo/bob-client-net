@@ -1,0 +1,34 @@
+name: tests
+
+on:
+  pull_request:
+      types: [ opened, synchronize, reopened, ready_for_review, labeled, unlabeled ]
+  push:
+    branches: [ master ]
+
+jobs:
+
+  test-on-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checks-out repository 
+        uses: actions/checkout@v2
+      - name: Build
+        run: |
+          dotnet build ./BobClient/
+      - name: Test net50
+        run: |
+          dotnet test ./BobClient/ --no-build -f "net5.0"
+
+
+  test-on-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checks-out repository 
+        uses: actions/checkout@v2
+      - name: Build
+        run: |
+          dotnet build ./BobClient/
+      - name: Test net462
+        run: |
+          dotnet test ./BobClient/ --no-build -f "net462"
