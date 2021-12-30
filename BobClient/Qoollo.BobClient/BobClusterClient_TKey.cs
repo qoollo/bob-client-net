@@ -17,6 +17,22 @@ namespace Qoollo.BobClient
     /// <typeparam name="TKey">Type of the Key</typeparam>
     public class BobClusterClient<TKey>: IBobApi<TKey>, IDisposable
     {
+        /// <summary>
+        /// Attempts to get KeySerializationPoolSize value from ConnectionParameters of clients.
+        /// If some clients have KeySerializationPoolSize in their connection strings and its values are the same, then method returns that value. Otherwise it returns 'null'
+        /// </summary>
+        /// <param name="clientConnectionParameters">Clients connection parameters collection</param>
+        /// <returns>KeySerializationPoolSize value</returns>
+        private static int? TryGetKeySerializationPoolSizeFromNodesConnectionParameters(IEnumerable<BobConnectionParameters> clientConnectionParameters)
+        {
+            if (clientConnectionParameters == null)
+                throw new ArgumentNullException(nameof(clientConnectionParameters));
+
+            return BobConnectionParameters.TryExtractValueFromMultipleParameters(clientConnectionParameters, p => p.KeySerializationPoolSize);
+        }
+
+        // ===========
+
         private readonly BobClusterClient _innerCluster;
         private readonly BobKeySerializer<TKey> _keySerializer;
         private readonly ByteArrayPool _keySerializationPool;
@@ -39,6 +55,7 @@ namespace Qoollo.BobClient
             else
                 throw new ArgumentException($"KeySerializer is null and no default key serializer found for key type '{typeof(TKey).Name}'", nameof(keySerializer));
 
+            keySerializationPoolSize = keySerializationPoolSize ?? TryGetKeySerializationPoolSizeFromNodesConnectionParameters(innerCluster.ClientConnectionParameters);
             if (keySerializationPoolSize == null)
                 _keySerializationPool = SharedKeySerializationArrayPools.GetOrCreateSharedPool(_keySerializer);
             else if (keySerializationPoolSize.Value > 0)

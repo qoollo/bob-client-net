@@ -25,24 +25,7 @@ namespace Qoollo.BobClient
             if (clients == null)
                 throw new ArgumentNullException(nameof(clients));
 
-            int? result = null;
-
-            foreach (var client in clients)
-            {
-                var operationRetryCount = client.ConnectionParameters.OperationRetryCount;
-
-                if (result == null)
-                {
-                    result = operationRetryCount;
-                }
-                else if (operationRetryCount.HasValue && result.Value != operationRetryCount.Value)
-                {
-                    result = null;
-                    break;
-                }
-            }
-
-            return result;
+            return BobConnectionParameters.TryExtractValueFromMultipleParameters(clients.Select(o => o.ConnectionParameters), p => p.OperationRetryCount);
         }
         /// <summary>
         /// Attempts to get NodeSelectionPolicyFactory value from ConnectionParameters of clients.
@@ -55,27 +38,8 @@ namespace Qoollo.BobClient
             if (clients == null)
                 throw new ArgumentNullException(nameof(clients));
 
-            KnownBobNodeSelectionPolicies? result = null;
-
-            foreach (var client in clients)
-            {
-                var nodeSelectionPolicy = client.ConnectionParameters.NodeSelectionPolicy;
-
-                if (result == null)
-                {
-                    result = nodeSelectionPolicy;
-                }
-                else if (nodeSelectionPolicy.HasValue && result.Value != nodeSelectionPolicy.Value)
-                {
-                    result = null;
-                    break;
-                }
-            }
-
-            if (result == null)
-                return null;
-
-            return BobNodeSelectionPolicyFactory.FromKnownNodeSelectionPolicy(result.Value);
+            KnownBobNodeSelectionPolicies? result = BobConnectionParameters.TryExtractValueFromMultipleParameters(clients.Select(o => o.ConnectionParameters), p => p.NodeSelectionPolicy);
+            return result != null ? BobNodeSelectionPolicyFactory.FromKnownNodeSelectionPolicy(result.Value) : null;
         }
 
 

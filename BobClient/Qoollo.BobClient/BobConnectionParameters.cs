@@ -232,5 +232,41 @@ namespace Qoollo.BobClient
         TimeSpan? IModifiableBobConnectionParameters.ConnectionTimeout { get { return ConnectionTimeout; } set { ConnectionTimeout = value; } }
 
         Dictionary<string, string> IModifiableBobConnectionParameters.CustomParameters { get { return _customParameters; } }
+
+
+        /// <summary>
+        /// Attempts to extract single parameter value from multiple connection parameters.
+        /// The method reads the values of non-null parameters from the collection and, if the same value is stored there, it returns it. Otherwise it returns 'null'
+        /// </summary>
+        /// <typeparam name="T">Parameter value type</typeparam>
+        /// <param name="connectionParameters">Collection of connection parameters for different nodes</param>
+        /// <param name="valueGetter">Parameter value extractor</param>
+        /// <returns>Common parameter value or null</returns>
+        internal static T? TryExtractValueFromMultipleParameters<T>(IEnumerable<BobConnectionParameters> connectionParameters, Func<BobConnectionParameters, T?> valueGetter) where T: struct
+        {
+            if (connectionParameters == null)
+                throw new ArgumentNullException(nameof(connectionParameters));
+            if (valueGetter == null)
+                throw new ArgumentNullException(nameof(valueGetter));
+
+            T? result = null;
+
+            foreach (var connectionParam in connectionParameters)
+            {
+                var curParamValue = valueGetter(connectionParam);
+
+                if (result == null)
+                {
+                    result = curParamValue;
+                }
+                else if (curParamValue.HasValue && !EqualityComparer<T>.Default.Equals(result.Value, curParamValue.Value))
+                {
+                    result = null;
+                    break;
+                }
+            }
+
+            return result;
+        }
     }
 }
