@@ -12,18 +12,21 @@ namespace Qoollo.BobClient.App
 {
     public class ProgressStats
     {
-        public ProgressStats(IReadOnlyList<double> rpsList, int totalCount, int errorCount, long elapsedMilliseconds)
+        public ProgressStats(IReadOnlyList<double> rpsList, int totalCount, int currentCount, int errorCount, long elapsedMilliseconds)
         {
             if (rpsList == null)
                 throw new ArgumentNullException(nameof(rpsList));
             if (totalCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(totalCount));
+            if (currentCount < 0)
+                throw new ArgumentOutOfRangeException(nameof(currentCount));
             if (errorCount < 0)
                 throw new ArgumentOutOfRangeException(nameof(errorCount));
             if (elapsedMilliseconds < 0)
                 throw new ArgumentOutOfRangeException(nameof(elapsedMilliseconds));
 
             TotalCount = totalCount;
+            CurrentCount = currentCount;
             ErrorCount = errorCount;
             ElapsedMilliseconds = elapsedMilliseconds;
             ProcessedCount = rpsList.Count;
@@ -34,7 +37,7 @@ namespace Qoollo.BobClient.App
                 if (rpsListCopy.Count > 1 && rpsListCopy[0] == 0.0)
                     rpsListCopy.RemoveAt(0);
 
-                RpsAvg = rpsListCopy.Average();
+                RpsAvg = (double)CurrentCount / ElapsedMilliseconds;
                 RpsDev = Math.Sqrt(rpsListCopy.Average(o => (o - RpsAvg) * (o - RpsAvg)));
                 RpsMax = rpsListCopy.Max();
                 RpsMin = rpsListCopy.Min();
@@ -51,6 +54,7 @@ namespace Qoollo.BobClient.App
         }
 
         public int TotalCount { get; }
+        public int CurrentCount { get; }
         public int ErrorCount { get; }
         public long ElapsedMilliseconds { get; }
 
@@ -135,6 +139,7 @@ namespace Qoollo.BobClient.App
         {
             List<double> rpsListCopy = null;
             int totalCount = 0;
+            int currentCount = 0;
             int errorCount = 0;
             long elapsedMilliseconds = 0;
 
@@ -142,13 +147,14 @@ namespace Qoollo.BobClient.App
             {
                 rpsListCopy = _rpsList.ToList();
                 totalCount = _totalCount;
+                currentCount = _currentCount;
                 errorCount = _currentErrorCount;
                 elapsedMilliseconds = _stopwatch.ElapsedMilliseconds;
             }
 
 
 
-            return new ProgressStats(rpsListCopy, totalCount, errorCount, elapsedMilliseconds);
+            return new ProgressStats(rpsListCopy, totalCount, currentCount, errorCount, elapsedMilliseconds);
         }
 
 
