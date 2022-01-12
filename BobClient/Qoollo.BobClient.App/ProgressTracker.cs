@@ -201,11 +201,6 @@ namespace Qoollo.BobClient.App
 
         private void TimerElapsed(object sender, ElapsedEventArgs e)
         {
-            Print();
-        }
-
-        public void Print()
-        {
             lock (_syncObj)
             {
                 int currentErrorCount = _currentErrorCount;
@@ -220,22 +215,52 @@ namespace Qoollo.BobClient.App
                 _currentCountFromPreviousTick = currentCount;
 
                 if (_autoPrintMsg)
-                {
-                    if (_customMessageBuilder != null)
-                        Console.WriteLine($"{_operationDescription}: {currentCount,8}/{TotalCount},   {_customMessageBuilder()},   Errors: {currentErrorCount,5},   RPS: {instantaneousRps.ToString("F0", CultureInfo.InvariantCulture),4}");
-                    else
-                        Console.WriteLine($"{_operationDescription}: {currentCount,8}/{TotalCount},   Errors: {currentErrorCount,5},   RPS: {instantaneousRps.ToString("F0", CultureInfo.InvariantCulture),4}");
-                }
+                    PrintCore(currentCount, currentErrorCount, instantaneousRps);
             }
+        }
+
+        public void Print()
+        {
+            lock (_syncObj)
+            {
+                int currentErrorCount = _currentErrorCount;
+                int currentCount = _currentCount;
+                int currentCountFromPreviousTick = _currentCountFromPreviousTick;
+
+                double instantaneousRps = (double)((long)(currentCount - currentCountFromPreviousTick) * 1000) / _deltaStopwatch.ElapsedMilliseconds;
+
+                PrintCore(currentCount, currentErrorCount, instantaneousRps);
+            }
+        }
+
+        private void PrintCore(int currentCount, int currentErrorCount, double instantaneousRps)
+        {
+            if (_customMessageBuilder != null)
+                Console.WriteLine($"{_operationDescription}: {currentCount,8}/{TotalCount},   {_customMessageBuilder()},   Errors: {currentErrorCount,5},   RPS: {instantaneousRps.ToString("F0", CultureInfo.InvariantCulture),4}");
+            else
+                Console.WriteLine($"{_operationDescription}: {currentCount,8}/{TotalCount},   Errors: {currentErrorCount,5},   RPS: {instantaneousRps.ToString("F0", CultureInfo.InvariantCulture),4}");
         }
 
         public void Dispose()
         {
-            _isDisposed = true;
-            _stopwatch.Stop();
-            _deltaStopwatch.Stop();
-            _timer.Stop();
-            _timer.Dispose();
+            if (!_isDisposed)
+            {
+                _stopwatch.Stop();
+                _deltaStopwatch.Stop();
+                _timer.Stop();
+                _timer.Dispose();
+
+                lock (_syncObj)
+                {
+                    if (_rpsList.Count == 0 && _currentCount > 0 && _currentCount > _currentCountFromPreviousTick)
+                    {
+                        double instantaneousRps = (double)((long)(_currentCount - _currentCountFromPreviousTick) * 1000) / _deltaStopwatch.ElapsedMilliseconds;
+                        _rpsList.Add(instantaneousRps);
+                    }
+                }
+
+                _isDisposed = true;
+            }
         }
     }
 }

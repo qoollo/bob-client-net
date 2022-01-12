@@ -71,11 +71,12 @@ namespace Qoollo.BobClient.App
                 });
 
                 progress.Dispose();
-                progress.Print();
+                if (verbosity != VerbosityLevel.Min)
+                    progress.Print();
 
                 var stat = progress.GetProgressStats();
                 Console.WriteLine($"Put finished in {stat.ElapsedMilliseconds}ms. RpsAvg: {RoundToStr(stat.RpsAvg)}, RpsDev: {RoundToStr(stat.RpsDev)}, RpsMedian: {RoundToStr(stat.RpsMedian)}, Rps10P: {RoundToStr(stat.Rps10P)}, Rps90P: {RoundToStr(stat.Rps90P)}, RpsMin: {RoundToStr(stat.RpsMin)}, RpsMax: {RoundToStr(stat.RpsMax)}");
-                if (progress.CurrentErrorCount > 0)
+                if (stat.ErrorCount > 0)
                     Console.WriteLine($"Errors: {stat.ErrorCount}");
                 Console.WriteLine();
             }
@@ -147,11 +148,12 @@ namespace Qoollo.BobClient.App
                     }
                 });
                 progress.Dispose();
-                progress.Print();
+                if (verbosity != VerbosityLevel.Min)
+                    progress.Print();
 
                 var stat = progress.GetProgressStats();
                 Console.WriteLine($"Get finished in {stat.ElapsedMilliseconds}ms. RpsAvg: {RoundToStr(stat.RpsAvg)}, RpsDev: {RoundToStr(stat.RpsDev)}, RpsMedian: {RoundToStr(stat.RpsMedian)}, Rps10P: {RoundToStr(stat.Rps10P)}, Rps90P: {RoundToStr(stat.Rps90P)}, RpsMin: {RoundToStr(stat.RpsMin)}, RpsMax: {RoundToStr(stat.RpsMax)}");
-                if (progress.CurrentErrorCount > 0)
+                if (stat.ErrorCount > 0)
                     Console.WriteLine($"KeyNotFound: {Volatile.Read(ref keyNotFoundErrors)}, LengthMismatch: {Volatile.Read(ref lengthMismatchErrors)}, OtherErrors: {Volatile.Read(ref otherErrors)}");
                 Console.WriteLine();
             }
@@ -204,12 +206,13 @@ namespace Qoollo.BobClient.App
                 });
 
                 progress.Dispose();
-                progress.Print();
+                if (verbosity != VerbosityLevel.Min)
+                    progress.Print();
 
                 var stat = progress.GetProgressStats();
                 Console.WriteLine($"Exists finished in {stat.ElapsedMilliseconds}ms. RpsAvg: {RoundToStr(stat.RpsAvg)}, RpsDev: {RoundToStr(stat.RpsDev)}, RpsMedian: {RoundToStr(stat.RpsMedian)}, Rps10P: {RoundToStr(stat.Rps10P)}, Rps90P: {RoundToStr(stat.Rps90P)}, RpsMin: {RoundToStr(stat.RpsMin)}, RpsMax: {RoundToStr(stat.RpsMax)}, Packages Per Second: {RoundToStr((double)(1000 * expectedRequestsCount) / stat.ElapsedMilliseconds)}");
                 Console.WriteLine($"Exists result: {totalExistedCount}/{count}");
-                if (progress.CurrentErrorCount > 0)
+                if (stat.ErrorCount > 0)
                     Console.WriteLine($"Errors: {stat.ErrorCount}");
                 Console.WriteLine();
             }
