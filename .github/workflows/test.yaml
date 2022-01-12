@@ -31,4 +31,4 @@ jobs:
           dotnet build ./BobClient/
       - name: Test net462
         run: |
-          dotnet test ./BobClient/ --no-build -f "net462" --blame-hang --blame-hang-timeout 30m
+          dotnet test ./BobClient/ --no-build -f "net462" --blame-hang --blame-hang-timeout 30m -l "console;verbosity=normal"
