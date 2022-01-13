@@ -31,8 +31,9 @@ jobs:
           dotnet build ./BobClient/
       - name: Test net462
         run: |
-          dotnet test ./BobClient/ --no-build -f "net462" --blame-hang --blame-hang-timeout 30m -l "console;verbosity=detailed"
+          dotnet test ./BobClient/ --no-build -f "net462" --blame-hang --blame-hang-timeout 15m -l "console;verbosity=detailed"
       - name: Upload artifact
+        if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test-results

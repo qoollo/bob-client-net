@@ -14,7 +14,7 @@ namespace Qoollo.BobClient.UnitTests
     {
         private const bool TraceLog = true;
         private const bool HangDetection = true;
-        private const int HangIntervalMs = 15 * 60 * 1000;
+        private const int HangIntervalMs = 10 * 60 * 1000;
 
         private readonly CancellationTokenSource _endingToken;
 
