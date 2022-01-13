@@ -9,8 +9,10 @@ using Xunit;
 
 namespace Qoollo.BobClient.UnitTests.KeyArrayPools
 {
-    public class SharedKeySerializationArrayPoolsTests
+    public class SharedKeySerializationArrayPoolsTests : BobTestsBaseClass
     {
+        public SharedKeySerializationArrayPoolsTests(Xunit.Abstractions.ITestOutputHelper output) : base(output) { }
+
         [Theory]
         [InlineData(typeof(ulong))]
         [InlineData(typeof(long))]

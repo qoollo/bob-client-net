@@ -7,8 +7,10 @@ using Xunit;
 
 namespace Qoollo.BobClient.UnitTests
 {
-    public class BobKeyTests
+    public class BobKeyTests : BobTestsBaseClass
     {
+        public BobKeyTests(Xunit.Abstractions.ITestOutputHelper output) : base(output) { }
+
         [Theory]
         [InlineData(100, "0x6400000000000000")]
         [InlineData(100500, "0x9488010000000000")]

@@ -8,8 +8,10 @@ using Xunit;
 
 namespace Qoollo.BobClient.UnitTests.KeySerializers
 {
-    public class GuidBobKeySerializerTests
+    public class GuidBobKeySerializerTests : BobTestsBaseClass
     {
+        public GuidBobKeySerializerTests(Xunit.Abstractions.ITestOutputHelper output) : base(output) { }
+
         private static BobKeySerializer<Guid> Serializer { get { return GuidBobKeySerializer.Instance; } }
 
         [Fact]

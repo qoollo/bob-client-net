@@ -11,8 +11,10 @@ using Xunit;
 
 namespace Qoollo.BobClient.UnitTests
 {
-    public class BobNodeClientTests
+    public class BobNodeClientTests : BobTestsBaseClass
     {
+        public BobNodeClientTests(Xunit.Abstractions.ITestOutputHelper output) : base(output) { }
+
         [Fact]
         public void BasicStateTransitionTest()
         {

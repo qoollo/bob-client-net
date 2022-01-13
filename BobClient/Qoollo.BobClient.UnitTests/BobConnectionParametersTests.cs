@@ -8,8 +8,10 @@ using Xunit;
 
 namespace Qoollo.BobClient.UnitTests
 {
-    public class BobConnectionParametersTests
+    public class BobConnectionParametersTests : BobTestsBaseClass
     {
+        public BobConnectionParametersTests(Xunit.Abstractions.ITestOutputHelper output) : base(output) { }
+
         [Fact]
         public void SimpleConstructorTest()
         {

@@ -11,14 +11,9 @@ using Xunit.Abstractions;
 
 namespace Qoollo.BobClient.UnitTests.KeyArrayPools
 {
-    public class ByteArrayPoolTests
+    public class ByteArrayPoolTests : BobTestsBaseClass
     {
-        private readonly ITestOutputHelper _output;
-
-        public ByteArrayPoolTests(ITestOutputHelper output)
-        {
-            this._output = output;
-        }
+        public ByteArrayPoolTests(Xunit.Abstractions.ITestOutputHelper output) : base(output) { }
 
 
         [Theory]
@@ -201,7 +196,7 @@ namespace Qoollo.BobClient.UnitTests.KeyArrayPools
                 }
 
                 sw.Stop();
-                _output?.WriteLine($"Perf: {iterations * 1000 / sw.ElapsedMilliseconds} op/sec ({sw.ElapsedMilliseconds} ms for {iterations})");
+                Output?.WriteLine($"Perf: {iterations * 1000 / sw.ElapsedMilliseconds} op/sec ({sw.ElapsedMilliseconds} ms for {iterations})");
             }
         }
 

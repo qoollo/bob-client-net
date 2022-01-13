@@ -9,8 +9,10 @@ using Xunit;
 
 namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
 {
-    public class IModifiableBobConnectionParametersExtensionsTests
+    public class IModifiableBobConnectionParametersExtensionsTests : BobTestsBaseClass
     {
+        public IModifiableBobConnectionParametersExtensionsTests(Xunit.Abstractions.ITestOutputHelper output) : base(output) { }
+
         [Theory]
         [InlineData(nameof(IModifiableBobConnectionParameters.Host), "host", "localhost", null)]
         [InlineData(nameof(IModifiableBobConnectionParameters.Host), "HOST", "HO$$$t", null)]

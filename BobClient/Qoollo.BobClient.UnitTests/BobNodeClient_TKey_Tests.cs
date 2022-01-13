@@ -9,8 +9,10 @@ using Xunit;
 
 namespace Qoollo.BobClient.UnitTests
 {
-    public class BobNodeClient_TKey_Tests
+    public class BobNodeClient_TKey_Tests : BobTestsBaseClass
     {
+        public BobNodeClient_TKey_Tests(Xunit.Abstractions.ITestOutputHelper output) : base(output) { }
+
         [Fact]
         public void PutGetExistOperationUInt64Test()
         {

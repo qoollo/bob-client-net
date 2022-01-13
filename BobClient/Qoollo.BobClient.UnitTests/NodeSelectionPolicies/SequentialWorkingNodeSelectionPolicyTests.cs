@@ -8,8 +8,10 @@ using Xunit;
 
 namespace Qoollo.BobClient.UnitTests.NodeSelectionPolicies
 {
-    public class SequentialWorkingNodeSelectionPolicyTests
+    public class SequentialWorkingNodeSelectionPolicyTests : BobTestsBaseClass
     {
+        public SequentialWorkingNodeSelectionPolicyTests(Xunit.Abstractions.ITestOutputHelper output) : base(output) { }
+
         [Fact]
         public void SimpleSequenceTest()
         {

@@ -7,8 +7,10 @@ using Xunit;
 
 namespace Qoollo.BobClient.UnitTests
 {
-    public class BobNodeAddressTests
+    public class BobNodeAddressTests : BobTestsBaseClass
     {
+        public BobNodeAddressTests(Xunit.Abstractions.ITestOutputHelper output) : base(output) { }
+
         [Theory]
         [InlineData("host:123", "host", 123)]
         [InlineData("host", "host", BobNodeAddress.DefaultPort)]

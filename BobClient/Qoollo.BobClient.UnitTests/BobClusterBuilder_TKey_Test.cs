@@ -7,8 +7,10 @@ using Xunit;
 
 namespace Qoollo.BobClient.UnitTests
 {
-    public class BobClusterBuilder_TKey_Test
+    public class BobClusterBuilder_TKey_Test : BobTestsBaseClass
     {
+        public BobClusterBuilder_TKey_Test(Xunit.Abstractions.ITestOutputHelper output) : base(output) { }
+
         [Fact]
         public void NodesPassedTest()
         {

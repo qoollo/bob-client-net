@@ -8,8 +8,10 @@ using Xunit;
 
 namespace Qoollo.BobClient.UnitTests.ConnectionParametersHelpers
 {
-    public class BobConnectionStringParserTests
+    public class BobConnectionStringParserTests : BobTestsBaseClass
     {
+        public BobConnectionStringParserTests(Xunit.Abstractions.ITestOutputHelper output) : base(output) { }
+
         public class ExpectedParsingResults
         {
             public static ExpectedParsingResults WithFormatException() { return new ExpectedParsingResults() { FormatException = true }; }
