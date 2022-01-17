@@ -517,5 +517,58 @@ namespace Qoollo.BobClient.UnitTests
                 Assert.True(delta < TimeSpan.FromMinutes(10));
             }
         }
+
+
+        [Fact]
+        public void CloseWithoutStartTest()
+        {
+            using (var client = new BobNodeClient("Address = 127.0.0.1"))
+            {
+                client.Close();
+            }
+        }
+
+        [Fact]
+        public async Task CloseWithoutStartTestAsync()
+        {
+            using (var client = new BobNodeClient("Address = 127.0.0.1"))
+            {
+                await client.CloseAsync();
+            }
+        }
+
+        [Fact]
+        public void DisposeWithoutStartTest()
+        {
+            using (var client = new BobNodeClient("Address = 127.0.0.1"))
+            {
+            }
+        }
+
+        [Fact]
+        public void DisposeMockWithoutStartTest()
+        {
+            var data = new ConcurrentDictionary<BobKey, byte[]>();
+            using (var client = BobNodeClientMockHelper.CreateMockedClientWithData(data))
+            {
+            }
+        }
+
+
+        [Fact]
+        public void CloseWithoutStartTestMulti()
+        {
+            Parallel.For(0, 8, _ =>
+            {
+                Parallel.For(0, 1000, i => CloseWithoutStartTest());
+            });
+        }
+
+
+        [Fact]
+        public void DisposeMockWithoutStartTestMulti()
+        {
+            Parallel.For(0, 25, i => DisposeMockWithoutStartTest());
+        }
     }
 }

@@ -12,8 +12,8 @@ namespace Qoollo.BobClient.UnitTests
 {
     public class BobTestsBaseClass : IDisposable
     {
-        private const bool TraceLog = true;
-        private const bool HangDetection = true;
+        private const bool TraceLog = false;
+        private const bool HangDetection = false;
         private const int HangIntervalMs = 10 * 60 * 1000;
 
         private readonly CancellationTokenSource _endingToken;
@@ -36,6 +36,7 @@ namespace Qoollo.BobClient.UnitTests
 
             if (TraceLog)
             {
+#pragma warning disable CS0162 // Unreachable code detected
                 for (int i = 0; i < 100; i++)
                 {
                     try
@@ -45,11 +46,14 @@ namespace Qoollo.BobClient.UnitTests
                     }
                     catch { }
                 }
+#pragma warning restore CS0162 // Unreachable code detected
             }
 
             if (HangDetection)
             {
+#pragma warning disable CS0162 // Unreachable code detected
                 new Thread(HangDetectionThreadMethod).Start();
+#pragma warning restore CS0162 // Unreachable code detected
             }
         }
 
@@ -80,6 +84,7 @@ namespace Qoollo.BobClient.UnitTests
 
             if (TraceLog)
             {
+#pragma warning disable CS0162 // Unreachable code detected
                 for (int i = 0; i < 100; i++)
                 {
                     try
@@ -89,6 +94,7 @@ namespace Qoollo.BobClient.UnitTests
                     }
                     catch { }
                 }
+#pragma warning restore CS0162 // Unreachable code detected
             }
         }
     }
