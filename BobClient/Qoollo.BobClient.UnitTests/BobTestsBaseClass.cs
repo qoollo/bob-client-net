@@ -15,6 +15,7 @@ namespace Qoollo.BobClient.UnitTests
         private const bool TraceLog = false;
         private const bool HangDetection = false;
         private const int HangIntervalMs = 10 * 60 * 1000;
+        private const int MinRequiredThreadPoolThreads = 16;
 
         private readonly CancellationTokenSource _endingToken;
 
@@ -54,6 +55,14 @@ namespace Qoollo.BobClient.UnitTests
 #pragma warning disable CS0162 // Unreachable code detected
                 new Thread(HangDetectionThreadMethod).Start();
 #pragma warning restore CS0162 // Unreachable code detected
+            }
+
+
+            if (MinRequiredThreadPoolThreads > 0)
+            {
+                ThreadPool.GetMaxThreads(out int maxWorkerThreads, out int maxCompletionPortThreads);
+                if (maxWorkerThreads < MinRequiredThreadPoolThreads)
+                    ThreadPool.SetMaxThreads(MinRequiredThreadPoolThreads, maxCompletionPortThreads);
             }
         }
 
