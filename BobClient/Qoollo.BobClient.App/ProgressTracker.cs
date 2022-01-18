@@ -37,7 +37,7 @@ namespace Qoollo.BobClient.App
                 if (rpsListCopy.Count > 1 && rpsListCopy[0] == 0.0)
                     rpsListCopy.RemoveAt(0);
 
-                RpsAvg = (double)CurrentCount / ElapsedMilliseconds;
+                RpsAvg = (double)(1000.0 * CurrentCount) / ElapsedMilliseconds;
                 RpsDev = Math.Sqrt(rpsListCopy.Average(o => (o - RpsAvg) * (o - RpsAvg)));
                 RpsMax = rpsListCopy.Max();
                 RpsMin = rpsListCopy.Min();
