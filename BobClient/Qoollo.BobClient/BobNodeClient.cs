@@ -376,7 +376,7 @@ namespace Qoollo.BobClient
             try
             {
 #if GRPC_LEGACY
-                await Task.Yield();
+                //await Task.Yield();
 #else
 
                 await _rpcChannel.ShutdownAsync();
@@ -404,7 +404,7 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Error during connection shutdown</exception>
         public void Close()
         {
-            //CloseAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+            CloseAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         #region ============ Put ============
