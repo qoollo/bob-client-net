@@ -237,7 +237,7 @@ namespace Qoollo.BobClient
             var bobKey = SerializeToBobKeyFromPool(key, skipLocalInPool: true);
             try
             {
-                await _innerClient.PutAsync(bobKey, data, token);
+                await _innerClient.PutAsync(bobKey, data, token).ConfigureAwait(false);
             }
             finally
             {
@@ -397,7 +397,7 @@ namespace Qoollo.BobClient
             BobKey bobKey = SerializeToBobKeyFromPool(key, skipLocalInPool: true);
             try
             {
-                return await _innerClient.GetAsync(bobKey, fullGet, token);
+                return await _innerClient.GetAsync(bobKey, fullGet, token).ConfigureAwait(false);
             }
             finally
             {
@@ -598,7 +598,7 @@ namespace Qoollo.BobClient
                 for (int i = 0; i < keys.Length; i++)
                     bobKeyArray[i] = SerializeToBobKeyFromPool(keys[i], skipLocalInPool: true);
 
-                return await _innerClient.ExistsAsync(bobKeyArray, fullGet, token);
+                return await _innerClient.ExistsAsync(bobKeyArray, fullGet, token).ConfigureAwait(false);
             }
             finally
             {
@@ -663,7 +663,7 @@ namespace Qoollo.BobClient
                 for (int i = 0; i < keys.Count; i++)
                     bobKeyArray[i] = SerializeToBobKeyFromPool(keys[i], skipLocalInPool: true);
 
-                return await _innerClient.ExistsAsync(bobKeyArray, fullGet, token);
+                return await _innerClient.ExistsAsync(bobKeyArray, fullGet, token).ConfigureAwait(false);
             }
             finally
             {

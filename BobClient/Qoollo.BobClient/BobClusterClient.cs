@@ -158,7 +158,7 @@ namespace Qoollo.BobClient
             {
                 try
                 {
-                    await _clients[i].OpenAsync();
+                    await _clients[i].OpenAsync().ConfigureAwait(false);
                 }
                 catch (BobOperationException)
                 {
@@ -234,7 +234,7 @@ namespace Qoollo.BobClient
             {
                 try
                 {
-                    await _clients[i].CloseAsync();
+                    await _clients[i].CloseAsync().ConfigureAwait(false);
                 }
                 catch (BobOperationException)
                 {
@@ -398,7 +398,7 @@ namespace Qoollo.BobClient
 
                 try
                 {
-                    await _clients[clientIndex].PutAsync(key, data, token);
+                    await _clients[clientIndex].PutAsync(key, data, token).ConfigureAwait(false);
                     return;
                 }
                 catch (BobOperationException) when (retryCount <= _operationRetryCount)
@@ -525,7 +525,7 @@ namespace Qoollo.BobClient
 
                 try
                 {
-                    return await _clients[clientIndex].GetAsync(key, fullGet, token);
+                    return await _clients[clientIndex].GetAsync(key, fullGet, token).ConfigureAwait(false);
                 }
                 catch (BobOperationException ex) when (!(ex is BobKeyNotFoundException) && retryCount <= _operationRetryCount)
                 {
@@ -738,7 +738,7 @@ namespace Qoollo.BobClient
 
                 try
                 {
-                    return await _clients[clientIndex].ExistsAsync(keys, fullGet, token);
+                    return await _clients[clientIndex].ExistsAsync(keys, fullGet, token).ConfigureAwait(false);
                 }
                 catch (BobOperationException) when (retryCount <= _operationRetryCount)
                 {
@@ -809,7 +809,7 @@ namespace Qoollo.BobClient
 
                 try
                 {
-                    return await _clients[clientIndex].ExistsAsync(keys, fullGet, token);
+                    return await _clients[clientIndex].ExistsAsync(keys, fullGet, token).ConfigureAwait(false);
                 }
                 catch (BobOperationException) when (retryCount <= _operationRetryCount)
                 {

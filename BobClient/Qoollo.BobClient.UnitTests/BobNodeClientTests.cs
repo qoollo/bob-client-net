@@ -570,5 +570,23 @@ namespace Qoollo.BobClient.UnitTests
         {
             Parallel.For(0, 25, i => DisposeMockWithoutStartTest());
         }
+
+
+        [Fact]
+        public void TestContextNoDeadlockTest()
+        {
+            Func<Task> runInSeparateThread = async () =>
+            {
+                await Task.Yield();
+                CloseWithoutStartTest();
+            };
+
+            List<Task> tasks = new List<Task>();
+            for (int i = 0; i < 256; i++)
+                tasks.Add(runInSeparateThread());
+
+            if (!Task.WaitAll(tasks.ToArray(), millisecondsTimeout: 60 * 1000))
+                Assert.True(false, "DEADLOCK!!!");
+        }
     }
 }

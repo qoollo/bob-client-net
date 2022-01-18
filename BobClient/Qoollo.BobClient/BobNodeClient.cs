@@ -328,7 +328,7 @@ namespace Qoollo.BobClient
             try
             {
                 OnMethodRun();
-                await _rpcClient.PingAsync(new BobStorage.Null(), deadline: GetDeadline(timeout));
+                await _rpcClient.PingAsync(new BobStorage.Null(), deadline: GetDeadline(timeout)).ResponseAsync.ConfigureAwait(false);
                 OnMethodSuccess();
             }
             catch (TaskCanceledException tce)
@@ -360,7 +360,13 @@ namespace Qoollo.BobClient
         /// <exception cref="ObjectDisposedException">Client was disposed</exception>
         public void Open()
         {
-            OpenAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+            if (_isDisposed)
+                throw new ObjectDisposedException(this.GetType().Name);
+
+            if (SynchronizationContext.Current != null || TaskScheduler.Current != TaskScheduler.Default)
+                Task.Run(OpenAsync).ConfigureAwait(false).GetAwaiter().GetResult();
+            else
+                OpenAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -375,12 +381,7 @@ namespace Qoollo.BobClient
 
             try
             {
-#if GRPC_LEGACY
-                //await Task.Yield();
-#else
-
-                await _rpcChannel.ShutdownAsync();
-#endif
+                await _rpcChannel.ShutdownAsync().ConfigureAwait(false);
 #if GRPC_NET
                 _rpcChannel.Dispose();
 #endif
@@ -404,7 +405,13 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Error during connection shutdown</exception>
         public void Close()
         {
-            CloseAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+            if (_isDisposed)
+                return;
+
+            if (SynchronizationContext.Current != null || TaskScheduler.Current != TaskScheduler.Default)
+                Task.Run(CloseAsync).ConfigureAwait(false).GetAwaiter().GetResult();
+            else
+                CloseAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         #region ============ Put ============
@@ -509,7 +516,7 @@ namespace Qoollo.BobClient
             try
             {
                 OnMethodRun();
-                var answer = await _rpcClient.PutAsync(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
+                var answer = await _rpcClient.PutAsync(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout)).ResponseAsync.ConfigureAwait(false);
                 if (answer.Error != null)
                 {
                     OnMethodFailure(); // Bob error is failure for the client too
@@ -631,7 +638,7 @@ namespace Qoollo.BobClient
             try
             {
                 OnMethodRun();
-                await _rpcClient.PingAsync(new BobStorage.Null(), cancellationToken: token, deadline: GetDeadline(_operationTimeout));
+                await _rpcClient.PingAsync(new BobStorage.Null(), cancellationToken: token, deadline: GetDeadline(_operationTimeout)).ResponseAsync.ConfigureAwait(false);
                 OnMethodSuccess();
             }
             catch (Grpc.Core.RpcException e)
@@ -789,7 +796,7 @@ namespace Qoollo.BobClient
             try
             {
                 OnMethodRun();
-                var answer = await _rpcClient.GetAsync(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
+                var answer = await _rpcClient.GetAsync(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout)).ResponseAsync.ConfigureAwait(false);
                 var result = answer.ExtractData();
                 OnMethodSuccess();
                 return result;
@@ -1048,7 +1055,7 @@ namespace Qoollo.BobClient
             try
             {
                 OnMethodRun();
-                var answer = await _rpcClient.ExistAsync(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout));
+                var answer = await _rpcClient.ExistAsync(request, cancellationToken: token, deadline: GetDeadline(_operationTimeout)).ResponseAsync.ConfigureAwait(false);
                 var result = answer.ExtractExistResults();
                 OnMethodSuccess();
                 return result;
@@ -1099,7 +1106,7 @@ namespace Qoollo.BobClient
             if (_isDisposed)
                 throw new ObjectDisposedException(GetType().Name);
 
-            return await ExistsAsync(new BobStorage.ExistRequest(keys, fullGet), token);
+            return await ExistsAsync(new BobStorage.ExistRequest(keys, fullGet), token).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1157,7 +1164,7 @@ namespace Qoollo.BobClient
             if (_isDisposed)
                 throw new ObjectDisposedException(GetType().Name);
 
-            return await ExistsAsync(new BobStorage.ExistRequest(keys, fullGet), token);
+            return await ExistsAsync(new BobStorage.ExistRequest(keys, fullGet), token).ConfigureAwait(false);
         }
 
         /// <summary>
