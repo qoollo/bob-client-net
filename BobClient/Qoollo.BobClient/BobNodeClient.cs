@@ -360,7 +360,7 @@ namespace Qoollo.BobClient
         /// <exception cref="ObjectDisposedException">Client was disposed</exception>
         public void Open()
         {
-            OpenAsync().GetAwaiter().GetResult();
+            OpenAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -375,7 +375,12 @@ namespace Qoollo.BobClient
 
             try
             {
+#if GRPC_LEGACY
+                await Task.Yield();
+#else
+
                 await _rpcChannel.ShutdownAsync();
+#endif
 #if GRPC_NET
                 _rpcChannel.Dispose();
 #endif
