@@ -15,7 +15,7 @@ namespace Qoollo.BobClient.UnitTests
         private const bool TraceLog = false;
         private const bool HangDetection = false;
         private const int HangIntervalMs = 10 * 60 * 1000;
-        private const int MinRequiredThreadPoolThreads = 16;
+        private const int MinRequiredThreadPoolThreads = 64;
 
         private readonly CancellationTokenSource _endingToken;
 
