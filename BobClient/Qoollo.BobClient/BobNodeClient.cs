@@ -399,7 +399,7 @@ namespace Qoollo.BobClient
         /// <exception cref="BobOperationException">Error during connection shutdown</exception>
         public void Close()
         {
-            CloseAsync().GetAwaiter().GetResult();
+            CloseAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         #region ============ Put ============
