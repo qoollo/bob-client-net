@@ -582,10 +582,10 @@ namespace Qoollo.BobClient.UnitTests
             };
 
             List<Task> tasks = new List<Task>();
-            for (int i = 0; i < 256; i++)
+            for (int i = 0; i < 128; i++)
                 tasks.Add(runInSeparateThread());
 
-            if (!Task.WaitAll(tasks.ToArray(), millisecondsTimeout: 60 * 1000))
+            if (!Task.WaitAll(tasks.ToArray(), millisecondsTimeout: 120 * 1000))
                 Assert.True(false, "DEADLOCK!!!");
         }
     }

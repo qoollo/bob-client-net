@@ -18,7 +18,7 @@ jobs:
           dotnet build ./BobClient/
       - name: Test net50
         run: |
-          dotnet test ./BobClient/ --no-build -f "net5.0"
+          dotnet test ./BobClient/ --no-build -f "net5.0" --blame-hang --blame-hang-timeout 15m -l "console;verbosity=detailed"
 
 
   test-on-windows:
@@ -32,12 +32,3 @@ jobs:
       - name: Test net462
         run: |
           dotnet test ./BobClient/ --no-build -f "net462" --blame-hang --blame-hang-timeout 15m -l "console;verbosity=detailed"
-      - name: Upload artifact
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-results
-          path: |
-            ./BobClient/Qoollo.BobClient.UnitTests/TestResults
-            ./BobClient/Qoollo.BobClient.UnitTests/bin/Debug/net462/Test_trace.log
-            ./BobClient/Qoollo.BobClient.UnitTests/bin/Debug/net462/Test_hang.log
