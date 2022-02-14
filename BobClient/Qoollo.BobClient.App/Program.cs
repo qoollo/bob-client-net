@@ -22,6 +22,9 @@ namespace Qoollo.BobClient.App
             if (endId < startId || count > endId - startId)
                 endId = startId + count;
 
+            if (threadCount > count)
+                threadCount = count;
+
             ParallelRandom random = new ParallelRandom((int)threadCount);
 
             bool isInitialRun = true;
@@ -86,6 +89,9 @@ namespace Qoollo.BobClient.App
         {
             if (endId < startId || count > endId - startId)
                 endId = startId + count;
+
+            if (threadCount > count)
+                threadCount = count;
 
             ParallelRandom random = new ParallelRandom((int)threadCount);
 
@@ -166,6 +172,9 @@ namespace Qoollo.BobClient.App
 
             int expectedRequestsCount = (int)((count - 1) / packageSize) + 1;
             int totalExistedCount = 0;
+
+            if (threadCount > expectedRequestsCount)
+                threadCount = (uint)expectedRequestsCount;
 
             bool isInitialRun = true;
             Barrier bar = new Barrier((int)threadCount);
