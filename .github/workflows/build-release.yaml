@@ -73,6 +73,8 @@ jobs:
           path: client-app-linux
       - name: Create zip
         run: |
+          rm -f client-app-linux/*.xml
+          rm -f client-app-linux/*.pdb
           zip -r client-app-linux.zip client-app-linux/
       - name: Upload client app for Linux to release
         uses: svenstaro/upload-release-action@v2
@@ -113,6 +115,8 @@ jobs:
           path: client-app-windows
       - name: Create zip
         run: |
+          rm -f client-app-windows/*.xml
+          rm -f client-app-windows/*.pdb
           zip -r client-app-windows.zip client-app-windows/
       - name: Upload client app for Windows to release
         uses: svenstaro/upload-release-action@v2
