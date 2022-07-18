@@ -96,7 +96,7 @@ namespace Qoollo.BobClient.Helpers.Json
     }
 
 
-    internal enum JsonEnclosingElementType
+    internal enum JsonScopeElement
     {
         None,
         Object,
@@ -109,70 +109,66 @@ namespace Qoollo.BobClient.Helpers.Json
         internal sealed class ReaderContext
         {
             private readonly string _source;
-            private readonly List<JsonElementInfo> _elementsStack;
+            private readonly List<JsonScopeElement> _scopeStack;
 
             public ReaderContext(string source)
             {
                 _source = source ?? throw new ArgumentNullException(nameof(source));
 
-                _elementsStack = new List<JsonElementInfo>();
+                _scopeStack = new List<JsonScopeElement>();
                 LastElement = JsonElementInfo.None;
-                EnclosingElementType = JsonEnclosingElementType.None;
+                EnclosingScope = JsonScopeElement.None;
                 ProperyName = null;
             }
 
             public JsonElementInfo LastElement { get; private set; }
-            public JsonEnclosingElementType EnclosingElementType { get; private set; }
+            public JsonScopeElement EnclosingScope { get; private set; }
             public string ProperyName { get; private set; }
 
 
-            public IReadOnlyList<JsonElementInfo> ElementsStack { get { return _elementsStack; } }
-            public bool IsElementsStackEmpty { get { return _elementsStack.Count == 0; } }
-            public JsonElementInfo LastElementInStack { get { return _elementsStack[_elementsStack.Count - 1]; } }
+            public IReadOnlyList<JsonScopeElement> ScopeStack { get { return _scopeStack; } }
+            public bool IsScopeStackEmpty { get { return _scopeStack.Count == 0; } }
+            public JsonScopeElement CurrentScope { get { return _scopeStack.Count > 0 ? _scopeStack[_scopeStack.Count - 1] : JsonScopeElement.None; } }
 
-
-
-            private JsonEnclosingElementType EstimateEnclosingElementType()
-            {
-                if (IsElementsStackEmpty)
-                    return JsonEnclosingElementType.None;
-
-                var lastElementInStackType = LastElementInStack.Type;
-                if (lastElementInStackType == JsonElementType.StartObject)
-                    return JsonEnclosingElementType.Object;
-                else if (lastElementInStackType == JsonElementType.StartArray)
-                    return JsonEnclosingElementType.Array;
-                else
-                    throw new InvalidOperationException($"Malformed ElementsStack. {lastElementInStackType} is unexpected");
-            }
 
 
             public JsonElementInfo ProcessNextElement(JsonElementInfo newElement)
             {
+                JsonScopeElement initialScope = CurrentScope;
+
+                if (newElement.Type.IsValueType())
+                {
+                    if (!IsScopeStackEmpty && CurrentScope == JsonScopeElement.Object && LastElement.Type != JsonElementType.PropertyName)
+                        throw new JsonParsingException($"Value inside object can be placed only after property name (position: {newElement.Lexeme.Start})");
+                    if (IsScopeStackEmpty && LastElement.Type != JsonElementType.None)
+                        throw new JsonParsingException($"Only one element allowed in the root scope of JSON (position: {newElement.Lexeme.Start})");
+                }
+
+
                 switch (newElement.Type)
                 {
                     case JsonElementType.None:
-                        if (!IsElementsStackEmpty)
-                            throw new JsonParsingException($"Json ended too early, not all objects or arrays are closed. Not closed sequence: {GetElementStackNotClosedSequence()}");
+                        if (!IsScopeStackEmpty)
+                            throw new JsonParsingException($"Json ended too early, not all objects or arrays are closed. Not closed sequence: {GetScopeStackNotClosedSequence()}");
                         break;
                     case JsonElementType.StartObject:
-                        _elementsStack.Add(newElement);
+                        _scopeStack.Add(JsonScopeElement.Object);
                         break;
                     case JsonElementType.EndObject:
-                        if (IsElementsStackEmpty || LastElementInStack.Type != JsonElementType.StartObject)
+                        if (IsScopeStackEmpty || CurrentScope != JsonScopeElement.Object)
                             throw new JsonParsingException($"Json object ended, but there was no assotiated json object start (position: {newElement.Lexeme.Start})");
-                        _elementsStack.RemoveAt(_elementsStack.Count - 1);
+                        _scopeStack.RemoveAt(_scopeStack.Count - 1);
                         break;
                     case JsonElementType.StartArray:
-                        _elementsStack.Add(newElement);
+                        _scopeStack.Add(JsonScopeElement.Array);
                         break;
                     case JsonElementType.EndArray:
-                        if (IsElementsStackEmpty || LastElementInStack.Type != JsonElementType.StartArray)
+                        if (IsScopeStackEmpty || CurrentScope != JsonScopeElement.Array)
                             throw new JsonParsingException($"Json array ended, but there was no assotiated json array start (position: {newElement.Lexeme.Start})");
-                        _elementsStack.RemoveAt(_elementsStack.Count - 1);
+                        _scopeStack.RemoveAt(_scopeStack.Count - 1);
                         break;
                     case JsonElementType.PropertyName:
-                        if (IsElementsStackEmpty || LastElementInStack.Type != JsonElementType.StartObject)
+                        if (IsScopeStackEmpty || CurrentScope != JsonScopeElement.Object)
                             throw new JsonParsingException($"Json property name can be inside Json object (position: {newElement.Lexeme.Start})");
                         break;
                     case JsonElementType.Null:
@@ -180,8 +176,6 @@ namespace Qoollo.BobClient.Helpers.Json
                     case JsonElementType.False:
                     case JsonElementType.Number:
                     case JsonElementType.String:
-                        if (EnclosingElementType == JsonEnclosingElementType.Object && LastElement.Type != JsonElementType.PropertyName)
-                            throw new JsonParsingException($"Value inside object can be placed only after property name (position: {newElement.Lexeme.Start})");
                         break;
                     default:
                         throw new InvalidOperationException($"Unknown JsonElementType: {newElement.Type}");
@@ -192,23 +186,27 @@ namespace Qoollo.BobClient.Helpers.Json
                 else if (newElement.Type == JsonElementType.None || LastElement.Type != JsonElementType.PropertyName)
                     ProperyName = null;
 
+                if (newElement.Type == JsonElementType.StartArray || newElement.Type == JsonElementType.StartObject)
+                    EnclosingScope = initialScope;
+                else
+                    EnclosingScope = CurrentScope;
+
                 LastElement = newElement;
-                EnclosingElementType = EstimateEnclosingElementType();
                 return newElement;
             }
 
 
-            public string GetElementStackNotClosedSequence()
+            public string GetScopeStackNotClosedSequence()
             {
-                if (_elementsStack.Count == 0)
+                if (_scopeStack.Count == 0)
                     return "";
 
-                StringBuilder result = new StringBuilder(capacity: _elementsStack.Count * 3);
-                foreach (var item in _elementsStack)
+                StringBuilder result = new StringBuilder(capacity: _scopeStack.Count * 3);
+                foreach (var item in _scopeStack)
                 {
-                    if (item.Type == JsonElementType.StartObject)
+                    if (item == JsonScopeElement.Object)
                         result.Append("{, ");
-                    else if (item.Type == JsonElementType.StartArray)
+                    else if (item == JsonScopeElement.Array)
                         result.Append("[, ");
                 }
 
@@ -235,10 +233,11 @@ namespace Qoollo.BobClient.Helpers.Json
         }
 
         public bool IsBroken { get { return _isBroken; } }
-        public bool IsEnd { get { return _isBroken || _lexemeReader.IsEnd; } }
+        public bool IsEnd { get { return _lexemeReader.IsEnd; } }
 
         public JsonElementType ElementType { get { return _context.LastElement.Type; } }
-        public JsonEnclosingElementType EnclosingElementType { get { return _context.EnclosingElementType; } }
+        public JsonScopeElement EnclosingScope { get { return _context.EnclosingScope; } }
+        public JsonScopeElement CurrentScope { get { return _context.CurrentScope; } }
         public string ProperyName { get { return _context.ProperyName; } }
 
 
@@ -290,8 +289,8 @@ namespace Qoollo.BobClient.Helpers.Json
 
             if (!lexemeReader.Read())
             {
-                if (!context.IsElementsStackEmpty)
-                    throw new JsonParsingException($"Json ended too early, not all objects or arrays are closed. Not closed sequence: {context.GetElementStackNotClosedSequence()}");
+                if (!context.IsScopeStackEmpty)
+                    throw new JsonParsingException($"Json ended too early, not all objects or arrays are closed. Not closed sequence: {context.GetScopeStackNotClosedSequence()}");
 
                 return new JsonElementInfo(JsonElementType.None, lexemeReader.CurrentLexeme);
             }
@@ -327,12 +326,12 @@ namespace Qoollo.BobClient.Helpers.Json
                 case JsonElementType.False:
                 case JsonElementType.Number:
                 case JsonElementType.String:
-                    switch (context.EnclosingElementType)
+                    switch (context.CurrentScope)
                     {
-                        case JsonEnclosingElementType.None:
+                        case JsonScopeElement.None:
                             throw new JsonParsingException($"Json end expected after value at {currentLexeme.Start}, but found: '{lexemeReader.ExtractLexemeSurroundingText()}'");
                         
-                        case JsonEnclosingElementType.Object:
+                        case JsonScopeElement.Object:
                             if (currentLexeme.Type == JsonLexemeType.EndObject)
                             {
                                 return new JsonElementInfo(currentLexeme);
@@ -349,7 +348,7 @@ namespace Qoollo.BobClient.Helpers.Json
                                 throw new JsonParsingException($"Object end or ',' expected inside Json object at {currentLexeme.Start}, but found: '{lexemeReader.ExtractLexemeSurroundingText()}'");
                             }
 
-                        case JsonEnclosingElementType.Array:
+                        case JsonScopeElement.Array:
                             if (currentLexeme.Type == JsonLexemeType.EndArray)
                             {
                                 return new JsonElementInfo(currentLexeme);
@@ -367,7 +366,7 @@ namespace Qoollo.BobClient.Helpers.Json
                             }
 
                         default:
-                            throw new InvalidOperationException($"Unknown JsonSurroundingElementType: {context.EnclosingElementType}");
+                            throw new InvalidOperationException($"Unknown JsonSurroundingElementType: {context.CurrentScope}");
                     }
 
                 default:
@@ -378,6 +377,9 @@ namespace Qoollo.BobClient.Helpers.Json
 
         public bool Read()
         {
+            if (IsBroken)
+                throw new JsonParsingException("Json structure is broken");
+
             if (IsEnd)
                 return false;
 
