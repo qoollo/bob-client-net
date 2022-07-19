@@ -49,7 +49,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.Equal(JsonElementType.None, context.LastElement.Type);
             Assert.Equal(JsonScopeElement.None, context.EnclosingScope);
             Assert.Equal(JsonScopeElement.None, context.CurrentScope);
-            Assert.Null(context.ProperyName);
+            Assert.Null(context.PropertyName);
 
             Assert.True(context.IsScopeStackEmpty);
             Assert.NotNull(context.ScopeStack);
@@ -84,7 +84,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
                 Assert.Equal(elem.Lexeme.End, context.LastElement.Lexeme.End);
 
                 if (elem.Type == JsonElementType.PropertyName)
-                    Assert.NotNull(context.ProperyName);
+                    Assert.NotNull(context.PropertyName);
 
                 var prevScope = scopeElemStack.Count > 0 ? scopeElemStack.Peek() : JsonScopeElement.None;
 
@@ -124,70 +124,70 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
 
             Assert.Equal("", context.GetScopeStackNotClosedSequence());
             Assert.Equal(0, context.ScopeStack.Count);
-            Assert.Null(context.ProperyName);
+            Assert.Null(context.PropertyName);
             Assert.Equal(JsonScopeElement.None, context.CurrentScope);
             Assert.Equal(JsonScopeElement.None, context.EnclosingScope);
 
             context.ProcessNextElement(new JsonElementInfo(JsonElementType.StartObject, new JsonLexemeInfo(JsonLexemeType.StartObject, 0, 1)));
             Assert.Equal("{", context.GetScopeStackNotClosedSequence());
             Assert.Equal(1, context.ScopeStack.Count);
-            Assert.Null(context.ProperyName);
+            Assert.Null(context.PropertyName);
             Assert.Equal(JsonScopeElement.Object, context.CurrentScope);
             Assert.Equal(JsonScopeElement.None, context.EnclosingScope);
 
             context.ProcessNextElement(new JsonElementInfo(JsonElementType.PropertyName, new JsonLexemeInfo(JsonLexemeType.String, 2, 7)));
             Assert.Equal("{", context.GetScopeStackNotClosedSequence());
             Assert.Equal(1, context.ScopeStack.Count);
-            Assert.Equal("\"abc\"", context.ProperyName);
+            Assert.Equal("\"abc\"", context.PropertyName);
             Assert.Equal(JsonScopeElement.Object, context.CurrentScope);
             Assert.Equal(JsonScopeElement.Object, context.EnclosingScope);
 
             context.ProcessNextElement(new JsonElementInfo(JsonElementType.Number, new JsonLexemeInfo(JsonLexemeType.Number, 9, 12)));
             Assert.Equal("{", context.GetScopeStackNotClosedSequence());
             Assert.Equal(1, context.ScopeStack.Count);
-            Assert.Equal("\"abc\"", context.ProperyName);
+            Assert.Equal("\"abc\"", context.PropertyName);
             Assert.Equal(JsonScopeElement.Object, context.CurrentScope);
             Assert.Equal(JsonScopeElement.Object, context.EnclosingScope);
 
             context.ProcessNextElement(new JsonElementInfo(JsonElementType.PropertyName, new JsonLexemeInfo(JsonLexemeType.Number, 14, 19)));
             Assert.Equal("{", context.GetScopeStackNotClosedSequence());
             Assert.Equal(1, context.ScopeStack.Count);
-            Assert.Equal("\"def\"", context.ProperyName);
+            Assert.Equal("\"def\"", context.PropertyName);
             Assert.Equal(JsonScopeElement.Object, context.CurrentScope);
             Assert.Equal(JsonScopeElement.Object, context.EnclosingScope);
 
             context.ProcessNextElement(new JsonElementInfo(JsonElementType.StartArray, new JsonLexemeInfo(JsonLexemeType.StartArray, 21, 22)));
             Assert.Equal("{, [", context.GetScopeStackNotClosedSequence());
             Assert.Equal(2, context.ScopeStack.Count);
-            Assert.Equal("\"def\"", context.ProperyName);
+            Assert.Equal("\"def\"", context.PropertyName);
             Assert.Equal(JsonScopeElement.Array, context.CurrentScope);
             Assert.Equal(JsonScopeElement.Object, context.EnclosingScope);
 
             context.ProcessNextElement(new JsonElementInfo(JsonElementType.False, new JsonLexemeInfo(JsonLexemeType.False, 23, 28)));
             Assert.Equal("{, [", context.GetScopeStackNotClosedSequence());
             Assert.Equal(2, context.ScopeStack.Count);
-            Assert.Null(context.ProperyName);
+            Assert.Null(context.PropertyName);
             Assert.Equal(JsonScopeElement.Array, context.CurrentScope);
             Assert.Equal(JsonScopeElement.Array, context.EnclosingScope);
 
             context.ProcessNextElement(new JsonElementInfo(JsonElementType.EndArray, new JsonLexemeInfo(JsonLexemeType.EndArray, 29, 30)));
             Assert.Equal("{", context.GetScopeStackNotClosedSequence());
             Assert.Equal(1, context.ScopeStack.Count);
-            Assert.Null(context.ProperyName);
+            Assert.Null(context.PropertyName);
             Assert.Equal(JsonScopeElement.Object, context.CurrentScope);
             Assert.Equal(JsonScopeElement.Object, context.EnclosingScope);
 
             context.ProcessNextElement(new JsonElementInfo(JsonElementType.EndObject, new JsonLexemeInfo(JsonLexemeType.EndArray, 31, 32)));
             Assert.Equal("", context.GetScopeStackNotClosedSequence());
             Assert.Equal(0, context.ScopeStack.Count);
-            Assert.Null(context.ProperyName);
+            Assert.Null(context.PropertyName);
             Assert.Equal(JsonScopeElement.None, context.CurrentScope);
             Assert.Equal(JsonScopeElement.None, context.EnclosingScope);
 
             context.ProcessNextElement(new JsonElementInfo(JsonElementType.None, new JsonLexemeInfo(JsonLexemeType.None, 32, 32)));
             Assert.Equal("", context.GetScopeStackNotClosedSequence());
             Assert.Equal(0, context.ScopeStack.Count);
-            Assert.Null(context.ProperyName);
+            Assert.Null(context.PropertyName);
             Assert.Equal(JsonScopeElement.None, context.CurrentScope);
             Assert.Equal(JsonScopeElement.None, context.EnclosingScope);
         }
@@ -216,6 +216,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
         [Theory]
         [InlineData("false", new JsonElementType[] { JsonElementType.False, JsonElementType.None })]
         [InlineData("[]", new JsonElementType[] { JsonElementType.StartArray, JsonElementType.EndArray, JsonElementType.None })]
+        [InlineData("[\n123,\n456]", new JsonElementType[] { JsonElementType.StartArray, JsonElementType.Number, JsonElementType.Number, JsonElementType.EndArray, JsonElementType.None })]
         [InlineData("[null, {},]", new JsonElementType[] { JsonElementType.StartArray, JsonElementType.Null, JsonElementType.StartObject, JsonElementType.EndObject, JsonElementType.EndArray, JsonElementType.None })]
         [InlineData("[{\"abc\": \"text\",}, {abc: true}, {}, []]",
             new JsonElementType[] { JsonElementType.StartArray, JsonElementType.StartObject, JsonElementType.PropertyName, JsonElementType.String, JsonElementType.EndObject, JsonElementType.StartObject, JsonElementType.PropertyName, JsonElementType.True, JsonElementType.EndObject, JsonElementType.StartObject, JsonElementType.EndObject, JsonElementType.StartArray, JsonElementType.EndArray, JsonElementType.EndArray, JsonElementType.None })]
@@ -238,7 +239,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
                 Assert.Equal(elTypeSeq[index], reader.ElementType);
 
                 if (elTypeSeq[index] == JsonElementType.PropertyName)
-                    Assert.NotNull(reader.ProperyName);
+                    Assert.NotNull(reader.PropertyName);
 
                 var prevScope = scopeElemStack.Count > 0 ? scopeElemStack.Peek() : JsonScopeElement.None;
 
@@ -267,6 +268,86 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
                     Assert.Equal(enclosingScope, reader.EnclosingScope);
                 }
             }
+
+            Assert.True(reader.IsEnd);
+            Assert.False(reader.IsBroken);
         }
+
+
+        [Theory]
+        [InlineData("false, true")]
+        [InlineData("abcd")]
+        [InlineData("[12, 13}")]
+        [InlineData("{ abc: 1, false }")]
+        [InlineData("!")]
+        [InlineData("]")]
+        [InlineData("{ abc: \"\\a\" }")]
+        [InlineData("{ abc: 12a3 }")]
+        internal void ReaderReadFailTest(string jsonStr)
+        {
+            var reader = new JsonReader(jsonStr);
+
+            Assert.Throws<JsonParsingException>(() =>
+            {
+                int index = -1;
+
+                while (reader.Read())
+                {
+                    index++;
+                    Assert.True(index < 10000);
+                }
+            });
+
+            Assert.True(reader.IsBroken);
+        }
+
+
+        [Fact]
+        internal void ReaderIsBrokenTest()
+        {
+            var reader = new JsonReader("{ 123, abc: 123 }");
+
+            Assert.Throws<JsonParsingException>(() =>
+            {
+                int index = -1;
+
+                while (reader.Read())
+                {
+                    index++;
+                    Assert.True(index < 10000);
+                }
+            });
+
+            Assert.True(reader.IsBroken);
+            Assert.False(reader.IsEnd);
+
+            Assert.Throws<JsonParsingException>(() =>
+            {
+                reader.Read();
+            });
+        }
+
+
+        [Theory]
+        [InlineData(@"Helpers\Json\TestJsonFiles\file1.json")]
+        [InlineData(@"Helpers\Json\TestJsonFiles\file2.json")]
+        [InlineData(@"Helpers\Json\TestJsonFiles\file3.json")]
+        [InlineData(@"Helpers\Json\TestJsonFiles\file4.json")]
+        internal void ReaderReadJsonFileTest(string jsonFileName)
+        {
+            string text = System.IO.File.ReadAllText(jsonFileName);
+            var reader = new JsonReader(text);
+
+            int index = -1;
+
+            while (reader.Read())
+            {
+                index++;
+                Assert.True(index < 10000);
+            }
+
+            Assert.True(reader.IsEnd);
+        }
+
     }
 }

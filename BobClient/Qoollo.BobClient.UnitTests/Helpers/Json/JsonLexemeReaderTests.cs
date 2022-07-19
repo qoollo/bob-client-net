@@ -40,6 +40,44 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
         }
 
         [Theory]
+        [InlineData("\"" + "\"", 0, -1, "")]
+        [InlineData("\"" + @"Simple test string." + "\"", 0, -1, "Simple test string.")]
+        [InlineData("Start: " + "\"" + @"Simple test string." + "\"" + " Something after", 7, 28, "Simple test string.")]
+        [InlineData("\"" + @"Esc \"" \t \r \n \b \f \/ \u123A text" + "\"", 0, -1, "Esc \" \t \r \n \b \f / \u123A text")]
+        public void ParseStringTest(string str, int startIndex, int endIndex, string expected)
+        {
+            if (endIndex == -1)
+                endIndex = str.Length;
+
+            var parsedStr = JsonLexemeReader.ParseString(str, startIndex, endIndex);
+            Assert.Equal(expected, parsedStr);
+        }
+
+        [Theory]
+        [InlineData("\"" + @"Non start" + "\"", 2, -1)]
+        [InlineData(@"Bad start" + "\"", 0, -1)]
+        [InlineData("\"" + @"Bad end" + "\"", 0, 4)]
+        [InlineData("\"" + @"Bad end" + "\", something other", 0, 11)]
+        [InlineData("\"" + @"Bad esc \X" + "\"", 0, -1)]
+        [InlineData("\"" + @"Bad esc \ux" + "\"", 0, -1)]
+        [InlineData("\"" + @"Bad esc \u123" + "\"", 0, -1)]
+        [InlineData("\"" + @"Bad esc \uA33Q" + "\"", 0, -1)]
+        [InlineData("\"" + @"No end", 0, -1)]
+        public void ParseStringFailTest(string str, int startIndex, int endIndex)
+        {
+            if (endIndex == -1)
+                endIndex = str.Length;
+
+            Assert.Throws<FormatException>(() =>
+            {
+                var parsedStr = JsonLexemeReader.ParseString(str, startIndex, endIndex);
+                Assert.Equal("", parsedStr);
+            });
+        }
+
+
+
+        [Theory]
         [InlineData("Simple_identifier", 0, "Simple_identifier")]
         [InlineData("_simple_identifier", 0, "_simple_identifier")]
         [InlineData("Simple identifier", 0, "Simple")]

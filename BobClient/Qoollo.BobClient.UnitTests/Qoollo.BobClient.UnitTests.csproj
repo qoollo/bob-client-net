@@ -24,6 +24,21 @@
     <ProjectReference Include="..\Qoollo.BobClient\Qoollo.BobClient.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Helpers\Json\TestJsonFiles\file1.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Helpers\Json\TestJsonFiles\file2.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Helpers\Json\TestJsonFiles\file3.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Helpers\Json\TestJsonFiles\file4.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(TargetFramework)' == 'net462'">
     <TargetFrameworkKind>netframework</TargetFrameworkKind>
     <gRpcLib>gRPC_Legacy</gRpcLib>

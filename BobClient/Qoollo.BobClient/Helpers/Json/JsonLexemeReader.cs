@@ -94,11 +94,23 @@ namespace Qoollo.BobClient.Helpers.Json
     }
 
 
+    [System.Diagnostics.DebuggerDisplay("{CurrentLexeme}")]
     internal class JsonLexemeReader
     {
         private static bool IsHexDigit(char ch)
         {
             return (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'F') || (ch >= 'a' && ch <= 'f');
+        }
+        private static int ParseHexDigit(char ch)
+        {
+            if (ch >= '0' && ch <= '9')
+                return ch - '0';
+            else if (ch >= 'A' && ch <= 'F')
+                return 10 + (ch - 'A');
+            else if (ch >= 'a' && ch <= 'f')
+                return 10 + (ch - 'a');
+            else
+                throw new ArgumentException($"Char is not a HexDigit: {ch}");
         }
         private static bool IsIdentifierStartSymbol(char ch)
         {
@@ -195,6 +207,98 @@ namespace Qoollo.BobClient.Helpers.Json
             }
 
             throw new JsonParsingException($"Unexpected end of Json. Cannot finish string parsing started at {startIndex}: '{ExtractSurroundingText(str, startIndex)}'");
+        }
+
+        internal static string ParseString(string str, int startIndex, int expectedEndIndex)
+        {
+            if (str == null)
+                throw new ArgumentNullException(nameof(str));
+            if (startIndex < 0 || startIndex >= str.Length)
+                throw new ArgumentOutOfRangeException(nameof(startIndex));
+            if (expectedEndIndex <= startIndex || expectedEndIndex > str.Length)
+                throw new ArgumentOutOfRangeException(nameof(expectedEndIndex));
+
+            if (str[startIndex] != '"')
+                throw new FormatException($"String is not started with quotation mark. It's started with: '{ExtractSurroundingText(str, startIndex)}'");
+
+            int index = startIndex + 1;
+
+            StringBuilder parsedString = null;
+            int continuousSequenceStart = index;
+
+            while (index < str.Length && index < expectedEndIndex)
+            {
+                if (str[index] == '\\')
+                {
+                    if (index + 1 >= str.Length)
+                        throw new FormatException($"Unexpected end of string. Cannot finish string parsing: '{ExtractSurroundingText(str, index)}'");
+
+                    char escapedChar = str[index + 1];
+                    if (escapedChar != '\\' && escapedChar != '/' && escapedChar != '"' && escapedChar != 'b' && escapedChar != 'f' && escapedChar != 'n' && escapedChar != 'r' && escapedChar != 't' && escapedChar != 'u')
+                        throw new FormatException($"Unrecognized escape sequence at {index}: '{ExtractSurroundingText(str, index)}'");
+
+                    if (parsedString == null)
+                        parsedString = new StringBuilder(str.Length);
+
+                    parsedString.Append(str, continuousSequenceStart, index - continuousSequenceStart);
+
+                    if (escapedChar == 'u')
+                    {
+                        if (index + 5 >= str.Length || !IsHexDigit(str[index + 2]) || !IsHexDigit(str[index + 3]) || !IsHexDigit(str[index + 4]) || !IsHexDigit(str[index + 5]))
+                            throw new FormatException($"Unrecognized escape sequence at {index}: '{ExtractSurroundingText(str, index)}'");
+
+                        int charValue = (ParseHexDigit(str[index + 2]) << 12) | (ParseHexDigit(str[index + 3]) << 8) | (ParseHexDigit(str[index + 4]) << 4) | ParseHexDigit(str[index + 5]);
+                        parsedString.Append((char)charValue);
+
+                        index += 5;
+                    }
+                    else
+                    {
+                        switch (escapedChar)
+                        {
+                            case 'b':
+                                parsedString.Append('\b');
+                                break;
+                            case 'f':
+                                parsedString.Append('\f');
+                                break;
+                            case 'n':
+                                parsedString.Append('\n');
+                                break;
+                            case 'r':
+                                parsedString.Append('\r');
+                                break;
+                            case 't':
+                                parsedString.Append('\t');
+                                break;
+                            default:
+                                parsedString.Append(escapedChar);
+                                break;
+                        }
+
+                        index++;
+                    }
+
+                    continuousSequenceStart = index + 1;
+                }
+                else if (str[index] == '"')
+                {
+                    if (index + 1 != expectedEndIndex)
+                        throw new FormatException($"String ended earlier than expected at position {index}: '{ExtractSurroundingText(str, index)}'");
+
+                    if (parsedString == null)
+                        return str.Substring(startIndex + 1, index - startIndex - 1);
+
+                    if (index - continuousSequenceStart - 1 > 0)
+                        parsedString.Append(str, continuousSequenceStart, index - continuousSequenceStart);
+
+                    return parsedString.ToString();
+                }
+
+                index++;
+            }
+
+            throw new FormatException($"String does not have ending quotation mark before position {index}: '{ExtractSurroundingText(str, index)}'");
         }
 
 

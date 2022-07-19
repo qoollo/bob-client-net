@@ -104,6 +104,7 @@ namespace Qoollo.BobClient.Helpers.Json
     }
 
 
+    [System.Diagnostics.DebuggerDisplay("{ElementType} (Scope = {EnclosingScope}, PropertyName = {PropertyName})")]
     internal class JsonReader
     {
         internal sealed class ReaderContext
@@ -118,12 +119,12 @@ namespace Qoollo.BobClient.Helpers.Json
                 _scopeStack = new List<JsonScopeElement>();
                 LastElement = JsonElementInfo.None;
                 EnclosingScope = JsonScopeElement.None;
-                ProperyName = null;
+                PropertyName = null;
             }
 
             public JsonElementInfo LastElement { get; private set; }
             public JsonScopeElement EnclosingScope { get; private set; }
-            public string ProperyName { get; private set; }
+            public string PropertyName { get; private set; }
 
 
             public IReadOnlyList<JsonScopeElement> ScopeStack { get { return _scopeStack; } }
@@ -182,9 +183,9 @@ namespace Qoollo.BobClient.Helpers.Json
                 }
 
                 if (newElement.Type == JsonElementType.PropertyName)
-                    ProperyName = newElement.Lexeme.RawLexemeString(_source);
+                    PropertyName = newElement.Lexeme.RawLexemeString(_source);
                 else if (newElement.Type == JsonElementType.None || LastElement.Type != JsonElementType.PropertyName)
-                    ProperyName = null;
+                    PropertyName = null;
 
                 if (newElement.Type == JsonElementType.StartArray || newElement.Type == JsonElementType.StartObject)
                     EnclosingScope = initialScope;
@@ -238,7 +239,7 @@ namespace Qoollo.BobClient.Helpers.Json
         public JsonElementType ElementType { get { return _context.LastElement.Type; } }
         public JsonScopeElement EnclosingScope { get { return _context.EnclosingScope; } }
         public JsonScopeElement CurrentScope { get { return _context.CurrentScope; } }
-        public string ProperyName { get { return _context.ProperyName; } }
+        public string PropertyName { get { return _context.PropertyName; } }
 
 
 
@@ -303,7 +304,7 @@ namespace Qoollo.BobClient.Helpers.Json
                     if (!isStart)
                         throw new InvalidOperationException("JsonElementType.None can be only at the beggining");
                     if (!currentLexeme.Type.IsValueType())
-                        throw new InvalidOperationException($"Object, array or simple value expected at {currentLexeme.Start}, but found: '{lexemeReader.ExtractLexemeSurroundingText()}'");
+                        throw new JsonParsingException($"Object, array or simple value expected at {currentLexeme.Start}, but found: '{lexemeReader.ExtractLexemeSurroundingText()}'");
 
                     return new JsonElementInfo(currentLexeme);
 
