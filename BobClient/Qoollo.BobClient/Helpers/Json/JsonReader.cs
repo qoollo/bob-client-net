@@ -104,7 +104,7 @@ namespace Qoollo.BobClient.Helpers.Json
     }
 
 
-    [System.Diagnostics.DebuggerDisplay("{ElementType} (Scope = {EnclosingScope}, PropertyName = {PropertyName})")]
+    [System.Diagnostics.DebuggerDisplay("{ElementType} (Scope = {EnclosingScope}, PropertyName = {PropertyName}, Value = {RawValueDebugView})")]
     internal class JsonReader
     {
         internal sealed class ReaderContext
@@ -119,12 +119,29 @@ namespace Qoollo.BobClient.Helpers.Json
                 _scopeStack = new List<JsonScopeElement>();
                 LastElement = JsonElementInfo.None;
                 EnclosingScope = JsonScopeElement.None;
-                PropertyName = null;
+                PropertyNameElement = null;
             }
 
             public JsonElementInfo LastElement { get; private set; }
             public JsonScopeElement EnclosingScope { get; private set; }
-            public string PropertyName { get; private set; }
+            public JsonElementInfo? PropertyNameElement { get; private set; }
+            public string PropertyName
+            {
+                get
+                {
+                    if (!PropertyNameElement.HasValue)
+                        return null;
+
+                    var lexeme = PropertyNameElement.Value.Lexeme;
+                    if (lexeme.Type == JsonLexemeType.String)
+                        return JsonLexemeReader.ParseString(_source, lexeme.Start, lexeme.End);
+                    else if (lexeme.Type == JsonLexemeType.Identifier)
+                        return JsonLexemeReader.ParseIdentifier(_source, lexeme.Start, lexeme.End, validate: false);
+                    else
+                        throw new InvalidOperationException($"PropertyName can only be a string or identifier. It cannot be {lexeme.Type}");
+
+                }
+            }
 
 
             public IReadOnlyList<JsonScopeElement> ScopeStack { get { return _scopeStack; } }
@@ -183,9 +200,9 @@ namespace Qoollo.BobClient.Helpers.Json
                 }
 
                 if (newElement.Type == JsonElementType.PropertyName)
-                    PropertyName = newElement.Lexeme.RawLexemeString(_source);
+                    PropertyNameElement = newElement;
                 else if (newElement.Type == JsonElementType.None || LastElement.Type != JsonElementType.PropertyName)
-                    PropertyName = null;
+                    PropertyNameElement = null;
 
                 if (newElement.Type == JsonElementType.StartArray || newElement.Type == JsonElementType.StartObject)
                     EnclosingScope = initialScope;
@@ -236,11 +253,30 @@ namespace Qoollo.BobClient.Helpers.Json
         public bool IsBroken { get { return _isBroken; } }
         public bool IsEnd { get { return _lexemeReader.IsEnd; } }
 
+        private JsonElementInfo Element { get { return _context.LastElement; } }
         public JsonElementType ElementType { get { return _context.LastElement.Type; } }
+
         public JsonScopeElement EnclosingScope { get { return _context.EnclosingScope; } }
         public JsonScopeElement CurrentScope { get { return _context.CurrentScope; } }
         public string PropertyName { get { return _context.PropertyName; } }
 
+        private string RawValueDebugView
+        {
+            get
+            {
+                switch (Element.Type)
+                {
+                    case JsonElementType.Null:
+                    case JsonElementType.True:
+                    case JsonElementType.False:
+                    case JsonElementType.Number:
+                    case JsonElementType.String:
+                        return _lexemeReader.GetRawString(Element.Lexeme, lengthLimit: 32);
+                    default:
+                        return "-";
+                }
+            }
+        }
 
 
         private static JsonElementInfo ReadObjectItem(JsonLexemeReader lexemeReader)
@@ -396,6 +432,249 @@ namespace Qoollo.BobClient.Helpers.Json
                 _isBroken = true;
                 throw;
             }
+        }
+
+
+        public bool IsValueNull()
+        {
+            if (IsBroken)
+                throw new JsonParsingException("Json structure is broken");
+
+            return _lexemeReader.IsValueNull(Element.Lexeme);
+        }
+
+        public object GetValue()
+        {
+            if (IsBroken)
+                throw new JsonParsingException("JSON structure is broken");
+            if (IsEnd)
+                throw new InvalidOperationException("JSON reader run to an end");
+
+            switch (Element.Type)
+            {
+                case JsonElementType.None:
+                case JsonElementType.StartObject:
+                case JsonElementType.EndObject:
+                case JsonElementType.StartArray:
+                case JsonElementType.EndArray:
+                case JsonElementType.PropertyName:
+                    throw new InvalidOperationException($"JSON element {Element.Type} is not a value");
+                case JsonElementType.Null:
+                    return null;
+                case JsonElementType.True:
+                    return true;
+                case JsonElementType.False:
+                    return false;
+                case JsonElementType.Number:
+                    return _lexemeReader.GetValueDouble(Element.Lexeme);
+                case JsonElementType.String:
+                    return _lexemeReader.GetValueString(Element.Lexeme);
+                default:
+                    throw new InvalidOperationException($"Unknown JSON element type: {Element.Type}");
+            }
+        }
+
+
+        public string GetValueString()
+        {
+            if (IsBroken)
+                throw new JsonParsingException("JSON structure is broken");
+            if (IsEnd)
+                throw new InvalidOperationException("JSON reader run to an end");
+
+            switch (Element.Type)
+            {
+                case JsonElementType.None:
+                case JsonElementType.StartObject:
+                case JsonElementType.EndObject:
+                case JsonElementType.StartArray:
+                case JsonElementType.EndArray:
+                case JsonElementType.PropertyName:
+                    throw new InvalidOperationException($"JSON element {Element.Type} is not a value and cannot be read as string");
+                case JsonElementType.Null:
+                    return null;
+                case JsonElementType.True:
+                    return "true";
+                case JsonElementType.False:
+                    return "false";
+                case JsonElementType.Number:
+                    return _lexemeReader.GetRawString(Element.Lexeme);
+                case JsonElementType.String:
+                    return _lexemeReader.GetValueString(Element.Lexeme);
+                default:
+                    throw new InvalidOperationException($"Unknown JSON element type: {Element.Type}");
+            }
+        }
+
+        public int GetValueInt32()
+        {
+            if (IsBroken)
+                throw new JsonParsingException("JSON structure is broken");
+            if (IsEnd)
+                throw new InvalidOperationException("JSON reader run to an end");
+
+            switch (Element.Type)
+            {
+                case JsonElementType.None:
+                case JsonElementType.StartObject:
+                case JsonElementType.EndObject:
+                case JsonElementType.StartArray:
+                case JsonElementType.EndArray:
+                case JsonElementType.PropertyName:
+                    throw new InvalidOperationException($"JSON element {Element.Type} is not a value and cannot be read as number");
+                case JsonElementType.Null:
+                case JsonElementType.True:
+                case JsonElementType.False:
+                    throw new InvalidOperationException($"JSON {Element.Type} cannot be parsed as number");
+                case JsonElementType.Number:
+                    return _lexemeReader.GetValueInt32(Element.Lexeme);
+                case JsonElementType.String:
+#if NET5_0_OR_GREATER
+                    var strSpan = _lexemeReader.GetValueStringAsSpan(Element.Lexeme);
+                    return JsonLexemeReader.ParseInt32(strSpan);
+#else
+                    var str = _lexemeReader.GetValueString(Element.Lexeme);
+                    return JsonLexemeReader.ParseInt32(str);
+#endif
+                default:
+                    throw new InvalidOperationException($"Unknown JSON element type: {Element.Type}");
+            }
+        }
+        public int? GetValueInt32Nullable()
+        {
+            if (IsValueNull())
+                return null;
+
+            return GetValueInt32();
+        }
+
+        public long GetValueInt64()
+        {
+            if (IsBroken)
+                throw new JsonParsingException("JSON structure is broken");
+            if (IsEnd)
+                throw new InvalidOperationException("JSON reader run to an end");
+
+            switch (Element.Type)
+            {
+                case JsonElementType.None:
+                case JsonElementType.StartObject:
+                case JsonElementType.EndObject:
+                case JsonElementType.StartArray:
+                case JsonElementType.EndArray:
+                case JsonElementType.PropertyName:
+                    throw new InvalidOperationException($"JSON element {Element.Type} is not a value and cannot be read as number");
+                case JsonElementType.Null:
+                case JsonElementType.True:
+                case JsonElementType.False:
+                    throw new InvalidOperationException($"JSON {Element.Type} cannot be parsed as number");
+                case JsonElementType.Number:
+                    return _lexemeReader.GetValueInt64(Element.Lexeme);
+                case JsonElementType.String:
+#if NET5_0_OR_GREATER
+                    var strSpan = _lexemeReader.GetValueStringAsSpan(Element.Lexeme);
+                    return JsonLexemeReader.ParseInt64(strSpan);
+#else
+                    var str = _lexemeReader.GetValueString(Element.Lexeme);
+                    return JsonLexemeReader.ParseInt64(str);
+#endif
+                default:
+                    throw new InvalidOperationException($"Unknown JSON element type: {Element.Type}");
+            }
+        }
+        public long? GetValueInt64Nullable()
+        {
+            if (IsValueNull())
+                return null;
+
+            return GetValueInt64();
+        }
+
+
+        public double GetValueDouble()
+        {
+            if (IsBroken)
+                throw new JsonParsingException("JSON structure is broken");
+            if (IsEnd)
+                throw new InvalidOperationException("JSON reader run to an end");
+
+            switch (Element.Type)
+            {
+                case JsonElementType.None:
+                case JsonElementType.StartObject:
+                case JsonElementType.EndObject:
+                case JsonElementType.StartArray:
+                case JsonElementType.EndArray:
+                case JsonElementType.PropertyName:
+                    throw new InvalidOperationException($"JSON element {Element.Type} is not a value and cannot be read as number");
+                case JsonElementType.Null:
+                case JsonElementType.True:
+                case JsonElementType.False:
+                    throw new InvalidOperationException($"JSON {Element.Type} cannot be parsed as number");
+                case JsonElementType.Number:
+                    return _lexemeReader.GetValueDouble(Element.Lexeme);
+                case JsonElementType.String:
+#if NET5_0_OR_GREATER
+                    var strSpan = _lexemeReader.GetValueStringAsSpan(Element.Lexeme);
+                    return JsonLexemeReader.ParseDouble(strSpan);
+#else
+                    var str = _lexemeReader.GetValueString(Element.Lexeme);
+                    return JsonLexemeReader.ParseDouble(str);
+#endif
+                default:
+                    throw new InvalidOperationException($"Unknown JSON element type: {Element.Type}");
+            }
+        }
+        public double? GetValueDoubleNullable()
+        {
+            if (IsValueNull())
+                return null;
+
+            return GetValueDouble();
+        }
+
+
+        public bool GetValueBool()
+        {
+            if (IsBroken)
+                throw new JsonParsingException("JSON structure is broken");
+            if (IsEnd)
+                throw new InvalidOperationException("JSON reader run to an end");
+
+            switch (Element.Type)
+            {
+                case JsonElementType.None:
+                case JsonElementType.StartObject:
+                case JsonElementType.EndObject:
+                case JsonElementType.StartArray:
+                case JsonElementType.EndArray:
+                case JsonElementType.PropertyName:
+                    throw new InvalidOperationException($"JSON element {Element.Type} is not a value and cannot be read as bool");
+                case JsonElementType.Null:
+                case JsonElementType.Number:
+                    throw new InvalidOperationException($"JSON {Element.Type} cannot be parsed as bool");
+                case JsonElementType.True:
+                    return true;
+                case JsonElementType.False:
+                    return false;
+                case JsonElementType.String:
+#if NET5_0_OR_GREATER
+                    var strSpan = _lexemeReader.GetValueStringAsSpan(Element.Lexeme);
+                    return bool.Parse(strSpan);
+#else
+                    var str = _lexemeReader.GetValueString(Element.Lexeme);
+                    return bool.Parse(str);
+#endif
+                default:
+                    throw new InvalidOperationException($"Unknown JSON element type: {Element.Type}");
+            }
+        }
+        public bool? GetValueBoolNullable()
+        {
+            if (IsValueNull())
+                return null;
+
+            return GetValueBool();
         }
     }
 }

@@ -501,6 +501,70 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.Equal("", reader.GetRawString());
         }
 
+
+        [Fact]
+        public void GetIdentifierTest()
+        {
+            var reader = new JsonLexemeReader("[123, null, \"abc\", { x: false }]");
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonLexemeType.StartArray, reader.CurrentLexeme.Type);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetIdentifier()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonLexemeType.Number, reader.CurrentLexeme.Type);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetIdentifier()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetIdentifier()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonLexemeType.Null, reader.CurrentLexeme.Type);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetIdentifier()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetIdentifier()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetIdentifier()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetIdentifier()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonLexemeType.StartObject, reader.CurrentLexeme.Type);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetIdentifier()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonLexemeType.Identifier, reader.CurrentLexeme.Type);
+            Assert.Equal("x", reader.GetIdentifier());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonLexemeType.KeyValueSeparator, reader.CurrentLexeme.Type);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetIdentifier()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonLexemeType.False, reader.CurrentLexeme.Type);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetIdentifier()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonLexemeType.EndObject, reader.CurrentLexeme.Type);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetIdentifier()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonLexemeType.EndArray, reader.CurrentLexeme.Type);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetIdentifier()));
+
+            Assert.False(reader.Read());
+            Assert.Equal(JsonLexemeType.None, reader.CurrentLexeme.Type);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetIdentifier()));
+        }
+
+
         [Fact]
         public void GetValueStringTest()
         {
@@ -512,7 +576,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.Number, reader.CurrentLexeme.Type);
-            Assert.Equal("123", reader.GetValueString());
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetValueString()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
@@ -520,7 +584,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.Null, reader.CurrentLexeme.Type);
-            Assert.Null(reader.GetValueString());
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetValueString()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
@@ -529,6 +593,10 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
             Assert.Equal("abc", reader.GetValueString());
+
+#if NET5_0_OR_GREATER
+            Assert.True(reader.GetValueStringAsSpan().SequenceEqual("abc".AsSpan()));
+#endif
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
@@ -540,7 +608,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.Identifier, reader.CurrentLexeme.Type);
-            Assert.Equal("x", reader.GetValueString());
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetValueString()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.KeyValueSeparator, reader.CurrentLexeme.Type);
@@ -548,7 +616,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.False, reader.CurrentLexeme.Type);
-            Assert.Equal("false", reader.GetValueString());
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetValueString()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.EndObject, reader.CurrentLexeme.Type);
@@ -572,12 +640,10 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.StartArray, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32()));
-            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32Nullable()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.Number, reader.CurrentLexeme.Type);
             Assert.Equal(123, reader.GetValueInt32());
-            Assert.Equal(123, reader.GetValueInt32Nullable());
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
@@ -586,7 +652,6 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.Null, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32()));
-            Assert.Null(reader.GetValueInt32Nullable());
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
@@ -594,8 +659,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
-            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueInt32()));
-            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueInt32Nullable()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
@@ -603,8 +667,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
-            Assert.Equal(456, reader.GetValueInt32());
-            Assert.Equal(456, reader.GetValueInt32Nullable());
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
@@ -617,7 +680,6 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.Identifier, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32()));
-            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32Nullable()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.KeyValueSeparator, reader.CurrentLexeme.Type);
@@ -649,12 +711,11 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.StartArray, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64()));
-            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64Nullable()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.Number, reader.CurrentLexeme.Type);
             Assert.Equal(1230000000000, reader.GetValueInt64());
-            Assert.Equal(1230000000000, reader.GetValueInt64Nullable());
+            Assert.False(reader.IsValueNull());
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
@@ -663,7 +724,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.Null, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64()));
-            Assert.Null(reader.GetValueInt64Nullable());
+            Assert.True(reader.IsValueNull());
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
@@ -671,8 +732,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
-            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueInt64()));
-            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueInt64Nullable()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
@@ -680,8 +740,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
-            Assert.Equal(4560000000000, reader.GetValueInt64());
-            Assert.Equal(4560000000000, reader.GetValueInt64Nullable());
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
@@ -694,7 +753,6 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.Identifier, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64()));
-            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64Nullable()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.KeyValueSeparator, reader.CurrentLexeme.Type);
@@ -726,12 +784,11 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.StartArray, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDouble()));
-            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDoubleNullable()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.Number, reader.CurrentLexeme.Type);
             Assert.Equal(1230, reader.GetValueDouble());
-            Assert.Equal(1230, reader.GetValueDoubleNullable());
+            Assert.False(reader.IsValueNull());
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
@@ -740,7 +797,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.Null, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDouble()));
-            Assert.Null(reader.GetValueDoubleNullable());
+            Assert.True(reader.IsValueNull());
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
@@ -748,8 +805,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
-            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueDouble()));
-            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueDoubleNullable()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDouble()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
@@ -757,8 +813,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
-            Assert.Equal(456.1, reader.GetValueDouble());
-            Assert.Equal(456.1, reader.GetValueDoubleNullable());
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDouble()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
@@ -771,7 +826,6 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.Identifier, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDouble()));
-            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDoubleNullable()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.KeyValueSeparator, reader.CurrentLexeme.Type);
@@ -803,22 +857,20 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.StartArray, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBool()));
-            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBoolNullable()));
+            Assert.False(reader.IsValueNull());
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.Number, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBool()));
-            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBoolNullable()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBool()));
-            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBoolNullable()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.Null, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBool()));
-            Assert.Null(reader.GetValueBoolNullable());
+            Assert.True(reader.IsValueNull());
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
@@ -826,8 +878,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
-            Assert.Throws<FormatException>(() => Assert.False(reader.GetValueBool()));
-            Assert.Throws<FormatException>(() => Assert.False(reader.GetValueBoolNullable()));
+            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBool()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
@@ -835,8 +886,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
-            Assert.True(reader.GetValueBool());
-            Assert.True(reader.GetValueBoolNullable());
+            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBool()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
@@ -849,7 +899,6 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.Identifier, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBool()));
-            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBoolNullable()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.KeyValueSeparator, reader.CurrentLexeme.Type);
@@ -858,7 +907,6 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.False, reader.CurrentLexeme.Type);
             Assert.False(reader.GetValueBool());
-            Assert.False(reader.GetValueBoolNullable());
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.EndObject, reader.CurrentLexeme.Type);

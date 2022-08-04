@@ -474,14 +474,18 @@ namespace Qoollo.BobClient.Helpers.Json
             ParseNumberSharedChecks(str, startIndex, expectedEndIndex, validate);
 
 #if NET5_0_OR_GREATER
-            return int.Parse(str.AsSpan(startIndex, expectedEndIndex - startIndex), System.Globalization.NumberStyles.AllowLeadingSign, System.Globalization.CultureInfo.InvariantCulture);
+            return ParseInt32(str.AsSpan(startIndex, expectedEndIndex - startIndex));
 #else
-            return int.Parse(str.Substring(startIndex, expectedEndIndex - startIndex), System.Globalization.NumberStyles.AllowLeadingSign, System.Globalization.CultureInfo.InvariantCulture);
+            return ParseInt32(str.Substring(startIndex, expectedEndIndex - startIndex));
 #endif
         }
 
+        internal static int ParseInt32(string str)
+        {
+            return int.Parse(str, System.Globalization.NumberStyles.AllowLeadingSign, System.Globalization.CultureInfo.InvariantCulture);
+        }
 #if NET5_0_OR_GREATER
-        private static int ParseInt32(ReadOnlySpan<char> str)
+        internal static int ParseInt32(ReadOnlySpan<char> str)
         {
             return int.Parse(str, System.Globalization.NumberStyles.AllowLeadingSign, System.Globalization.CultureInfo.InvariantCulture);
         }
@@ -492,14 +496,18 @@ namespace Qoollo.BobClient.Helpers.Json
             ParseNumberSharedChecks(str, startIndex, expectedEndIndex, validate);
 
 #if NET5_0_OR_GREATER
-            return long.Parse(str.AsSpan(startIndex, expectedEndIndex - startIndex), System.Globalization.NumberStyles.AllowLeadingSign, System.Globalization.CultureInfo.InvariantCulture);
+            return ParseInt64(str.AsSpan(startIndex, expectedEndIndex - startIndex));
 #else
-            return long.Parse(str.Substring(startIndex, expectedEndIndex - startIndex), System.Globalization.NumberStyles.AllowLeadingSign, System.Globalization.CultureInfo.InvariantCulture);
+            return ParseInt64(str.Substring(startIndex, expectedEndIndex - startIndex));
 #endif
         }
 
+        internal static long ParseInt64(string str)
+        {
+            return long.Parse(str, System.Globalization.NumberStyles.AllowLeadingSign, System.Globalization.CultureInfo.InvariantCulture);
+        }
 #if NET5_0_OR_GREATER
-        private static long ParseInt64(ReadOnlySpan<char> str)
+        internal static long ParseInt64(ReadOnlySpan<char> str)
         {
             return long.Parse(str, System.Globalization.NumberStyles.AllowLeadingSign, System.Globalization.CultureInfo.InvariantCulture);
         }
@@ -510,14 +518,18 @@ namespace Qoollo.BobClient.Helpers.Json
             ParseNumberSharedChecks(str, startIndex, expectedEndIndex, validate);
 
 #if NET5_0_OR_GREATER
-            return double.Parse(str.AsSpan(startIndex, expectedEndIndex - startIndex), System.Globalization.NumberStyles.AllowLeadingSign | System.Globalization.NumberStyles.AllowExponent | System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture);
+            return ParseDouble(str.AsSpan(startIndex, expectedEndIndex - startIndex));
 #else
-            return double.Parse(str.Substring(startIndex, expectedEndIndex - startIndex), System.Globalization.NumberStyles.AllowLeadingSign | System.Globalization.NumberStyles.AllowExponent | System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture);
+            return ParseDouble(str.Substring(startIndex, expectedEndIndex - startIndex));
 #endif
         }
 
+        internal static double ParseDouble(string str)
+        {
+            return double.Parse(str, System.Globalization.NumberStyles.AllowLeadingSign | System.Globalization.NumberStyles.AllowExponent | System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture);
+        }
 #if NET5_0_OR_GREATER
-        private static double ParseDouble(ReadOnlySpan<char> str)
+        internal static double ParseDouble(ReadOnlySpan<char> str)
         {
             return double.Parse(str, System.Globalization.NumberStyles.AllowLeadingSign | System.Globalization.NumberStyles.AllowExponent | System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture);
         }
@@ -583,6 +595,11 @@ namespace Qoollo.BobClient.Helpers.Json
             return IsValueNull(CurrentLexeme);
         }
 
+        internal string GetRawString(JsonLexemeInfo lexeme, int lengthLimit)
+        {
+            int length = Math.Max(0, Math.Min(lengthLimit, lexeme.Length));
+            return _source.Substring(lexeme.Start, length);
+        }
         public string GetRawString(JsonLexemeInfo lexeme)
         {
             return lexeme.RawLexemeString(_source);
@@ -592,74 +609,57 @@ namespace Qoollo.BobClient.Helpers.Json
             return CurrentLexeme.RawLexemeString(_source);
         }
 
-        public string GetValueString(JsonLexemeInfo lexeme, bool validate = false)
+
+        public string GetIdentifier(JsonLexemeInfo lexeme, bool validate = false)
         {
             if (lexeme.Start > _source.Length)
                 throw new ArgumentOutOfRangeException(nameof(lexeme));
             if (lexeme.End > _source.Length)
                 throw new ArgumentOutOfRangeException(nameof(lexeme));
+            if (lexeme.Type != JsonLexemeType.Identifier)
+                throw new InvalidOperationException($"JSON {JsonLexemeType.Identifier} expected, but received {lexeme.Type}");
 
-            switch (lexeme.Type)
-            {
-                case JsonLexemeType.None:
-                case JsonLexemeType.StartObject:
-                case JsonLexemeType.EndObject:
-                case JsonLexemeType.StartArray:
-                case JsonLexemeType.EndArray:
-                case JsonLexemeType.KeyValueSeparator:
-                case JsonLexemeType.ItemSeparator:
-                    throw new InvalidOperationException($"JSON lexeme {lexeme.Type} is not a value");
-                case JsonLexemeType.Identifier:
-                    return ParseIdentifier(_source, lexeme.Start, lexeme.End, validate);
-                case JsonLexemeType.Null:
-                    return null;
-                case JsonLexemeType.True:
-                    return "true";
-                case JsonLexemeType.False:
-                    return "false";
-                case JsonLexemeType.Number:
-                    if (validate)
-                        ParseNumberSharedChecks(_source, lexeme.Start, lexeme.End, validate);
-                    return lexeme.RawLexemeString(_source);
-                case JsonLexemeType.String:
-                    return ParseString(_source, lexeme.Start, lexeme.End);
-                default:
-                    throw new ArgumentException($"Unknown JSON lexeme type: {lexeme.Type}");
-            }
+            return ParseIdentifier(_source, lexeme.Start, lexeme.End, validate);
+        }
+        public string GetIdentifier()
+        {
+            return GetIdentifier(CurrentLexeme);
+        }
+
+
+        public string GetValueString(JsonLexemeInfo lexeme)
+        {
+            if (lexeme.Start > _source.Length)
+                throw new ArgumentOutOfRangeException(nameof(lexeme));
+            if (lexeme.End > _source.Length)
+                throw new ArgumentOutOfRangeException(nameof(lexeme));
+            if (lexeme.Type != JsonLexemeType.String)
+                throw new InvalidOperationException($"JSON {JsonLexemeType.String} expected, but received {lexeme.Type}");
+
+            return ParseString(_source, lexeme.Start, lexeme.End);
         }
         public string GetValueString()
         {
             return GetValueString(CurrentLexeme);
         }
-        
 
-
-        private T ThrowGetValueNumberInvalidLexemeType<T>(JsonLexemeType lexemeType)
+#if NET5_0_OR_GREATER
+        internal ReadOnlySpan<char> GetValueStringAsSpan(JsonLexemeInfo lexeme)
         {
-            switch (lexemeType)
-            {
-                case JsonLexemeType.None:
-                case JsonLexemeType.StartObject:
-                case JsonLexemeType.EndObject:
-                case JsonLexemeType.StartArray:
-                case JsonLexemeType.EndArray:
-                case JsonLexemeType.KeyValueSeparator:
-                case JsonLexemeType.ItemSeparator:
-                    throw new InvalidOperationException($"JSON lexeme {lexemeType} is not a value");
-                case JsonLexemeType.Identifier:
-                case JsonLexemeType.True:
-                case JsonLexemeType.False:
-                case JsonLexemeType.Null:
-                case JsonLexemeType.String:
-                    throw new InvalidOperationException($"JSON {lexemeType} cannot be parsed as number");
-                case JsonLexemeType.Number:
-                    break;
-                default:
-                    throw new ArgumentException($"Unknown JSON lexeme type: {lexemeType}");
-            }
+            if (lexeme.Start > _source.Length)
+                throw new ArgumentOutOfRangeException(nameof(lexeme));
+            if (lexeme.End > _source.Length)
+                throw new ArgumentOutOfRangeException(nameof(lexeme));
+            if (lexeme.Type != JsonLexemeType.String)
+                throw new InvalidOperationException($"JSON {JsonLexemeType.String} expected, but received {lexeme.Type}");
 
-            return default(T);
+            return ParseStringAsSpan(_source, lexeme.Start, lexeme.End);
         }
+        internal ReadOnlySpan<char> GetValueStringAsSpan()
+        {
+            return GetValueStringAsSpan(CurrentLexeme);
+        }
+#endif
 
 
         public int GetValueInt32(JsonLexemeInfo lexeme, bool validate = false)
@@ -668,40 +668,15 @@ namespace Qoollo.BobClient.Helpers.Json
                 throw new ArgumentOutOfRangeException(nameof(lexeme));
             if (lexeme.End > _source.Length)
                 throw new ArgumentOutOfRangeException(nameof(lexeme));
+            if (lexeme.Type != JsonLexemeType.Number)
+                throw new InvalidOperationException($"JSON {JsonLexemeType.Number} expected, but received {lexeme.Type}");
 
-            if (lexeme.Type == JsonLexemeType.Number)
-            {
-                return ParseInt32(_source, lexeme.Start, lexeme.End, validate);
-            }
-            else if (lexeme.Type == JsonLexemeType.String)
-            {
-#if NET5_0_OR_GREATER
-                var strSpan = ParseStringAsSpan(_source, lexeme.Start, lexeme.End);
-                return ParseInt32(strSpan);
-#else
-                var str = ParseString(_source, lexeme.Start, lexeme.End);
-                return ParseInt32(str, 0, str.Length, validate: false);
-#endif
-            }
-            else
-            {
-                return ThrowGetValueNumberInvalidLexemeType<int>(lexeme.Type);
-            }
+            return ParseInt32(_source, lexeme.Start, lexeme.End, validate);
         }
         public int GetValueInt32()
         {
             return GetValueInt32(CurrentLexeme);
         }
-
-        public int? GetValueInt32Nullable(JsonLexemeInfo lexeme, bool validate = false)
-        {
-            return lexeme.Type != JsonLexemeType.Null ? (int?)GetValueInt32(lexeme, validate) : null; 
-        }
-        public int? GetValueInt32Nullable()
-        {
-            return GetValueInt32Nullable(CurrentLexeme);
-        }
-
 
         public long GetValueInt64(JsonLexemeInfo lexeme, bool validate = false)
         {
@@ -709,40 +684,15 @@ namespace Qoollo.BobClient.Helpers.Json
                 throw new ArgumentOutOfRangeException(nameof(lexeme));
             if (lexeme.End > _source.Length)
                 throw new ArgumentOutOfRangeException(nameof(lexeme));
+            if (lexeme.Type != JsonLexemeType.Number)
+                throw new InvalidOperationException($"JSON {JsonLexemeType.Number} expected, but received {lexeme.Type}");
 
-            if (lexeme.Type == JsonLexemeType.Number)
-            {
-                return ParseInt64(_source, lexeme.Start, lexeme.End, validate);
-            }
-            else if (lexeme.Type == JsonLexemeType.String)
-            {
-#if NET5_0_OR_GREATER
-                var strSpan = ParseStringAsSpan(_source, lexeme.Start, lexeme.End);
-                return ParseInt64(strSpan);
-#else
-                var str = ParseString(_source, lexeme.Start, lexeme.End);
-                return ParseInt64(str, 0, str.Length, validate: false);
-#endif
-            }
-            else
-            {
-                return ThrowGetValueNumberInvalidLexemeType<long>(lexeme.Type);
-            }
+            return ParseInt64(_source, lexeme.Start, lexeme.End, validate);
         }
         public long GetValueInt64()
         {
             return GetValueInt64(CurrentLexeme);
         }
-
-        public long? GetValueInt64Nullable(JsonLexemeInfo lexeme, bool validate = false)
-        {
-            return lexeme.Type != JsonLexemeType.Null ? (long?)GetValueInt64(lexeme, validate) : null;
-        }
-        public long? GetValueInt64Nullable()
-        {
-            return GetValueInt64Nullable(CurrentLexeme);
-        }
-
 
         public double GetValueDouble(JsonLexemeInfo lexeme, bool validate = false)
         {
@@ -750,41 +700,15 @@ namespace Qoollo.BobClient.Helpers.Json
                 throw new ArgumentOutOfRangeException(nameof(lexeme));
             if (lexeme.End > _source.Length)
                 throw new ArgumentOutOfRangeException(nameof(lexeme));
+            if (lexeme.Type != JsonLexemeType.Number)
+                throw new InvalidOperationException($"JSON {JsonLexemeType.Number} expected, but received {lexeme.Type}");
 
-            if (lexeme.Type == JsonLexemeType.Number)
-            {
-                return ParseDouble(_source, lexeme.Start, lexeme.End, validate);
-            }
-            else if (lexeme.Type == JsonLexemeType.String)
-            {
-#if NET5_0_OR_GREATER
-                var strSpan = ParseStringAsSpan(_source, lexeme.Start, lexeme.End);
-                return ParseDouble(strSpan);
-#else
-                var str = ParseString(_source, lexeme.Start, lexeme.End);
-                return ParseDouble(str, 0, str.Length, validate: false);
-#endif
-            }
-            else
-            {
-                return ThrowGetValueNumberInvalidLexemeType<double>(lexeme.Type);
-            }
+            return ParseDouble(_source, lexeme.Start, lexeme.End, validate);
         }
         public double GetValueDouble()
         {
             return GetValueDouble(CurrentLexeme);
         }
-
-        public double? GetValueDoubleNullable(JsonLexemeInfo lexeme, bool validate = false)
-        {
-            return lexeme.Type != JsonLexemeType.Null ? (double?)GetValueDouble(lexeme, validate) : null;
-        }
-        public double? GetValueDoubleNullable()
-        {
-            return GetValueDoubleNullable(CurrentLexeme);
-        }
-
-
 
         public bool GetValueBool(JsonLexemeInfo lexeme, bool validate = false)
         {
@@ -793,59 +717,35 @@ namespace Qoollo.BobClient.Helpers.Json
             if (lexeme.End > _source.Length)
                 throw new ArgumentOutOfRangeException(nameof(lexeme));
 
-            switch (lexeme.Type)
+            if (lexeme.Type == JsonLexemeType.True)
             {
-                case JsonLexemeType.None:
-                case JsonLexemeType.StartObject:
-                case JsonLexemeType.EndObject:
-                case JsonLexemeType.StartArray:
-                case JsonLexemeType.EndArray:
-                case JsonLexemeType.KeyValueSeparator:
-                case JsonLexemeType.ItemSeparator:
-                    throw new InvalidOperationException($"JSON lexeme {lexeme.Type} is not a value");
-                case JsonLexemeType.Identifier:
-                case JsonLexemeType.Null:
-                case JsonLexemeType.Number:
-                    throw new InvalidOperationException($"JSON {lexeme.Type} cannot be parsed as bool");
-                case JsonLexemeType.True:
-                    if (validate)
-                    {
-                        if (!lexeme.IsEqualToRefString(_source, "true"))
-                            throw new FormatException($"Incorrect bool format: {ExtractLexemeSurroundingText(lexeme)}");
-                    }
-                    return true;
-                case JsonLexemeType.False:
-                    if (validate)
-                    {
-                        if (!lexeme.IsEqualToRefString(_source, "false"))
-                            throw new FormatException($"Incorrect bool format: {ExtractLexemeSurroundingText(lexeme)}");
-                    }
-                    return false;
-                case JsonLexemeType.String:
-#if NET5_0_OR_GREATER
-                    var strSpan = ParseStringAsSpan(_source, lexeme.Start, lexeme.End);
-                    return bool.Parse(strSpan);
-#else
-                var str = ParseString(_source, lexeme.Start, lexeme.End);
-                return bool.Parse(str);
-#endif
-                default:
-                    throw new ArgumentException($"Unknown JSON lexeme type: {lexeme.Type}");
+                if (validate)
+                {
+                    if (!lexeme.IsEqualToRefString(_source, "true"))
+                        throw new FormatException($"Incorrect bool format: {ExtractLexemeSurroundingText(lexeme)}");
+                }
+
+                return true;
+            }
+            else if (lexeme.Type == JsonLexemeType.False)
+            {
+                if (validate)
+                {
+                    if (!lexeme.IsEqualToRefString(_source, "false"))
+                        throw new FormatException($"Incorrect bool format: {ExtractLexemeSurroundingText(lexeme)}");
+                }
+
+                return false;
+            }
+            else
+            {
+                throw new InvalidOperationException($"JSON {JsonLexemeType.True} or {JsonLexemeType.False} expected, but received {lexeme.Type}");
             }
         }
         public bool GetValueBool()
         {
             return GetValueBool(CurrentLexeme);
         }
-        public bool? GetValueBoolNullable(JsonLexemeInfo lexeme, bool validate = false)
-        {
-            return lexeme.Type != JsonLexemeType.Null ? (bool?)GetValueBool(lexeme, validate) : null;
-        }
-        public bool? GetValueBoolNullable()
-        {
-            return GetValueBoolNullable(CurrentLexeme);
-        }
-
 
 
 
