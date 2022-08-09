@@ -18,7 +18,8 @@ namespace Qoollo.BobClient.Helpers.Json
         True,
         False,
         Number,
-        String
+        String,
+        StringWithoutEscSeq
     }
 
     internal static class JsonLexemeTypeExtensions
@@ -29,7 +30,8 @@ namespace Qoollo.BobClient.Helpers.Json
                    lexemeType == JsonLexemeType.True ||
                    lexemeType == JsonLexemeType.False ||
                    lexemeType == JsonLexemeType.Number ||
-                   lexemeType == JsonLexemeType.String;
+                   lexemeType == JsonLexemeType.String ||
+                   lexemeType == JsonLexemeType.StringWithoutEscSeq;
         }
 
         public static bool IsValueType(this JsonLexemeType lexemeType)
@@ -37,6 +39,11 @@ namespace Qoollo.BobClient.Helpers.Json
             return lexemeType == JsonLexemeType.StartObject ||
                    lexemeType == JsonLexemeType.StartArray ||
                    IsSimpleValueType(lexemeType);
+        }
+
+        public static bool IsStringLexeme(this JsonLexemeType lexemeType)
+        {
+            return lexemeType == JsonLexemeType.String || lexemeType == JsonLexemeType.StringWithoutEscSeq;
         }
     }
 
@@ -178,6 +185,7 @@ namespace Qoollo.BobClient.Helpers.Json
                 throw new JsonParsingException($"Expected string at position {index}, but found: '{ExtractSurroundingText(str, index)}'");
 
             int startIndex = index;
+            bool hasEscapeSequence = false;
 
             index++;
             while (index < str.Length)
@@ -202,10 +210,12 @@ namespace Qoollo.BobClient.Helpers.Json
                     {
                         index++;
                     }
+
+                    hasEscapeSequence = true;
                 }
                 else if (str[index] == '"')
                 {
-                    return new JsonLexemeInfo(JsonLexemeType.String, startIndex, index + 1);
+                    return new JsonLexemeInfo(hasEscapeSequence ? JsonLexemeType.String : JsonLexemeType.StringWithoutEscSeq, startIndex, index + 1);
                 }
 
                 index++;
@@ -323,6 +333,30 @@ namespace Qoollo.BobClient.Helpers.Json
                 return str.Substring(parsedStrBoundary.start, parsedStrBoundary.length);
         }
 
+        internal static string ParseStringWithoutEscSeq(string str, int startIndex, int expectedEndIndex, bool validate = false)
+        {
+            if (str == null)
+                throw new ArgumentNullException(nameof(str));
+            if (startIndex < 0 || startIndex > str.Length)
+                throw new ArgumentOutOfRangeException(nameof(startIndex));
+            if (expectedEndIndex < startIndex || expectedEndIndex > str.Length)
+                throw new ArgumentOutOfRangeException(nameof(expectedEndIndex));
+
+            if (validate)
+                return ParseString(str, startIndex, expectedEndIndex);
+
+            if (expectedEndIndex < startIndex + 2)
+                throw new FormatException($"String cannot be empty, it should start and end with quotation mark. StartIndex: {startIndex}, EndIndex: {expectedEndIndex}");
+
+            if (str[startIndex] != '"')
+                throw new FormatException($"String is not started with quotation mark. It's started with: '{ExtractSurroundingText(str, startIndex)}'");
+
+            if (str[expectedEndIndex - 1] != '"')
+                throw new FormatException($"String is not ended with quotation mark. It's ended with: '{ExtractSurroundingText(str, expectedEndIndex - 1)}'");
+
+            return str.Substring(startIndex + 1, expectedEndIndex - startIndex - 2);
+        }
+
 #if NET5_0_OR_GREATER
         internal static ReadOnlySpan<char> ParseStringAsSpan(string str, int startIndex, int expectedEndIndex)
         {
@@ -332,7 +366,55 @@ namespace Qoollo.BobClient.Helpers.Json
             else
                 return str.AsSpan(parsedStrBoundary.start, parsedStrBoundary.length);
         }
+
+        internal static ReadOnlySpan<char> ParseStringWithoutEscSeqAsSpan(string str, int startIndex, int expectedEndIndex, bool validate = false)
+        {
+            if (str == null)
+                throw new ArgumentNullException(nameof(str));
+            if (startIndex < 0 || startIndex > str.Length)
+                throw new ArgumentOutOfRangeException(nameof(startIndex));
+            if (expectedEndIndex < startIndex || expectedEndIndex > str.Length)
+                throw new ArgumentOutOfRangeException(nameof(expectedEndIndex));
+
+            if (validate)
+                return ParseStringAsSpan(str, startIndex, expectedEndIndex);
+
+            if (expectedEndIndex < startIndex + 2)
+                throw new FormatException($"String cannot be empty, it should start and end with quotation mark. StartIndex: {startIndex}, EndIndex: {expectedEndIndex}");
+
+            if (str[startIndex] != '"')
+                throw new FormatException($"String is not started with quotation mark. It's started with: '{ExtractSurroundingText(str, startIndex)}'");
+
+            if (str[expectedEndIndex - 1] != '"')
+                throw new FormatException($"String is not ended with quotation mark. It's ended with: '{ExtractSurroundingText(str, expectedEndIndex - 1)}'");
+
+            return str.AsSpan(startIndex + 1, expectedEndIndex - startIndex - 2);
+        }
 #endif
+
+        internal static bool IsStringWithoutEscSeqEqualTo(string str, int startIndex, int expectedEndIndex, string eqStr)
+        {
+            if (str == null)
+                throw new ArgumentNullException(nameof(str));
+            if (startIndex < 0 || startIndex > str.Length)
+                throw new ArgumentOutOfRangeException(nameof(startIndex));
+            if (expectedEndIndex < startIndex || expectedEndIndex > str.Length)
+                throw new ArgumentOutOfRangeException(nameof(expectedEndIndex));
+            if (eqStr == null)
+                throw new ArgumentNullException(nameof(eqStr));
+
+            if (expectedEndIndex < startIndex + 2)
+                throw new FormatException($"String cannot be empty, it should start and end with quotation mark. StartIndex: {startIndex}, EndIndex: {expectedEndIndex}");
+
+            if (str[startIndex] != '"')
+                throw new FormatException($"String is not started with quotation mark. It's started with: '{ExtractSurroundingText(str, startIndex)}'");
+
+            if (str[expectedEndIndex - 1] != '"')
+                throw new FormatException($"String is not ended with quotation mark. It's ended with: '{ExtractSurroundingText(str, expectedEndIndex - 1)}'");
+
+
+            return string.CompareOrdinal(str, startIndex + 1, eqStr, 0, Math.Max(eqStr.Length, expectedEndIndex - startIndex - 2)) == 0;
+        }
 
 
         internal static JsonLexemeInfo ReadIdentifier(string str, int index)
@@ -386,6 +468,27 @@ namespace Qoollo.BobClient.Helpers.Json
             return str.AsSpan(startIndex, expectedEndIndex - startIndex);
         }
 #endif
+
+        internal static bool IsIdentitifierEqualTo(string str, int startIndex, int expectedEndIndex, string eqStr)
+        {
+            if (str == null)
+                throw new ArgumentNullException(nameof(str));
+            if (startIndex < 0 || startIndex > str.Length)
+                throw new ArgumentOutOfRangeException(nameof(startIndex));
+            if (expectedEndIndex < startIndex || expectedEndIndex > str.Length)
+                throw new ArgumentOutOfRangeException(nameof(expectedEndIndex));
+            if (eqStr == null)
+                throw new ArgumentNullException(nameof(eqStr));
+
+            if (expectedEndIndex == startIndex)
+                throw new FormatException($"Identifier cannot be empty. StartIndex: {startIndex}, EndIndex: {expectedEndIndex}");
+
+            if (!IsIdentifierStartSymbol(str[startIndex]))
+                throw new FormatException($"Incorrect identifier starting symbol at {startIndex}, text: '{ExtractSurroundingText(str, startIndex)}'");
+
+
+            return string.CompareOrdinal(str, startIndex, eqStr, 0, Math.Max(eqStr.Length, expectedEndIndex - startIndex)) == 0;
+        }
 
 
         internal static JsonLexemeInfo ReadNumber(string str, int index)
@@ -627,14 +730,17 @@ namespace Qoollo.BobClient.Helpers.Json
         }
 
 
-        public string GetValueString(JsonLexemeInfo lexeme)
+        public string GetValueString(JsonLexemeInfo lexeme, bool validate = false)
         {
             if (lexeme.Start > _source.Length)
                 throw new ArgumentOutOfRangeException(nameof(lexeme));
             if (lexeme.End > _source.Length)
                 throw new ArgumentOutOfRangeException(nameof(lexeme));
-            if (lexeme.Type != JsonLexemeType.String)
+            if (!lexeme.Type.IsStringLexeme())
                 throw new InvalidOperationException($"JSON {JsonLexemeType.String} expected, but received {lexeme.Type}");
+
+            if (!validate && lexeme.Type == JsonLexemeType.StringWithoutEscSeq)
+                return ParseStringWithoutEscSeq(_source, lexeme.Start, lexeme.End, validate);
 
             return ParseString(_source, lexeme.Start, lexeme.End);
         }
@@ -644,14 +750,17 @@ namespace Qoollo.BobClient.Helpers.Json
         }
 
 #if NET5_0_OR_GREATER
-        internal ReadOnlySpan<char> GetValueStringAsSpan(JsonLexemeInfo lexeme)
+        internal ReadOnlySpan<char> GetValueStringAsSpan(JsonLexemeInfo lexeme, bool validate = false)
         {
             if (lexeme.Start > _source.Length)
                 throw new ArgumentOutOfRangeException(nameof(lexeme));
             if (lexeme.End > _source.Length)
                 throw new ArgumentOutOfRangeException(nameof(lexeme));
-            if (lexeme.Type != JsonLexemeType.String)
+            if (!lexeme.Type.IsStringLexeme())
                 throw new InvalidOperationException($"JSON {JsonLexemeType.String} expected, but received {lexeme.Type}");
+
+            if (!validate && lexeme.Type == JsonLexemeType.StringWithoutEscSeq)
+                return ParseStringWithoutEscSeqAsSpan(_source, lexeme.Start, lexeme.End, validate);
 
             return ParseStringAsSpan(_source, lexeme.Start, lexeme.End);
         }

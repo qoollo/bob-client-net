@@ -11,16 +11,18 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
     public class JsonLexemeReaderTests
     {
         [Theory]
-        [InlineData("\"" + "\"", 0, "\"" + "\"")]
-        [InlineData("\"" + @"Simple test string." + "\"", 0, "\"" + @"Simple test string." + "\"")]
-        [InlineData("\"" + @"Simple test string." + "\"" + ", Something other", 0, "\"" + @"Simple test string." + "\"")]
-        [InlineData("Start: " + "\"" + @"Simple test string." + "\"" + " Something after", 7, "\"" + @"Simple test string." + "\"")]
-        [InlineData("\"" + @"Esc \"" \t \r \n \b \f \/ \u123A" + "\"", 0, "\"" + @"Esc \"" \t \r \n \b \f \/ \u123A" + "\"")]
-        public void ReadStringTest(string str, int index, string expected)
+        [InlineData("\"" + "\"", 0, "\"" + "\"", JsonLexemeType.StringWithoutEscSeq)]
+        [InlineData("\"" + @"Simple test string." + "\"", 0, "\"" + @"Simple test string." + "\"", JsonLexemeType.StringWithoutEscSeq)]
+        [InlineData("\"" + @"Simple test string." + "\"" + ", Something other", 0, "\"" + @"Simple test string." + "\"", JsonLexemeType.StringWithoutEscSeq)]
+        [InlineData("Start: " + "\"" + @"Simple test string." + "\"" + " Something after", 7, "\"" + @"Simple test string." + "\"", JsonLexemeType.StringWithoutEscSeq)]
+        [InlineData("\"" + @"Esc \"" \t \r \n \b \f \/ \u123A" + "\"", 0, "\"" + @"Esc \"" \t \r \n \b \f \/ \u123A" + "\"", JsonLexemeType.String)]
+        internal void ReadStringTest(string str, int index, string expected, JsonLexemeType expectedLexemeType)
         {
             var token = JsonLexemeReader.ReadString(str, index);
             Assert.Equal(expected, token.RawLexemeString(str));
+            Assert.Equal(expectedLexemeType, token.Type);
         }
+
 
         [Theory]
         [InlineData("\"" + @"Non start" + "\"", 2)]
@@ -89,6 +91,62 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             var token = JsonLexemeReader.ReadString(str, index);
             var parsedStr = JsonLexemeReader.ParseString(str, token.Start, token.End);
             Assert.Equal(expected, parsedStr);
+        }
+
+        [Theory]
+        [InlineData("\"" + "\"", 0, -1, "")]
+        [InlineData("\"" + @"Simple test string." + "\"", 0, -1, "Simple test string.")]
+        [InlineData("Start: " + "\"" + @"Simple test string." + "\"" + " Something after", 7, 28, "Simple test string.")]
+        public void ParseStringWithoutEscSecTest(string str, int startIndex, int endIndex, string expected)
+        {
+            if (endIndex == -1)
+                endIndex = str.Length;
+
+            var parsedStr = JsonLexemeReader.ParseStringWithoutEscSeq(str, startIndex, endIndex, validate: false);
+            Assert.Equal(expected, parsedStr);
+
+            var parsedStr2 = JsonLexemeReader.ParseStringWithoutEscSeq(str, startIndex, endIndex, validate: true);
+            Assert.Equal(expected, parsedStr2);
+
+#if NET5_0_OR_GREATER
+            var parsedStrAsSpan = JsonLexemeReader.ParseStringWithoutEscSeqAsSpan(str, startIndex, endIndex);
+            Assert.True(expected.AsSpan().Equals(parsedStrAsSpan, StringComparison.Ordinal));
+#endif
+        }
+
+        [Theory]
+        [InlineData("\"" + @"Non start" + "\"", 2, -1)]
+        [InlineData(@"Bad start" + "\"", 0, -1)]
+        [InlineData("\"" + @"Bad end" + "\"", 0, 4)]
+        [InlineData("\"" + @"Bad end" + "\", something other", 0, 11)]
+        [InlineData("\"" + @"No end", 0, -1)]
+        public void ParseStringWithoutEscSecFailTest(string str, int startIndex, int endIndex)
+        {
+            if (endIndex == -1)
+                endIndex = str.Length;
+
+            Assert.Throws<FormatException>(() =>
+            {
+                var parsedStr = JsonLexemeReader.ParseStringWithoutEscSeq(str, startIndex, endIndex);
+                Assert.Equal("", parsedStr);
+            });
+        }
+
+        [Theory]
+        [InlineData("\"" + "\"", 0, -1, "", true)]
+        [InlineData("\"" + @"abc" + "\"", 0, -1, "abc", true)]
+        [InlineData("\"" + @"Simple test string." + "\"", 0, -1, "Simple test string.", true)]
+        [InlineData("Start: " + "\"" + @"Simple test string." + "\"" + " Something after", 7, 28, "Simple test string.", true)]
+        [InlineData("\"" + @"abc" + "\"", 0, -1, "abcd", false)]
+        [InlineData("\"" + @"abcd" + "\"", 0, -1, "abc", false)]
+        [InlineData("\"" + @"aa" + "\"", 0, -1, "bb", false)]
+        public void IsStringWithoutEscSecEqualTest(string str, int startIndex, int endIndex, string equalTo, bool expected)
+        {
+            if (endIndex == -1)
+                endIndex = str.Length;
+
+            var equalToResult = JsonLexemeReader.IsStringWithoutEscSeqEqualTo(str, startIndex, endIndex, equalTo);
+            Assert.Equal(expected, equalToResult);
         }
 
 
@@ -163,6 +221,27 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             var token = JsonLexemeReader.ReadIdentifier(str, index);
             var parsedStr = JsonLexemeReader.ParseIdentifier(str, token.Start, token.End, validate: true);
             Assert.Equal(expected, parsedStr);
+        }
+
+
+        [Theory]
+        [InlineData("Simple_identifier", 0, -1, "Simple_identifier", true)]
+        [InlineData("_simple_identifier", 0, -1, "_simple_identifier", true)]
+        [InlineData("Simple identifier", 0, 6, "Simple", true)]
+        [InlineData("true", 0, -1, "true", true)]
+        [InlineData("false", 0, -1, "false", true)]
+        [InlineData("null", 0, -1, "null", true)]
+        [InlineData("abcd", 0, -1, "abc", false)]
+        [InlineData("abc", 0, -1, "abcd", false)]
+        [InlineData("[abcd]", 1, 5, "abc", false)]
+        [InlineData("[abc]", 1, 4, "abcd", false)]
+        public void IsIdentifierEqualTest(string str, int index, int endIndex, string equalTo, bool expected)
+        {
+            if (endIndex == -1)
+                endIndex = str.Length;
+
+            var equalToResult = JsonLexemeReader.IsIdentitifierEqualTo(str, index, endIndex, equalTo);
+            Assert.Equal(equalToResult, expected);
         }
 
 
@@ -363,8 +442,10 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
         [InlineData("123", 0, "123", JsonLexemeType.Number)]
         [InlineData("+123", 0, "+123", JsonLexemeType.Number)]
         [InlineData("-0", 0, "-0", JsonLexemeType.Number)]
-        [InlineData("\"abcd\"", 0, "\"abcd\"", JsonLexemeType.String)]
-        [InlineData("\"abcd\", after", 0, "\"abcd\"", JsonLexemeType.String)]
+        [InlineData("\"abcd\"", 0, "\"abcd\"", JsonLexemeType.StringWithoutEscSeq)]
+        [InlineData("\"abcd\", after", 0, "\"abcd\"", JsonLexemeType.StringWithoutEscSeq)]
+        [InlineData("\"ab\\u0063d\"", 0, "\"ab\\u0063d\"", JsonLexemeType.String)]
+        [InlineData("\"ab\\u0063d\", after", 0, "\"ab\\u0063d\"", JsonLexemeType.String)]
         [InlineData("{", 0, "{", JsonLexemeType.StartObject)]
         [InlineData("[", 0, "[", JsonLexemeType.StartArray)]
         [InlineData("}", 0, "}", JsonLexemeType.EndObject)]
@@ -400,8 +481,8 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
 
         [Theory]
         [InlineData("256", new JsonLexemeType[] { JsonLexemeType.Number })]
-        [InlineData("{\"abc\": 123}", new JsonLexemeType[] { JsonLexemeType.StartObject, JsonLexemeType.String, JsonLexemeType.KeyValueSeparator, JsonLexemeType.Number, JsonLexemeType.EndObject })]
-        [InlineData("[\"abc\", false, true, null, 123.3, { bcd: [] }]", new JsonLexemeType[] { JsonLexemeType.StartArray, JsonLexemeType.String, JsonLexemeType.ItemSeparator, JsonLexemeType.False, JsonLexemeType.ItemSeparator, JsonLexemeType.True, JsonLexemeType.ItemSeparator, JsonLexemeType.Null, JsonLexemeType.ItemSeparator, JsonLexemeType.Number, JsonLexemeType.ItemSeparator, JsonLexemeType.StartObject, JsonLexemeType.Identifier, JsonLexemeType.KeyValueSeparator, JsonLexemeType.StartArray, JsonLexemeType.EndArray, JsonLexemeType.EndObject, JsonLexemeType.EndArray })]
+        [InlineData("{\"abc\": 123}", new JsonLexemeType[] { JsonLexemeType.StartObject, JsonLexemeType.StringWithoutEscSeq, JsonLexemeType.KeyValueSeparator, JsonLexemeType.Number, JsonLexemeType.EndObject })]
+        [InlineData("[\"abc\", \"ab\\u0063\", false, true, null, 123.3, { bcd: [] }]", new JsonLexemeType[] { JsonLexemeType.StartArray, JsonLexemeType.StringWithoutEscSeq, JsonLexemeType.ItemSeparator, JsonLexemeType.String, JsonLexemeType.ItemSeparator, JsonLexemeType.False, JsonLexemeType.ItemSeparator, JsonLexemeType.True, JsonLexemeType.ItemSeparator, JsonLexemeType.Null, JsonLexemeType.ItemSeparator, JsonLexemeType.Number, JsonLexemeType.ItemSeparator, JsonLexemeType.StartObject, JsonLexemeType.Identifier, JsonLexemeType.KeyValueSeparator, JsonLexemeType.StartArray, JsonLexemeType.EndArray, JsonLexemeType.EndObject, JsonLexemeType.EndArray })]
         internal void ReadJsonTest(string str, JsonLexemeType[] sequence)
         {
             var reader = new JsonLexemeReader(str);
@@ -457,7 +538,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.False(reader.IsValueNull());
 
             Assert.True(reader.Read());
-            Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
+            Assert.Equal(JsonLexemeType.StringWithoutEscSeq, reader.CurrentLexeme.Type);
             Assert.False(reader.IsValueNull());
 
             Assert.True(reader.Read());
@@ -528,7 +609,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetIdentifier()));
 
             Assert.True(reader.Read());
-            Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
+            Assert.Equal(JsonLexemeType.StringWithoutEscSeq, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetIdentifier()));
 
             Assert.True(reader.Read());
@@ -568,7 +649,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
         [Fact]
         public void GetValueStringTest()
         {
-            var reader = new JsonLexemeReader("[123, null, \"abc\", { x: false }]");
+            var reader = new JsonLexemeReader("[123, null, \"abc\", \"12 \\t 34\", \"ab\\u0063\", { x: false }]");
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.StartArray, reader.CurrentLexeme.Type);
@@ -591,12 +672,32 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetValueString()));
 
             Assert.True(reader.Read());
-            Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
+            Assert.Equal(JsonLexemeType.StringWithoutEscSeq, reader.CurrentLexeme.Type);
             Assert.Equal("abc", reader.GetValueString());
 
 #if NET5_0_OR_GREATER
             Assert.True(reader.GetValueStringAsSpan().SequenceEqual("abc".AsSpan()));
 #endif
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetValueString()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
+            Assert.Equal("12 \t 34", reader.GetValueString());
+
+#if NET5_0_OR_GREATER
+            Assert.True(reader.GetValueStringAsSpan().SequenceEqual("12 \t 34".AsSpan()));
+#endif
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetValueString()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
+            Assert.Equal("abc", reader.GetValueString());
 
             Assert.True(reader.Read());
             Assert.Equal(JsonLexemeType.ItemSeparator, reader.CurrentLexeme.Type);
@@ -658,7 +759,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32()));
 
             Assert.True(reader.Read());
-            Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
+            Assert.Equal(JsonLexemeType.StringWithoutEscSeq, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32()));
 
             Assert.True(reader.Read());
@@ -666,7 +767,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32()));
 
             Assert.True(reader.Read());
-            Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
+            Assert.Equal(JsonLexemeType.StringWithoutEscSeq, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32()));
 
             Assert.True(reader.Read());
@@ -731,7 +832,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64()));
 
             Assert.True(reader.Read());
-            Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
+            Assert.Equal(JsonLexemeType.StringWithoutEscSeq, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64()));
 
             Assert.True(reader.Read());
@@ -739,7 +840,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64()));
 
             Assert.True(reader.Read());
-            Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
+            Assert.Equal(JsonLexemeType.StringWithoutEscSeq, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64()));
 
             Assert.True(reader.Read());
@@ -804,7 +905,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDouble()));
 
             Assert.True(reader.Read());
-            Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
+            Assert.Equal(JsonLexemeType.StringWithoutEscSeq, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDouble()));
 
             Assert.True(reader.Read());
@@ -812,7 +913,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDouble()));
 
             Assert.True(reader.Read());
-            Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
+            Assert.Equal(JsonLexemeType.StringWithoutEscSeq, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDouble()));
 
             Assert.True(reader.Read());
@@ -877,7 +978,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBool()));
 
             Assert.True(reader.Read());
-            Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
+            Assert.Equal(JsonLexemeType.StringWithoutEscSeq, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBool()));
 
             Assert.True(reader.Read());
@@ -885,7 +986,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBool()));
 
             Assert.True(reader.Read());
-            Assert.Equal(JsonLexemeType.String, reader.CurrentLexeme.Type);
+            Assert.Equal(JsonLexemeType.StringWithoutEscSeq, reader.CurrentLexeme.Type);
             Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBool()));
 
             Assert.True(reader.Read());

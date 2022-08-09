@@ -138,13 +138,16 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             context.ProcessNextElement(new JsonElementInfo(JsonElementType.PropertyName, new JsonLexemeInfo(JsonLexemeType.String, 2, 7)));
             Assert.Equal("{", context.GetScopeStackNotClosedSequence());
             Assert.Equal(1, context.ScopeStack.Count);
+            Assert.True(context.IsPropertyNameEquals("abc"));
             Assert.Equal("abc", context.PropertyName);
+            Assert.True(context.IsPropertyNameEquals("abc"));
             Assert.Equal(JsonScopeElement.Object, context.CurrentScope);
             Assert.Equal(JsonScopeElement.Object, context.EnclosingScope);
 
             context.ProcessNextElement(new JsonElementInfo(JsonElementType.Number, new JsonLexemeInfo(JsonLexemeType.Number, 9, 12)));
             Assert.Equal("{", context.GetScopeStackNotClosedSequence());
             Assert.Equal(1, context.ScopeStack.Count);
+            Assert.True(context.IsPropertyNameEquals("abc"));
             Assert.Equal("abc", context.PropertyName);
             Assert.Equal(JsonScopeElement.Object, context.CurrentScope);
             Assert.Equal(JsonScopeElement.Object, context.EnclosingScope);
@@ -152,6 +155,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             context.ProcessNextElement(new JsonElementInfo(JsonElementType.PropertyName, new JsonLexemeInfo(JsonLexemeType.String, 14, 19)));
             Assert.Equal("{", context.GetScopeStackNotClosedSequence());
             Assert.Equal(1, context.ScopeStack.Count);
+            Assert.True(context.IsPropertyNameEquals("def"));
             Assert.Equal("def", context.PropertyName);
             Assert.Equal(JsonScopeElement.Object, context.CurrentScope);
             Assert.Equal(JsonScopeElement.Object, context.EnclosingScope);
@@ -159,6 +163,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             context.ProcessNextElement(new JsonElementInfo(JsonElementType.StartArray, new JsonLexemeInfo(JsonLexemeType.StartArray, 21, 22)));
             Assert.Equal("{, [", context.GetScopeStackNotClosedSequence());
             Assert.Equal(2, context.ScopeStack.Count);
+            Assert.True(context.IsPropertyNameEquals("def"));
             Assert.Equal("def", context.PropertyName);
             Assert.Equal(JsonScopeElement.Array, context.CurrentScope);
             Assert.Equal(JsonScopeElement.Object, context.EnclosingScope);

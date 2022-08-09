@@ -60,6 +60,7 @@ namespace Qoollo.BobClient.Helpers.Json
                 case JsonLexemeType.Number:
                     return JsonElementType.Number;
                 case JsonLexemeType.String:
+                case JsonLexemeType.StringWithoutEscSeq:
                     return JsonElementType.String;
                 case JsonLexemeType.KeyValueSeparator:
                 case JsonLexemeType.ItemSeparator:
@@ -111,6 +112,7 @@ namespace Qoollo.BobClient.Helpers.Json
         {
             private readonly string _source;
             private readonly List<JsonScopeElement> _scopeStack;
+            private string _propertyNameLazy;
 
             public ReaderContext(string source)
             {
@@ -120,6 +122,7 @@ namespace Qoollo.BobClient.Helpers.Json
                 LastElement = JsonElementInfo.None;
                 EnclosingScope = JsonScopeElement.None;
                 PropertyNameElement = null;
+                _propertyNameLazy = null;
             }
 
             public JsonElementInfo LastElement { get; private set; }
@@ -131,24 +134,64 @@ namespace Qoollo.BobClient.Helpers.Json
                 {
                     if (!PropertyNameElement.HasValue)
                         return null;
+                    if (_propertyNameLazy != null)
+                        return _propertyNameLazy;
 
-                    var lexeme = PropertyNameElement.Value.Lexeme;
-                    if (lexeme.Type == JsonLexemeType.String)
-                        return JsonLexemeReader.ParseString(_source, lexeme.Start, lexeme.End);
-                    else if (lexeme.Type == JsonLexemeType.Identifier)
-                        return JsonLexemeReader.ParseIdentifier(_source, lexeme.Start, lexeme.End, validate: false);
-                    else
-                        throw new InvalidOperationException($"PropertyName can only be a string or identifier. It cannot be {lexeme.Type}");
-
+                    return _propertyNameLazy = GetPropertyNameString();
                 }
             }
-
 
             public IReadOnlyList<JsonScopeElement> ScopeStack { get { return _scopeStack; } }
             public bool IsScopeStackEmpty { get { return _scopeStack.Count == 0; } }
             public JsonScopeElement CurrentScope { get { return _scopeStack.Count > 0 ? _scopeStack[_scopeStack.Count - 1] : JsonScopeElement.None; } }
 
 
+
+            private string GetPropertyNameString()
+            {
+                if (!PropertyNameElement.HasValue)
+                    return null;
+
+                var lexeme = PropertyNameElement.Value.Lexeme;
+                if (lexeme.Type == JsonLexemeType.String)
+                    return JsonLexemeReader.ParseString(_source, lexeme.Start, lexeme.End);
+                else if (lexeme.Type == JsonLexemeType.StringWithoutEscSeq)
+                    return JsonLexemeReader.ParseStringWithoutEscSeq(_source, lexeme.Start, lexeme.End);
+                else if (lexeme.Type == JsonLexemeType.Identifier)
+                    return JsonLexemeReader.ParseIdentifier(_source, lexeme.Start, lexeme.End, validate: false);
+                else
+                    throw new InvalidOperationException($"PropertyName can only be a string or identifier. It cannot be {lexeme.Type}");
+            }
+            public bool IsPropertyNameEquals(string expectedPropertyName)
+            {
+                if (expectedPropertyName == null)
+                    throw new ArgumentNullException(nameof(expectedPropertyName));
+
+                if (!PropertyNameElement.HasValue)
+                    return false;
+
+                if (_propertyNameLazy != null)
+                    return string.Equals(_propertyNameLazy, expectedPropertyName, StringComparison.Ordinal);
+
+                var lexeme = PropertyNameElement.Value.Lexeme;
+                if (lexeme.Type == JsonLexemeType.String)
+                {
+                    _propertyNameLazy = JsonLexemeReader.ParseString(_source, lexeme.Start, lexeme.End);
+                    return string.Equals(_propertyNameLazy, expectedPropertyName, StringComparison.Ordinal);
+                }
+                else if (lexeme.Type == JsonLexemeType.StringWithoutEscSeq)
+                {
+                    return JsonLexemeReader.IsStringWithoutEscSeqEqualTo(_source, lexeme.Start, lexeme.End, expectedPropertyName);
+                }
+                else if (lexeme.Type == JsonLexemeType.Identifier)
+                {
+                    return JsonLexemeReader.IsIdentitifierEqualTo(_source, lexeme.Start, lexeme.End, expectedPropertyName);
+                }
+                else
+                {
+                    throw new InvalidOperationException($"PropertyName can only be a string or identifier. It cannot be {lexeme.Type}");
+                }
+            }
 
             public JsonElementInfo ProcessNextElement(JsonElementInfo newElement)
             {
@@ -200,9 +243,15 @@ namespace Qoollo.BobClient.Helpers.Json
                 }
 
                 if (newElement.Type == JsonElementType.PropertyName)
+                {
                     PropertyNameElement = newElement;
+                    _propertyNameLazy = null;
+                }
                 else if (newElement.Type == JsonElementType.None || LastElement.Type != JsonElementType.PropertyName)
+                {
                     PropertyNameElement = null;
+                    _propertyNameLazy = null;
+                }
 
                 if (newElement.Type == JsonElementType.StartArray || newElement.Type == JsonElementType.StartObject)
                     EnclosingScope = initialScope;
@@ -270,14 +319,19 @@ namespace Qoollo.BobClient.Helpers.Json
                     case JsonElementType.True:
                     case JsonElementType.False:
                     case JsonElementType.Number:
-                    case JsonElementType.String:
                         return _lexemeReader.GetRawString(Element.Lexeme, lengthLimit: 32);
+                    case JsonElementType.String:
+                        return _lexemeReader.GetRawString(Element.Lexeme, lengthLimit: 32).Trim('\"');
                     default:
                         return "-";
                 }
             }
         }
 
+        public bool IsPropertyNameEquals(string expectedPropertyName)
+        {
+            return _context.IsPropertyNameEquals(expectedPropertyName);
+        }
 
         private static JsonElementInfo ReadObjectItem(JsonLexemeReader lexemeReader)
         {
@@ -287,7 +341,7 @@ namespace Qoollo.BobClient.Helpers.Json
             {
                 return new JsonElementInfo(currentLexeme);
             }
-            else if (currentLexeme.Type == JsonLexemeType.String || currentLexeme.Type == JsonLexemeType.Identifier)
+            else if (currentLexeme.Type.IsStringLexeme() || currentLexeme.Type == JsonLexemeType.Identifier)
             {
                 if (!lexemeReader.Read())
                     throw new JsonParsingException($"Json ended too early. ':' expected after property name '{lexemeReader.ExtractLexemeSurroundingText(currentLexeme)}'");
