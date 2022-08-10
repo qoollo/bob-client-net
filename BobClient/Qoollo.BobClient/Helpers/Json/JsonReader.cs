@@ -489,6 +489,27 @@ namespace Qoollo.BobClient.Helpers.Json
         }
 
 
+        public void Skip()
+        {
+            if (IsBroken)
+                throw new JsonParsingException("Json structure is broken");
+
+            if (IsEnd)
+                return;
+
+            if (ElementType == JsonElementType.PropertyName)
+                this.Read();
+
+            if (ElementType == JsonElementType.StartObject || ElementType == JsonElementType.StartArray)
+            {
+                int depth = _context.ScopeStack.Count;
+                while (this.Read() && _context.ScopeStack.Count >= depth) { }
+            }
+
+            this.Read();
+        }
+
+
         public bool IsValueNull()
         {
             if (IsBroken)

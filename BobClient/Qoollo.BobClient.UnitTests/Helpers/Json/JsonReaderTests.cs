@@ -244,7 +244,10 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
                 Assert.Equal(elTypeSeq[index], reader.ElementType);
 
                 if (elTypeSeq[index] == JsonElementType.PropertyName)
+                {
                     Assert.NotNull(reader.PropertyName);
+                    Assert.True(reader.IsPropertyNameEquals(reader.PropertyName));
+                }
 
                 var prevScope = scopeElemStack.Count > 0 ? scopeElemStack.Peek() : JsonScopeElement.None;
 
@@ -354,5 +357,510 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.True(reader.IsEnd);
         }
 
+
+        [Fact]
+        public void ReaderPropertyNameTests()
+        {
+            var reader = new JsonReader("{ \"abc\": 123, cde: 123, \"\\u006B\\u006C\\u006D\": 123 }");
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.StartObject, reader.ElementType);
+            Assert.Equal(JsonScopeElement.Object, reader.CurrentScope);
+            Assert.Equal(JsonScopeElement.None, reader.EnclosingScope);
+            Assert.Null(reader.PropertyName);
+            Assert.False(reader.IsPropertyNameEquals("abc"));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.PropertyName, reader.ElementType);
+            Assert.Equal(JsonScopeElement.Object, reader.CurrentScope);
+            Assert.Equal(JsonScopeElement.Object, reader.EnclosingScope);
+            Assert.True(reader.IsPropertyNameEquals("abc"));
+            Assert.NotNull(reader.PropertyName);
+            Assert.Equal("abc", reader.PropertyName);
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.Number, reader.ElementType);
+            Assert.NotNull(reader.PropertyName);
+            Assert.Equal("abc", reader.PropertyName);
+            Assert.True(reader.IsPropertyNameEquals("abc"));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.PropertyName, reader.ElementType);
+            Assert.True(reader.IsPropertyNameEquals("cde"));
+            Assert.NotNull(reader.PropertyName);
+            Assert.Equal("cde", reader.PropertyName);
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.Number, reader.ElementType);
+            Assert.NotNull(reader.PropertyName);
+            Assert.Equal("cde", reader.PropertyName);
+            Assert.True(reader.IsPropertyNameEquals("cde"));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.PropertyName, reader.ElementType);
+            Assert.True(reader.IsPropertyNameEquals("klm"));
+            Assert.NotNull(reader.PropertyName);
+            Assert.Equal("klm", reader.PropertyName);
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.Number, reader.ElementType);
+            Assert.NotNull(reader.PropertyName);
+            Assert.Equal("klm", reader.PropertyName);
+            Assert.True(reader.IsPropertyNameEquals("klm"));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.EndObject, reader.ElementType);
+            Assert.Equal(JsonScopeElement.None, reader.CurrentScope);
+            Assert.Equal(JsonScopeElement.None, reader.EnclosingScope);
+            Assert.Null(reader.PropertyName);
+            Assert.False(reader.IsPropertyNameEquals("abc"));
+
+            Assert.False(reader.Read());
+            Assert.True(reader.IsEnd);
+            Assert.False(reader.IsBroken);
+        }
+
+
+        [Fact]
+        public void ReaderIsValueNullTest()
+        {
+            var reader = new JsonReader("[123, null, \"abc\"]");
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.StartArray, reader.ElementType);
+            Assert.Equal(JsonScopeElement.Array, reader.CurrentScope);
+            Assert.Equal(JsonScopeElement.None, reader.EnclosingScope);
+            Assert.False(reader.IsValueNull());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.Number, reader.ElementType);
+            Assert.Equal(JsonScopeElement.Array, reader.CurrentScope);
+            Assert.Equal(JsonScopeElement.Array, reader.EnclosingScope);
+            Assert.False(reader.IsValueNull());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.Null, reader.ElementType);
+            Assert.Equal(JsonScopeElement.Array, reader.CurrentScope);
+            Assert.Equal(JsonScopeElement.Array, reader.EnclosingScope);
+            Assert.True(reader.IsValueNull());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.String, reader.ElementType);
+            Assert.Equal(JsonScopeElement.Array, reader.CurrentScope);
+            Assert.Equal(JsonScopeElement.Array, reader.EnclosingScope);
+            Assert.False(reader.IsValueNull());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.EndArray, reader.ElementType);
+            Assert.Equal(JsonScopeElement.None, reader.CurrentScope);
+            Assert.Equal(JsonScopeElement.None, reader.EnclosingScope);
+            Assert.False(reader.IsValueNull());
+
+            Assert.False(reader.Read());
+            Assert.Equal(JsonElementType.None, reader.ElementType);
+            Assert.Equal(JsonScopeElement.None, reader.CurrentScope);
+            Assert.Equal(JsonScopeElement.None, reader.EnclosingScope);
+            Assert.False(reader.IsValueNull());
+        }
+
+
+        [Fact]
+        public void ReaderGetValueTest()
+        {
+            var reader = new JsonReader("[123, null, \"abc\", true, false]");
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.StartArray, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => reader.GetValue());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.Number, reader.ElementType);
+            Assert.Equal((double)123.0, reader.GetValue());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.Null, reader.ElementType);
+            Assert.Null(reader.GetValue());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.String, reader.ElementType);
+            Assert.Equal("abc", reader.GetValue());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.True, reader.ElementType);
+            Assert.Equal(true, reader.GetValue());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.False, reader.ElementType);
+            Assert.Equal(false, reader.GetValue());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.EndArray, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => reader.GetValue());
+
+            Assert.False(reader.Read());
+            Assert.Equal(JsonElementType.None, reader.ElementType);
+        }
+
+
+        [Fact]
+        public void ReaderGetValueStringTest()
+        {
+            var reader = new JsonReader("[123, null, \"abc\", \"12 \\t 34\", \"ab\\u0063\", { x: false, \"y\": true }]");
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.StartArray, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetValueString()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.Number, reader.ElementType);
+            Assert.Equal("123", reader.GetValueString());      
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.Null, reader.ElementType);
+            Assert.Null(reader.GetValueString());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.String, reader.ElementType);
+            Assert.Equal("abc", reader.GetValueString());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.String, reader.ElementType);
+            Assert.Equal("12 \t 34", reader.GetValueString());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.String, reader.ElementType);
+            Assert.Equal("abc", reader.GetValueString());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.StartObject, reader.ElementType);
+            Assert.Equal(JsonScopeElement.Object, reader.CurrentScope);
+            Assert.Equal(JsonScopeElement.Array, reader.EnclosingScope);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetValueString()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.PropertyName, reader.ElementType);
+            Assert.Equal(JsonScopeElement.Object, reader.CurrentScope);
+            Assert.Equal(JsonScopeElement.Object, reader.EnclosingScope);
+            Assert.True(reader.IsPropertyNameEquals("x"));
+            Assert.False(reader.IsPropertyNameEquals(""));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetValueString()));
+
+            Assert.True(reader.Read());
+            Assert.False(reader.IsEnd);
+            Assert.Equal(JsonElementType.False, reader.ElementType);
+            Assert.True(reader.IsPropertyNameEquals("x"));
+            Assert.False(reader.IsPropertyNameEquals(""));
+            Assert.Equal("false", reader.GetValueString());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.PropertyName, reader.ElementType);
+            Assert.True(reader.IsPropertyNameEquals("y"));
+            Assert.False(reader.IsPropertyNameEquals("x"));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetValueString()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.True, reader.ElementType);
+            Assert.True(reader.IsPropertyNameEquals("y"));
+            Assert.False(reader.IsPropertyNameEquals("x"));
+            Assert.Equal("true", reader.GetValueString());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.EndObject, reader.ElementType);
+            Assert.Equal(JsonScopeElement.Array, reader.CurrentScope);
+            Assert.Equal(JsonScopeElement.Array, reader.EnclosingScope);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetValueString()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.EndArray, reader.ElementType);
+            Assert.Equal(JsonScopeElement.None, reader.CurrentScope);
+            Assert.Equal(JsonScopeElement.None, reader.EnclosingScope);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetValueString()));
+
+            Assert.False(reader.Read());
+            Assert.Equal(JsonElementType.None, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetValueString()));
+            Assert.True(reader.IsEnd);
+        }
+
+
+        [Fact]
+        public void ReaderGetValueInt32Test()
+        {
+            var reader = new JsonReader("[123, null, \"abc\", \"456\", { x: false }]");
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.StartArray, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32Nullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.Number, reader.ElementType);
+            Assert.Equal(123, reader.GetValueInt32());
+            Assert.Equal(123, reader.GetValueInt32Nullable());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.Null, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32()));
+            Assert.Null(reader.GetValueInt32Nullable());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.String, reader.ElementType);
+            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueInt32()));
+            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueInt32Nullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.String, reader.ElementType);
+            Assert.Equal(456, reader.GetValueInt32());
+            Assert.Equal(456, reader.GetValueInt32Nullable());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.StartObject, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32Nullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.PropertyName, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32Nullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.False, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32Nullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.EndObject, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32Nullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.EndArray, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32Nullable()));
+
+            Assert.False(reader.Read());
+            Assert.Equal(JsonElementType.None, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32Nullable()));
+        }
+
+
+        [Fact]
+        public void ReaderGetValueInt64Test()
+        {
+            var reader = new JsonReader("[1230000000000, null, \"abc\", \"4560000000000\", { x: false }]");
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.StartArray, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64Nullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.Number, reader.ElementType);
+            Assert.Equal(1230000000000, reader.GetValueInt64());
+            Assert.Equal(1230000000000, reader.GetValueInt64Nullable());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.Null, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64()));
+            Assert.Null(reader.GetValueInt64Nullable());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.String, reader.ElementType);
+            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueInt64()));
+            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueInt64Nullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.String, reader.ElementType);
+            Assert.Equal(4560000000000, reader.GetValueInt64());
+            Assert.Equal(4560000000000, reader.GetValueInt64Nullable());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.StartObject, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64Nullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.PropertyName, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64Nullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.False, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64Nullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.EndObject, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64Nullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.EndArray, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64Nullable()));
+
+            Assert.False(reader.Read());
+            Assert.Equal(JsonElementType.None, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64Nullable()));
+        }
+
+        [Fact]
+        public void ReaderGetValueDoubleTest()
+        {
+            var reader = new JsonReader("{ \"x\": [1230, null, \"abc\", \"456.1\", true, \"78:9\"] }");
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.StartObject, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDouble()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDoubleNullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.PropertyName, reader.ElementType);
+            Assert.Equal("x", reader.PropertyName);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDouble()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDoubleNullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.StartArray, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDouble()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDoubleNullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.Number, reader.ElementType);
+            Assert.Equal(1230.0, reader.GetValueDouble());
+            Assert.Equal(1230.0, reader.GetValueDoubleNullable());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.Null, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDouble()));
+            Assert.Null(reader.GetValueDoubleNullable());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.String, reader.ElementType);
+            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueDouble()));
+            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueDoubleNullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.String, reader.ElementType);
+            Assert.Equal(456.1, reader.GetValueDouble());
+            Assert.Equal(456.1, reader.GetValueDoubleNullable());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.True, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDouble()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDoubleNullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.String, reader.ElementType);
+            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueDouble()));
+            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueDoubleNullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.EndArray, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDouble()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDoubleNullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.EndObject, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDouble()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDoubleNullable()));
+
+            Assert.False(reader.Read());
+            Assert.Equal(JsonElementType.None, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDouble()));
+            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDoubleNullable()));
+        }
+
+        [Fact]
+        public void ReaderGetValueBoolTest()
+        {
+            var reader = new JsonReader("[1230, null, \"abc\", \"True\", { x: false }]");
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.StartArray, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBool()));
+            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBoolNullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.Number, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBool()));
+            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBoolNullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.Null, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBool()));
+            Assert.Null(reader.GetValueBoolNullable());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.String, reader.ElementType);
+            Assert.Throws<FormatException>(() => Assert.False(reader.GetValueBool()));
+            Assert.Throws<FormatException>(() => Assert.False(reader.GetValueBoolNullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.String, reader.ElementType);
+            Assert.True(reader.GetValueBool());
+            Assert.True(reader.GetValueBoolNullable());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.StartObject, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBool()));
+            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBoolNullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.PropertyName, reader.ElementType);
+            Assert.Equal("x", reader.PropertyName);
+            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBool()));
+            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBoolNullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.False, reader.ElementType);
+            Assert.False(reader.GetValueBool());
+            Assert.False(reader.GetValueBoolNullable());
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.EndObject, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBool()));
+            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBoolNullable()));
+
+            Assert.True(reader.Read());
+            Assert.Equal(JsonElementType.EndArray, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBool()));
+            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBoolNullable()));
+
+            Assert.False(reader.Read());
+            Assert.Equal(JsonElementType.None, reader.ElementType);
+            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBool()));
+            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBoolNullable()));
+        }
+
+
+        [Theory]
+        [InlineData("\"str\"", 1, JsonElementType.String, JsonElementType.None, null)]
+        [InlineData("[1, 2, 3]", 1, JsonElementType.StartArray, JsonElementType.None, null)]
+        [InlineData("[1, true, false]", 2, JsonElementType.Number, JsonElementType.True, null)]
+        [InlineData("[{x: 1}, {x: 2}, {x:3}]", 1, JsonElementType.StartArray, JsonElementType.None, null)]
+        [InlineData("{x: [1,2,{a:false}], y: [3, 4, {a:true}]}", 1, JsonElementType.StartObject, JsonElementType.None, null)]
+        [InlineData("{ x: [1, 2, 3], y: false }", 3, JsonElementType.StartArray, JsonElementType.PropertyName, "y")]
+        [InlineData("{ x: [1, 2], y: false }", 2, JsonElementType.PropertyName, JsonElementType.PropertyName, "y")]
+        [InlineData("[{ x: [1, 2], y: false }, {\"abc\": \"bcd\"}]", 2, JsonElementType.StartObject, JsonElementType.StartObject, null)]
+        [InlineData("{ x: [1, 2], y: false, a: { m: 1 } }", 2, JsonElementType.PropertyName, JsonElementType.PropertyName, "y")]
+        [InlineData("{ x: [1, 2], y: false, a: { m: 1 } }", 7, JsonElementType.PropertyName, JsonElementType.PropertyName, "a")]
+        [InlineData("{ x: [1, 2], y: false, a: { m: 1 } }", 9, JsonElementType.PropertyName, JsonElementType.EndObject, null)]
+        internal void ReaderSkipTest(string json, int readBeforeSkip, JsonElementType elementToSkip, JsonElementType elementAfterSkip, string propertyNameAfterSkip)
+        {
+            var reader = new JsonReader(json);
+
+            for (int i = 0; i < readBeforeSkip; i++)
+                Assert.True(reader.Read());
+
+            Assert.Equal(elementToSkip, reader.ElementType);
+
+            reader.Skip();
+
+            Assert.Equal(elementAfterSkip, reader.ElementType);
+            Assert.Equal(propertyNameAfterSkip, reader.PropertyName);
+        }
     }
 }
