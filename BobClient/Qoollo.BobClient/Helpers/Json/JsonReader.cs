@@ -302,6 +302,8 @@ namespace Qoollo.BobClient.Helpers.Json
         public bool IsBroken { get { return _isBroken; } }
         public bool IsEnd { get { return _lexemeReader.IsEnd; } }
 
+        internal int Position { get { return _lexemeReader.Position; } }
+
         private JsonElementInfo Element { get { return _context.LastElement; } }
         public JsonElementType ElementType { get { return _context.LastElement.Type; } }
 

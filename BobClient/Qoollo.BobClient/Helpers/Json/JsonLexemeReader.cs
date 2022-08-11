@@ -162,9 +162,9 @@ namespace Qoollo.BobClient.Helpers.Json
         public string Source { get { return _source; } }
 
         public JsonLexemeInfo CurrentLexeme { get { return _currentLexeme; } }
-        public int Index { get { return _currentLexeme.Start; } }
-        public bool IsStart { get { return Index == 0; } }
-        public bool IsEnd { get { return Index >= _source.Length; } }
+        public int Position { get { return _currentLexeme.Start; } }
+        public bool IsStart { get { return Position == 0; } }
+        public bool IsEnd { get { return Position >= _source.Length; } }
 
 
 
