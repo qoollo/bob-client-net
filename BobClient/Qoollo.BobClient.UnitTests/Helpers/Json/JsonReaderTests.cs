@@ -600,7 +600,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
 
             Assert.True(reader.Read());
             Assert.Equal(JsonElementType.Null, reader.ElementType);
-            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32()));
+            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueInt32()));
             Assert.Null(reader.GetValueInt32Nullable());
 
             Assert.True(reader.Read());
@@ -625,8 +625,8 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
 
             Assert.True(reader.Read());
             Assert.Equal(JsonElementType.False, reader.ElementType);
-            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32()));
-            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt32Nullable()));
+            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueInt32()));
+            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueInt32Nullable()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonElementType.EndObject, reader.ElementType);
@@ -662,7 +662,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
 
             Assert.True(reader.Read());
             Assert.Equal(JsonElementType.Null, reader.ElementType);
-            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64()));
+            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueInt64()));
             Assert.Null(reader.GetValueInt64Nullable());
 
             Assert.True(reader.Read());
@@ -687,8 +687,8 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
 
             Assert.True(reader.Read());
             Assert.Equal(JsonElementType.False, reader.ElementType);
-            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64()));
-            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueInt64Nullable()));
+            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueInt64()));
+            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueInt64Nullable()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonElementType.EndObject, reader.ElementType);
@@ -734,7 +734,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
 
             Assert.True(reader.Read());
             Assert.Equal(JsonElementType.Null, reader.ElementType);
-            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDouble()));
+            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueDouble()));
             Assert.Null(reader.GetValueDoubleNullable());
 
             Assert.True(reader.Read());
@@ -749,8 +749,8 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
 
             Assert.True(reader.Read());
             Assert.Equal(JsonElementType.True, reader.ElementType);
-            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDouble()));
-            Assert.Throws<InvalidOperationException>(() => Assert.Equal(-1, reader.GetValueDoubleNullable()));
+            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueDouble()));
+            Assert.Throws<FormatException>(() => Assert.Equal(-1, reader.GetValueDoubleNullable()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonElementType.String, reader.ElementType);
@@ -785,12 +785,12 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
 
             Assert.True(reader.Read());
             Assert.Equal(JsonElementType.Number, reader.ElementType);
-            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBool()));
-            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBoolNullable()));
+            Assert.Throws<FormatException>(() => Assert.False(reader.GetValueBool()));
+            Assert.Throws<FormatException>(() => Assert.False(reader.GetValueBoolNullable()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonElementType.Null, reader.ElementType);
-            Assert.Throws<InvalidOperationException>(() => Assert.False(reader.GetValueBool()));
+            Assert.Throws<FormatException>(() => Assert.False(reader.GetValueBool()));
             Assert.Null(reader.GetValueBoolNullable());
 
             Assert.True(reader.Read());

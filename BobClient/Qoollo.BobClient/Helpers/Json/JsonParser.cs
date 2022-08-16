@@ -9,7 +9,7 @@ namespace Qoollo.BobClient.Helpers.Json
     internal delegate T JsonObjectPropertyParserDelegate<T>(T obj, IJsonValueParser valueParser);
     internal delegate void JsonObjectPropertyParserInPlaceDelegate<T>(T obj, IJsonValueParser valueParser);
 
-    internal class JsonObjectInfo<T>
+    internal class JsonParsingObjectInfo<T>
     { 
         public class JsonPropertyInfo
         {
@@ -31,13 +31,20 @@ namespace Qoollo.BobClient.Helpers.Json
             }
         }
 
+
         // ================
 
-        private readonly Dictionary<string, JsonPropertyInfo> _properties;
 
-        public JsonObjectInfo()
+        private readonly Dictionary<string, JsonPropertyInfo> _properties;
+        private readonly Func<T> _constructor;
+
+        public JsonParsingObjectInfo(Func<T> constructor)
         {
+            if (constructor == null)
+                throw new ArgumentNullException(nameof(constructor));
+
             _properties = new Dictionary<string, JsonPropertyInfo>();
+            _constructor = constructor;
         }
 
         public IReadOnlyDictionary<string, JsonPropertyInfo> Properties { get { return _properties; } }
@@ -47,7 +54,16 @@ namespace Qoollo.BobClient.Helpers.Json
             return _properties.TryGetValue(name, out property);
         }
 
-        public JsonObjectInfo<T> AddProperty(string jsonPropertyName, bool isRequired, JsonObjectPropertyParserDelegate<T> propertyParser)
+        public T CreateObject()
+        {
+            if (_constructor == null)
+                throw new InvalidOperationException($"Object constructor is not registered for type {typeof(T)}");
+
+            return _constructor();
+        }
+
+
+        public JsonParsingObjectInfo<T> AddProperty(string jsonPropertyName, bool isRequired, JsonObjectPropertyParserDelegate<T> propertyParser)
         {
             if (jsonPropertyName == null)
                 throw new ArgumentNullException(nameof(jsonPropertyName));
@@ -57,7 +73,7 @@ namespace Qoollo.BobClient.Helpers.Json
             _properties.Add(jsonPropertyName, new JsonPropertyInfo(jsonPropertyName, isRequired, propertyParser));
             return this;
         }
-        public JsonObjectInfo<T> AddProperty(string jsonPropertyName, bool isRequired, JsonObjectPropertyParserInPlaceDelegate<T> propertyParser)
+        public JsonParsingObjectInfo<T> AddProperty(string jsonPropertyName, bool isRequired, JsonObjectPropertyParserInPlaceDelegate<T> propertyParser)
         {
             if (jsonPropertyName == null)
                 throw new ArgumentNullException(nameof(jsonPropertyName));
@@ -67,7 +83,7 @@ namespace Qoollo.BobClient.Helpers.Json
             _properties.Add(jsonPropertyName, new JsonPropertyInfo(jsonPropertyName, isRequired, (obj, valueParser) => { propertyParser(obj, valueParser); return obj; }));
             return this;
         }
-        public JsonObjectInfo<T> AddProperty<TProp>(string jsonPropertyName, bool isRequired, Expression<Func<T, TProp>> objectPropertyExpression, JsonValueParserDelegate<TProp> valueParser)
+        public JsonParsingObjectInfo<T> AddProperty<TProp, TPropVal>(string jsonPropertyName, bool isRequired, Expression<Func<T, TProp>> objectPropertyExpression, JsonValueParserDelegate<TPropVal> valueParser) where TPropVal: TProp
         {
             if (jsonPropertyName == null)
                 throw new ArgumentNullException(nameof(jsonPropertyName));
@@ -107,11 +123,14 @@ namespace Qoollo.BobClient.Helpers.Json
         bool IsObject { get; }
         bool IsSimpleValue { get; }
 
-        T ParseObject<T>(T obj, JsonObjectInfo<T> objInfo);
-        IEnumerable<T> ParseArray<T>(JsonValueParserDelegate<T> itemParser);
+        T ParseObject<T>(JsonParsingObjectInfo<T> objInfo, bool nullable = false);
+        T ParseObjectNullable<T>(JsonParsingObjectInfo<T> objInfo);
 
+        IEnumerable<T> ParseArray<T>(JsonValueParserDelegate<T> itemParser, bool nullable = false);
+        IEnumerable<T> ParseArrayNullable<T>(JsonValueParserDelegate<T> itemParser);
 
-        string ParseString();
+        string ParseString(bool nullable = false);
+        string ParseStringNullable();
 
         int ParseInt32();
         int? ParseInt32Nullable();
@@ -147,26 +166,44 @@ namespace Qoollo.BobClient.Helpers.Json
         public bool IsComplete { get { return _reader.IsEnd; } }
 
 
-        public T ParseObject<T>(T obj, JsonObjectInfo<T> objInfo)
+        public T ParseObject<T>(JsonParsingObjectInfo<T> objInfo, bool nullable = false)
         {
             if (objInfo == null)
                 throw new ArgumentNullException(nameof(objInfo));
+
+            if (IsNull)
+            {
+                if (!nullable)
+                    throw new FormatException($"ParseObject cannot parse 'null', because it is forbidden by '{nameof(nullable)}' argument");
+
+                _reader.Read();
+                return default(T);
+            }
+
             if (!IsObject)
                 throw new InvalidOperationException($"ParseObject can be executed only on JSON Object element. Current element: {_reader.ElementType}");
 
             HashSet<string> parsedProps = new HashSet<string>();
+            var obj = objInfo.CreateObject();
 
-            while (_reader.Read() && _reader.ElementType != JsonElementType.EndObject)
+            _reader.Read();
+
+            while (_reader.ElementType != JsonElementType.EndObject)
             {
                 if (_reader.ElementType != JsonElementType.PropertyName)
                     throw new InvalidOperationException($"PropertyName expected inside object, but found {_reader.ElementType}");
 
                 if (objInfo.TryGetProperty(_reader.PropertyName, out var property))
                 {
-                    _reader.Read();
+                    _reader.Read();                 
 
-                    parsedProps.Add(_reader.PropertyName);
+                    int position = _reader.Position;
                     obj = property.ParseProperty(obj, this);
+
+                    parsedProps.Add(property.Name);
+
+                    if (_reader.Position == position)
+                        throw new ArgumentException($"Property '{_reader.PropertyName}' parser should parse a value to move forward", nameof(objInfo));
                 }
                 else
                 {
@@ -184,14 +221,15 @@ namespace Qoollo.BobClient.Helpers.Json
 
             return obj;
         }
-
-        public IEnumerable<T> ParseArray<T>(JsonValueParserDelegate<T> itemParser)
+        public T ParseObjectNullable<T>(JsonParsingObjectInfo<T> objInfo)
         {
-            if (itemParser == null)
-                throw new ArgumentNullException(nameof(itemParser));
-            if (!IsArray)
-                throw new InvalidOperationException($"ParseArray can be executed only on JSON Array element. Current element: {_reader.ElementType}");
+            return ParseObject(objInfo, nullable: true);
+        }
 
+
+
+        private IEnumerable<T> ParseArrayIterator<T>(JsonValueParserDelegate<T> itemParser)
+        {
             _reader.Read();
 
             while (_reader.ElementType != JsonElementType.EndArray)
@@ -206,9 +244,42 @@ namespace Qoollo.BobClient.Helpers.Json
 
             _reader.Read();
         }
+        public IEnumerable<T> ParseArray<T>(JsonValueParserDelegate<T> itemParser, bool nullable = false)
+        {
+            if (itemParser == null)
+                throw new ArgumentNullException(nameof(itemParser));
+
+            if (IsNull)
+            {
+                if (!nullable)
+                    throw new FormatException($"ParseArray cannot parse 'null', because it is forbidden by '{nameof(nullable)}' argument");
+
+                _reader.Read();
+                return null;
+            }
+
+            if (!IsArray)
+                throw new InvalidOperationException($"ParseArray can be executed only on JSON Array element. Current element: {_reader.ElementType}");
+
+            return ParseArrayIterator(itemParser);
+        }
+        public IEnumerable<T> ParseArrayNullable<T>(JsonValueParserDelegate<T> itemParser)
+        {
+            return ParseArray(itemParser, nullable: true);
+        }
 
 
-        public string ParseString()
+
+        public string ParseString(bool nullable = false)
+        {
+            if (!nullable && IsNull)
+                throw new FormatException($"ParseString cannot parse 'null', because it is forbidden by '{nameof(nullable)}' argument");
+
+            var result = _reader.GetValueString();
+            _reader.Read();
+            return result;
+        }
+        public string ParseStringNullable()
         {
             var result = _reader.GetValueString();
             _reader.Read();

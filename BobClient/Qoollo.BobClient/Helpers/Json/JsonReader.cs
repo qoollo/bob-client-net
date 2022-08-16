@@ -602,7 +602,7 @@ namespace Qoollo.BobClient.Helpers.Json
                 case JsonElementType.Null:
                 case JsonElementType.True:
                 case JsonElementType.False:
-                    throw new InvalidOperationException($"JSON {Element.Type} cannot be parsed as number");
+                    throw new FormatException($"JSON {Element.Type} cannot be parsed as number");
                 case JsonElementType.Number:
                     return _lexemeReader.GetValueInt32(Element.Lexeme);
                 case JsonElementType.String:
@@ -644,7 +644,7 @@ namespace Qoollo.BobClient.Helpers.Json
                 case JsonElementType.Null:
                 case JsonElementType.True:
                 case JsonElementType.False:
-                    throw new InvalidOperationException($"JSON {Element.Type} cannot be parsed as number");
+                    throw new FormatException($"JSON {Element.Type} cannot be parsed as number");
                 case JsonElementType.Number:
                     return _lexemeReader.GetValueInt64(Element.Lexeme);
                 case JsonElementType.String:
@@ -687,7 +687,7 @@ namespace Qoollo.BobClient.Helpers.Json
                 case JsonElementType.Null:
                 case JsonElementType.True:
                 case JsonElementType.False:
-                    throw new InvalidOperationException($"JSON {Element.Type} cannot be parsed as number");
+                    throw new FormatException($"JSON {Element.Type} cannot be parsed as number");
                 case JsonElementType.Number:
                     return _lexemeReader.GetValueDouble(Element.Lexeme);
                 case JsonElementType.String:
@@ -729,7 +729,7 @@ namespace Qoollo.BobClient.Helpers.Json
                     throw new InvalidOperationException($"JSON element {Element.Type} is not a value and cannot be read as bool");
                 case JsonElementType.Null:
                 case JsonElementType.Number:
-                    throw new InvalidOperationException($"JSON {Element.Type} cannot be parsed as bool");
+                    throw new FormatException($"JSON {Element.Type} cannot be parsed as bool");
                 case JsonElementType.True:
                     return true;
                 case JsonElementType.False:
