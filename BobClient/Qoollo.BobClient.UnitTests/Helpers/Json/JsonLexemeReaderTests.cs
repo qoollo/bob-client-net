@@ -132,23 +132,6 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             });
         }
 
-        [Theory]
-        [InlineData("\"" + "\"", 0, -1, "", true)]
-        [InlineData("\"" + @"abc" + "\"", 0, -1, "abc", true)]
-        [InlineData("\"" + @"Simple test string." + "\"", 0, -1, "Simple test string.", true)]
-        [InlineData("Start: " + "\"" + @"Simple test string." + "\"" + " Something after", 7, 28, "Simple test string.", true)]
-        [InlineData("\"" + @"abc" + "\"", 0, -1, "abcd", false)]
-        [InlineData("\"" + @"abcd" + "\"", 0, -1, "abc", false)]
-        [InlineData("\"" + @"aa" + "\"", 0, -1, "bb", false)]
-        public void IsStringWithoutEscSecEqualTest(string str, int startIndex, int endIndex, string equalTo, bool expected)
-        {
-            if (endIndex == -1)
-                endIndex = str.Length;
-
-            var equalToResult = JsonLexemeReader.IsStringWithoutEscSeqEqualTo(str, startIndex, endIndex, equalTo);
-            Assert.Equal(expected, equalToResult);
-        }
-
 
         [Theory]
         [InlineData("Simple_identifier", 0, "Simple_identifier")]
@@ -221,27 +204,6 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             var token = JsonLexemeReader.ReadIdentifier(str, index);
             var parsedStr = JsonLexemeReader.ParseIdentifier(str, token.Start, token.End, validate: true);
             Assert.Equal(expected, parsedStr);
-        }
-
-
-        [Theory]
-        [InlineData("Simple_identifier", 0, -1, "Simple_identifier", true)]
-        [InlineData("_simple_identifier", 0, -1, "_simple_identifier", true)]
-        [InlineData("Simple identifier", 0, 6, "Simple", true)]
-        [InlineData("true", 0, -1, "true", true)]
-        [InlineData("false", 0, -1, "false", true)]
-        [InlineData("null", 0, -1, "null", true)]
-        [InlineData("abcd", 0, -1, "abc", false)]
-        [InlineData("abc", 0, -1, "abcd", false)]
-        [InlineData("[abcd]", 1, 5, "abc", false)]
-        [InlineData("[abc]", 1, 4, "abcd", false)]
-        public void IsIdentifierEqualTest(string str, int index, int endIndex, string equalTo, bool expected)
-        {
-            if (endIndex == -1)
-                endIndex = str.Length;
-
-            var equalToResult = JsonLexemeReader.IsIdentitifierEqualTo(str, index, endIndex, equalTo);
-            Assert.Equal(equalToResult, expected);
         }
 
 

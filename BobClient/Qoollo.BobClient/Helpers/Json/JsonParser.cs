@@ -5,9 +5,9 @@ using System.Text;
 
 namespace Qoollo.BobClient.Helpers.Json
 {
-    internal delegate T JsonValueParserDelegate<T>(IJsonValueParser valueParser);
-    internal delegate T JsonObjectPropertyParserDelegate<T>(T obj, IJsonValueParser valueParser);
-    internal delegate void JsonObjectPropertyParserInPlaceDelegate<T>(T obj, IJsonValueParser valueParser);
+    internal delegate T JsonValueParserDelegate<T>(JsonParser jsonParser);
+    internal delegate T JsonObjectPropertyParserDelegate<T>(T obj, JsonParser jsonParser);
+    internal delegate void JsonObjectPropertyParserInPlaceDelegate<T>(T obj, JsonParser jsonParser);
 
     internal class JsonParsingObjectInfo<T>
     { 
@@ -25,9 +25,9 @@ namespace Qoollo.BobClient.Helpers.Json
             public string Name { get; }
             public bool IsRequired { get; }
 
-            public T ParseProperty(T obj, IJsonValueParser valueParser)
+            public T ParseProperty(T obj, JsonParser jsonParser)
             {
-                return _propertyParser(obj, valueParser);
+                return _propertyParser(obj, jsonParser);
             }
         }
 
@@ -116,38 +116,7 @@ namespace Qoollo.BobClient.Helpers.Json
     }
 
 
-    internal interface IJsonValueParser
-    {
-        bool IsNull { get; }
-        bool IsArray { get; }
-        bool IsObject { get; }
-        bool IsSimpleValue { get; }
-
-        T ParseObject<T>(JsonParsingObjectInfo<T> objInfo, bool nullable = false);
-        T ParseObjectNullable<T>(JsonParsingObjectInfo<T> objInfo);
-
-        IEnumerable<T> ParseArray<T>(JsonValueParserDelegate<T> itemParser, bool nullable = false);
-        IEnumerable<T> ParseArrayNullable<T>(JsonValueParserDelegate<T> itemParser);
-
-        string ParseString(bool nullable = false);
-        string ParseStringNullable();
-
-        int ParseInt32();
-        int? ParseInt32Nullable();
-
-        long ParseInt64();
-        long? ParseInt64Nullable();
-
-        double ParseDouble();
-        double? ParseDoubleNullable();
-
-        bool ParseBool();
-        bool? ParseBoolNullable();
-
-        T ParseSimpleValue<T>();
-    }
-
-    internal class JsonParser : IJsonValueParser
+    internal class JsonParser
     {
         private readonly JsonReader _reader;
 

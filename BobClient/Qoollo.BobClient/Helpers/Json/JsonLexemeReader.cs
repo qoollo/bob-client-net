@@ -392,30 +392,6 @@ namespace Qoollo.BobClient.Helpers.Json
         }
 #endif
 
-        internal static bool IsStringWithoutEscSeqEqualTo(string str, int startIndex, int expectedEndIndex, string eqStr)
-        {
-            if (str == null)
-                throw new ArgumentNullException(nameof(str));
-            if (startIndex < 0 || startIndex > str.Length)
-                throw new ArgumentOutOfRangeException(nameof(startIndex));
-            if (expectedEndIndex < startIndex || expectedEndIndex > str.Length)
-                throw new ArgumentOutOfRangeException(nameof(expectedEndIndex));
-            if (eqStr == null)
-                throw new ArgumentNullException(nameof(eqStr));
-
-            if (expectedEndIndex < startIndex + 2)
-                throw new FormatException($"String cannot be empty, it should start and end with quotation mark. StartIndex: {startIndex}, EndIndex: {expectedEndIndex}");
-
-            if (str[startIndex] != '"')
-                throw new FormatException($"String is not started with quotation mark. It's started with: '{ExtractSurroundingText(str, startIndex)}'");
-
-            if (str[expectedEndIndex - 1] != '"')
-                throw new FormatException($"String is not ended with quotation mark. It's ended with: '{ExtractSurroundingText(str, expectedEndIndex - 1)}'");
-
-
-            return string.CompareOrdinal(str, startIndex + 1, eqStr, 0, Math.Max(eqStr.Length, expectedEndIndex - startIndex - 2)) == 0;
-        }
-
 
         internal static JsonLexemeInfo ReadIdentifier(string str, int index)
         {
@@ -468,27 +444,6 @@ namespace Qoollo.BobClient.Helpers.Json
             return str.AsSpan(startIndex, expectedEndIndex - startIndex);
         }
 #endif
-
-        internal static bool IsIdentitifierEqualTo(string str, int startIndex, int expectedEndIndex, string eqStr)
-        {
-            if (str == null)
-                throw new ArgumentNullException(nameof(str));
-            if (startIndex < 0 || startIndex > str.Length)
-                throw new ArgumentOutOfRangeException(nameof(startIndex));
-            if (expectedEndIndex < startIndex || expectedEndIndex > str.Length)
-                throw new ArgumentOutOfRangeException(nameof(expectedEndIndex));
-            if (eqStr == null)
-                throw new ArgumentNullException(nameof(eqStr));
-
-            if (expectedEndIndex == startIndex)
-                throw new FormatException($"Identifier cannot be empty. StartIndex: {startIndex}, EndIndex: {expectedEndIndex}");
-
-            if (!IsIdentifierStartSymbol(str[startIndex]))
-                throw new FormatException($"Incorrect identifier starting symbol at {startIndex}, text: '{ExtractSurroundingText(str, startIndex)}'");
-
-
-            return string.CompareOrdinal(str, startIndex, eqStr, 0, Math.Max(eqStr.Length, expectedEndIndex - startIndex)) == 0;
-        }
 
 
         internal static JsonLexemeInfo ReadNumber(string str, int index)

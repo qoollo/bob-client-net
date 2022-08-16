@@ -146,7 +146,6 @@ namespace Qoollo.BobClient.Helpers.Json
             public JsonScopeElement CurrentScope { get { return _scopeStack.Count > 0 ? _scopeStack[_scopeStack.Count - 1] : JsonScopeElement.None; } }
 
 
-
             private string GetPropertyNameString()
             {
                 if (!PropertyNameElement.HasValue)
@@ -161,36 +160,6 @@ namespace Qoollo.BobClient.Helpers.Json
                     return JsonLexemeReader.ParseIdentifier(_source, lexeme.Start, lexeme.End, validate: false);
                 else
                     throw new InvalidOperationException($"PropertyName can only be a string or identifier. It cannot be {lexeme.Type}");
-            }
-            public bool IsPropertyNameEquals(string expectedPropertyName)
-            {
-                if (expectedPropertyName == null)
-                    throw new ArgumentNullException(nameof(expectedPropertyName));
-
-                if (!PropertyNameElement.HasValue)
-                    return false;
-
-                if (_propertyNameLazy != null)
-                    return string.Equals(_propertyNameLazy, expectedPropertyName, StringComparison.Ordinal);
-
-                var lexeme = PropertyNameElement.Value.Lexeme;
-                if (lexeme.Type == JsonLexemeType.String)
-                {
-                    _propertyNameLazy = JsonLexemeReader.ParseString(_source, lexeme.Start, lexeme.End);
-                    return string.Equals(_propertyNameLazy, expectedPropertyName, StringComparison.Ordinal);
-                }
-                else if (lexeme.Type == JsonLexemeType.StringWithoutEscSeq)
-                {
-                    return JsonLexemeReader.IsStringWithoutEscSeqEqualTo(_source, lexeme.Start, lexeme.End, expectedPropertyName);
-                }
-                else if (lexeme.Type == JsonLexemeType.Identifier)
-                {
-                    return JsonLexemeReader.IsIdentitifierEqualTo(_source, lexeme.Start, lexeme.End, expectedPropertyName);
-                }
-                else
-                {
-                    throw new InvalidOperationException($"PropertyName can only be a string or identifier. It cannot be {lexeme.Type}");
-                }
             }
 
             public JsonElementInfo ProcessNextElement(JsonElementInfo newElement)
@@ -328,11 +297,6 @@ namespace Qoollo.BobClient.Helpers.Json
                         return "-";
                 }
             }
-        }
-
-        public bool IsPropertyNameEquals(string expectedPropertyName)
-        {
-            return _context.IsPropertyNameEquals(expectedPropertyName);
         }
 
         private static JsonElementInfo ReadObjectItem(JsonLexemeReader lexemeReader)

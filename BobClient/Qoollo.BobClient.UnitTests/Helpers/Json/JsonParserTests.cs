@@ -161,7 +161,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
                 .AddProperty("val_bool", true, o => o.ValBool, p => p.ParseBool())
                 .AddProperty("val_string", false, o => o.ValString, p => p.ParseStringNullable());
 
-            internal static SimpleObject Parse(IJsonValueParser parser, bool nullable = false)
+            internal static SimpleObject Parse(JsonParser parser, bool nullable = false)
             {
                 return parser.ParseObject(_objInfo, nullable);
             }
@@ -287,7 +287,7 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
                 .AddProperty("string_optional_array", false, o => o.StringOptionalArray, p => p.ParseArray(pItem => pItem.ParseStringNullable(), nullable: true)?.ToArray())
                 .AddProperty("child_large_object", false, o => o.ChildLargeObject, p => LargeObject.Parse(p, nullable: true));
 
-            internal static LargeObject Parse(IJsonValueParser parser, bool nullable = false)
+            internal static LargeObject Parse(JsonParser parser, bool nullable = false)
             {
                 return parser.ParseObject(_objInfo, nullable);
             }

@@ -138,16 +138,13 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             context.ProcessNextElement(new JsonElementInfo(JsonElementType.PropertyName, new JsonLexemeInfo(JsonLexemeType.String, 2, 7)));
             Assert.Equal("{", context.GetScopeStackNotClosedSequence());
             Assert.Equal(1, context.ScopeStack.Count);
-            Assert.True(context.IsPropertyNameEquals("abc"));
             Assert.Equal("abc", context.PropertyName);
-            Assert.True(context.IsPropertyNameEquals("abc"));
             Assert.Equal(JsonScopeElement.Object, context.CurrentScope);
             Assert.Equal(JsonScopeElement.Object, context.EnclosingScope);
 
             context.ProcessNextElement(new JsonElementInfo(JsonElementType.Number, new JsonLexemeInfo(JsonLexemeType.Number, 9, 12)));
             Assert.Equal("{", context.GetScopeStackNotClosedSequence());
             Assert.Equal(1, context.ScopeStack.Count);
-            Assert.True(context.IsPropertyNameEquals("abc"));
             Assert.Equal("abc", context.PropertyName);
             Assert.Equal(JsonScopeElement.Object, context.CurrentScope);
             Assert.Equal(JsonScopeElement.Object, context.EnclosingScope);
@@ -155,7 +152,6 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             context.ProcessNextElement(new JsonElementInfo(JsonElementType.PropertyName, new JsonLexemeInfo(JsonLexemeType.String, 14, 19)));
             Assert.Equal("{", context.GetScopeStackNotClosedSequence());
             Assert.Equal(1, context.ScopeStack.Count);
-            Assert.True(context.IsPropertyNameEquals("def"));
             Assert.Equal("def", context.PropertyName);
             Assert.Equal(JsonScopeElement.Object, context.CurrentScope);
             Assert.Equal(JsonScopeElement.Object, context.EnclosingScope);
@@ -163,7 +159,6 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             context.ProcessNextElement(new JsonElementInfo(JsonElementType.StartArray, new JsonLexemeInfo(JsonLexemeType.StartArray, 21, 22)));
             Assert.Equal("{, [", context.GetScopeStackNotClosedSequence());
             Assert.Equal(2, context.ScopeStack.Count);
-            Assert.True(context.IsPropertyNameEquals("def"));
             Assert.Equal("def", context.PropertyName);
             Assert.Equal(JsonScopeElement.Array, context.CurrentScope);
             Assert.Equal(JsonScopeElement.Object, context.EnclosingScope);
@@ -246,7 +241,6 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
                 if (elTypeSeq[index] == JsonElementType.PropertyName)
                 {
                     Assert.NotNull(reader.PropertyName);
-                    Assert.True(reader.IsPropertyNameEquals(reader.PropertyName));
                 }
 
                 var prevScope = scopeElemStack.Count > 0 ? scopeElemStack.Peek() : JsonScopeElement.None;
@@ -368,13 +362,11 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.Equal(JsonScopeElement.Object, reader.CurrentScope);
             Assert.Equal(JsonScopeElement.None, reader.EnclosingScope);
             Assert.Null(reader.PropertyName);
-            Assert.False(reader.IsPropertyNameEquals("abc"));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonElementType.PropertyName, reader.ElementType);
             Assert.Equal(JsonScopeElement.Object, reader.CurrentScope);
             Assert.Equal(JsonScopeElement.Object, reader.EnclosingScope);
-            Assert.True(reader.IsPropertyNameEquals("abc"));
             Assert.NotNull(reader.PropertyName);
             Assert.Equal("abc", reader.PropertyName);
 
@@ -382,11 +374,9 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.Equal(JsonElementType.Number, reader.ElementType);
             Assert.NotNull(reader.PropertyName);
             Assert.Equal("abc", reader.PropertyName);
-            Assert.True(reader.IsPropertyNameEquals("abc"));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonElementType.PropertyName, reader.ElementType);
-            Assert.True(reader.IsPropertyNameEquals("cde"));
             Assert.NotNull(reader.PropertyName);
             Assert.Equal("cde", reader.PropertyName);
 
@@ -394,11 +384,9 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.Equal(JsonElementType.Number, reader.ElementType);
             Assert.NotNull(reader.PropertyName);
             Assert.Equal("cde", reader.PropertyName);
-            Assert.True(reader.IsPropertyNameEquals("cde"));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonElementType.PropertyName, reader.ElementType);
-            Assert.True(reader.IsPropertyNameEquals("klm"));
             Assert.NotNull(reader.PropertyName);
             Assert.Equal("klm", reader.PropertyName);
 
@@ -406,14 +394,12 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.Equal(JsonElementType.Number, reader.ElementType);
             Assert.NotNull(reader.PropertyName);
             Assert.Equal("klm", reader.PropertyName);
-            Assert.True(reader.IsPropertyNameEquals("klm"));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonElementType.EndObject, reader.ElementType);
             Assert.Equal(JsonScopeElement.None, reader.CurrentScope);
             Assert.Equal(JsonScopeElement.None, reader.EnclosingScope);
             Assert.Null(reader.PropertyName);
-            Assert.False(reader.IsPropertyNameEquals("abc"));
 
             Assert.False(reader.Read());
             Assert.True(reader.IsEnd);
@@ -541,27 +527,19 @@ namespace Qoollo.BobClient.UnitTests.Helpers.Json
             Assert.Equal(JsonElementType.PropertyName, reader.ElementType);
             Assert.Equal(JsonScopeElement.Object, reader.CurrentScope);
             Assert.Equal(JsonScopeElement.Object, reader.EnclosingScope);
-            Assert.True(reader.IsPropertyNameEquals("x"));
-            Assert.False(reader.IsPropertyNameEquals(""));
             Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetValueString()));
 
             Assert.True(reader.Read());
             Assert.False(reader.IsEnd);
             Assert.Equal(JsonElementType.False, reader.ElementType);
-            Assert.True(reader.IsPropertyNameEquals("x"));
-            Assert.False(reader.IsPropertyNameEquals(""));
             Assert.Equal("false", reader.GetValueString());
 
             Assert.True(reader.Read());
             Assert.Equal(JsonElementType.PropertyName, reader.ElementType);
-            Assert.True(reader.IsPropertyNameEquals("y"));
-            Assert.False(reader.IsPropertyNameEquals("x"));
             Assert.Throws<InvalidOperationException>(() => Assert.Equal("-", reader.GetValueString()));
 
             Assert.True(reader.Read());
             Assert.Equal(JsonElementType.True, reader.ElementType);
-            Assert.True(reader.IsPropertyNameEquals("y"));
-            Assert.False(reader.IsPropertyNameEquals("x"));
             Assert.Equal("true", reader.GetValueString());
 
             Assert.True(reader.Read());
