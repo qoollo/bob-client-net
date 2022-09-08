@@ -12,12 +12,19 @@ namespace Qoollo.BobClient.App
 {
     class Program
     {
+        enum ErrorStatus
+        {
+            NoErrors = 0,
+            WithErrors = 1
+        }
+
+
         static string RoundToStr(double val)
         {
             return Math.Round(val, 2).ToString(CultureInfo.InvariantCulture);
         }
 
-        static void PutTest(IBobApi<ulong> client, ulong startId, ulong endId, uint count, uint threadCount, bool randomWrite, VerbosityLevel verbosity, int progressIntervalMs, RecordBytesSource recordBytesSource)
+        static ErrorStatus PutTest(IBobApi<ulong> client, ulong startId, ulong endId, uint count, uint threadCount, bool randomWrite, VerbosityLevel verbosity, int progressIntervalMs, RecordBytesSource recordBytesSource)
         {
             if (endId < startId || count > endId - startId)
                 endId = startId + count;
@@ -82,10 +89,12 @@ namespace Qoollo.BobClient.App
                 if (stat.ErrorCount > 0)
                     Console.WriteLine($"Errors: {stat.ErrorCount}");
                 Console.WriteLine();
+
+                return stat.ErrorCount > 0 ? ErrorStatus.WithErrors : ErrorStatus.NoErrors;
             }
         }
 
-        static void GetTest(IBobApi<ulong> client, ulong startId, ulong endId, uint count, uint threadCount, bool randomRead, bool validationMode, VerbosityLevel verbosity, int progressIntervalMs, RecordBytesSource recordBytesSource)
+        static ErrorStatus GetTest(IBobApi<ulong> client, ulong startId, ulong endId, uint count, uint threadCount, bool randomRead, bool validationMode, VerbosityLevel verbosity, int progressIntervalMs, RecordBytesSource recordBytesSource)
         {
             if (endId < startId || count > endId - startId)
                 endId = startId + count;
@@ -160,12 +169,14 @@ namespace Qoollo.BobClient.App
                 var stat = progress.GetProgressStats();
                 Console.WriteLine($"Get finished in {stat.ElapsedMilliseconds}ms. RpsAvg: {RoundToStr(stat.RpsAvg)}, RpsDev: {RoundToStr(stat.RpsDev)}, RpsMedian: {RoundToStr(stat.RpsMedian)}, Rps10P: {RoundToStr(stat.Rps10P)}, Rps90P: {RoundToStr(stat.Rps90P)}, RpsMin: {RoundToStr(stat.RpsMin)}, RpsMax: {RoundToStr(stat.RpsMax)}");
                 if (stat.ErrorCount > 0)
-                    Console.WriteLine($"KeyNotFound: {Volatile.Read(ref keyNotFoundErrors)}, LengthMismatch: {Volatile.Read(ref lengthMismatchErrors)}, OtherErrors: {Volatile.Read(ref otherErrors)}");
+                    Console.WriteLine($"Errors: KeyNotFound: {Volatile.Read(ref keyNotFoundErrors)}, LengthMismatch: {Volatile.Read(ref lengthMismatchErrors)}, OtherErrors: {Volatile.Read(ref otherErrors)}");
                 Console.WriteLine();
+
+                return stat.ErrorCount > 0 ? ErrorStatus.WithErrors : ErrorStatus.NoErrors;
             }
         }
 
-        static void ExistsTest(IBobApi<ulong> client, ulong startId, ulong endId, uint count, uint threadCount, uint packageSize, VerbosityLevel verbosity, int progressIntervalMs)
+        static ErrorStatus ExistsTest(IBobApi<ulong> client, ulong startId, ulong endId, uint count, uint threadCount, uint packageSize, VerbosityLevel verbosity, int progressIntervalMs)
         {
             if (endId < startId || count > endId - startId)
                 endId = startId + count;
@@ -224,6 +235,8 @@ namespace Qoollo.BobClient.App
                 if (stat.ErrorCount > 0)
                     Console.WriteLine($"Errors: {stat.ErrorCount}");
                 Console.WriteLine();
+
+                return stat.ErrorCount > 0 ? ErrorStatus.WithErrors : ErrorStatus.NoErrors;
             }
         }
 
@@ -236,7 +249,7 @@ namespace Qoollo.BobClient.App
                 config = new ExecutionConfig()
                 {
                     RunMode = RunMode.Get | RunMode.Put | RunMode.Exists,
-                    DataLength = 1024,
+                    DataLength = ByteSizeLib.ByteSize.FromBytes(1024),
                     DataPatternHex = null,
                     ValidateGet = false,
                     GetFileTargetPattern = null,
@@ -250,20 +263,20 @@ namespace Qoollo.BobClient.App
                     Verbosisty = VerbosityLevel.Normal,
                     Timeout = 60,
                     ThreadCount = 4,
-                    ProgressIntervalMs = 1000,
+                    ProgressPeriodMs = 1000,
                     Nodes = new List<string>() { "10.5.5.127:20000", "10.5.5.128:20000" }
                 };
             }
             else
             {
-                config = CommandLineParametersParser.ParseConfigFromArgsCmdParser(args);
+                config = CommandLineParametersParser.ParseConfigFromArgs(args);
             }
- 
-            if (config.Nodes.Count() == 0)
+
+            if (config == null)
             {
-                Console.WriteLine("Node addresses not specified");
                 return -1;
             }
+ 
 
             RecordBytesSource putRecordBytesSource = new NopRecordBytesSource();
             RecordBytesSource getRecordBytesSource = new NopRecordBytesSource();
@@ -273,13 +286,13 @@ namespace Qoollo.BobClient.App
                 if ((config.RunMode & RunMode.Put) != 0)
                 {
                     if (!string.IsNullOrEmpty(config.DataPatternHex) && config.DataLength != null)
-                        putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex, config.DataLength.Value);
+                        putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex, (int)config.DataLength.Value.Bytes);
                     else if (!string.IsNullOrEmpty(config.DataPatternHex))
                         putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex);
                     else if (!string.IsNullOrEmpty(config.PutFileSourcePattern))
                         putRecordBytesSource = new FileRecordBytesSource(config.PutFileSourcePattern, disableStore: true);
                     else if (config.DataLength != null)
-                        putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(config.DataLength.Value);
+                        putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize((int)config.DataLength.Value.Bytes);
                     else
                         putRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(1024);
                 }
@@ -287,7 +300,7 @@ namespace Qoollo.BobClient.App
                 if ((config.RunMode & RunMode.Get) != 0 && (config.ValidateGet || !string.IsNullOrEmpty(config.GetFileTargetPattern)))
                 {
                     if (!string.IsNullOrEmpty(config.DataPatternHex) && config.DataLength != null)
-                        getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex, config.DataLength.Value);
+                        getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex, (int)config.DataLength.Value.Bytes);
                     else if (!string.IsNullOrEmpty(config.DataPatternHex))
                         getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateFromHexPattern(config.DataPatternHex);
                     else if (!string.IsNullOrEmpty(config.GetFileTargetPattern) && config.ValidateGet)
@@ -295,7 +308,7 @@ namespace Qoollo.BobClient.App
                     else if (!string.IsNullOrEmpty(config.GetFileTargetPattern))
                         getRecordBytesSource = new FileRecordBytesSource(config.GetFileTargetPattern, disableStore: false);
                     else if (config.DataLength != null)
-                        getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(config.DataLength.Value);
+                        getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize((int)config.DataLength.Value.Bytes);
                     else
                         getRecordBytesSource = PredefinedArrayRecordBytesSource.CreateDefaultWithSize(1024);
                 }
@@ -310,6 +323,8 @@ namespace Qoollo.BobClient.App
             ThreadPool.GetMaxThreads(out int workerThreadsMax, out _);
             ThreadPool.SetMinThreads(Math.Min(Math.Max(workerThreadsMin, (int)config.ThreadCount + 4), workerThreadsMax), completionPortThreadsMin);
 
+            ErrorStatus errorStatus = ErrorStatus.NoErrors;
+
             using (var client = new BobClusterBuilder<ulong>(config.Nodes)
                 .WithOperationTimeout(TimeSpan.FromSeconds(config.Timeout))
                 .WithConnectionTimeout(TimeSpan.FromSeconds(config.Timeout))
@@ -320,16 +335,16 @@ namespace Qoollo.BobClient.App
                 client.Open(BobClusterOpenCloseMode.ThrowOnFirstError);
 
                 if ((config.RunMode & RunMode.Put) != 0)
-                    PutTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.RandomMode, config.Verbosisty, config.ProgressIntervalMs, putRecordBytesSource);
+                    errorStatus |= PutTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.RandomMode, config.Verbosisty, config.ProgressPeriodMs, putRecordBytesSource);
                 if ((config.RunMode & RunMode.Get) != 0)
-                    GetTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.RandomMode, config.ValidateGet, config.Verbosisty, config.ProgressIntervalMs, getRecordBytesSource);
+                    errorStatus |= GetTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.RandomMode, config.ValidateGet, config.Verbosisty, config.ProgressPeriodMs, getRecordBytesSource);
                 if ((config.RunMode & RunMode.Exists) != 0)
-                    ExistsTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.ExistsPackageSize, config.Verbosisty, config.ProgressIntervalMs);
+                    errorStatus |= ExistsTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.ExistsPackageSize, config.Verbosisty, config.ProgressPeriodMs);
 
                 client.Close();
             }
 
-            return 0;
+            return errorStatus == ErrorStatus.NoErrors ? 0 : -2;
         }
     }
 }
