@@ -254,12 +254,12 @@ namespace Qoollo.BobClient.App
                     Nodes = new List<string>() { "10.5.5.127:20000", "10.5.5.128:20000" }
                 };
             }
-            else if (args.Length > 0)
+            else
             {
-                config = CommandLineParametersParser.ParseConfigFromArgs(args);
+                config = CommandLineParametersParser.ParseConfigFromArgsCmdParser(args);
             }
  
-            if (config.Nodes.Count == 0)
+            if (config.Nodes.Count() == 0)
             {
                 Console.WriteLine("Node addresses not specified");
                 return -1;

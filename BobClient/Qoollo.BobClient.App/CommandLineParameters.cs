@@ -1,5 +1,7 @@
-﻿using System;
+﻿using CommandLine;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,28 +27,82 @@ namespace Qoollo.BobClient.App
 
     public class ExecutionConfig
     {
+        [Option('m', "mode", Required = true, HelpText = "Work mode combined by comma. Possible values: 'Get,Put,Exists'")]
         public RunMode RunMode { get; set; } = RunMode.Get | RunMode.Exists;
+
+        [Option('n', "nodes", Required = true, Default = null, HelpText = "Comma separated node addresses. Example: '127.0.0.1:20000, 127.0.0.2:20000'", Separator = ',')]
+        public IEnumerable<string> Nodes { get; set; } = Array.Empty<string>();
+
+        [Option('s', "start", Required = true, HelpText = "Start Id")]
         public ulong StartId { get; set; } = 0;
+
+        [Option('e', "end", Required = false, Default = null, HelpText = "End Id")]
         public ulong? EndId { get; set; } = null;
+
+        [Option('c', "count", Required = false, Default = (uint)1, HelpText = "Count of ids to process")]
         public uint Count { get; set; } = 1;
-        public bool RandomMode { get; set; } = false;
-        public VerbosityLevel Verbosisty { get; set; } = VerbosityLevel.Normal;
-        public int Timeout { get; set; } = 60;
-        public uint ThreadCount { get; set; } = 1;
-        public uint ExistsPackageSize { get; set; } = 100;
-        public uint KeySize { get; set; } = sizeof(ulong);
+
+        [Option('l', "length", Required = false, Default = null, HelpText = "Size of the single record in bytes")]
         public int? DataLength { get; set; } = null;
+
+
+        [Option("random", Required = false, Default = false, HelpText = "Random read/write mode")]
+        public bool RandomMode { get; set; } = false;
+
+        [Option("verbosity", Required = false, Default = VerbosityLevel.Normal, HelpText = "Enable verbose output for errors (Min, Normal, Max)")]
+        public VerbosityLevel Verbosisty { get; set; } = VerbosityLevel.Normal;
+
+        [Option("timeout", Required = false, Default = 60, HelpText = "Operation and connection timeout in seconds")]
+        public int Timeout { get; set; } = 60;
+
+        [Option("threads", Required = false, Default = (uint)1, HelpText = "Number of threads")]
+        public uint ThreadCount { get; set; } = 1;
+
+        [Option("package-size", Required = false, Default = (uint)100, HelpText = "Exists package size")]
+        public uint ExistsPackageSize { get; set; } = 100;
+
+        [Option("key-size", Required = false, Default = (uint)8, HelpText = "Target key size in bytes")]
+        public uint KeySize { get; set; } = sizeof(ulong);
+
+        [Option("hex-data-pattern", Required = false, Default = null, HelpText = "Data pattern as hex string")]
         public string DataPatternHex { get; set; } = null;
+
+        [Option("validate-get", Required = false, Default = false, HelpText = "Validates data received by Get")]
         public bool ValidateGet { get; set; } = false;
+
+        [Option("put-file-source", Required = false, Default = null, HelpText = "Path to the file with source data. Supports '{key}' as pattern")]
         public string PutFileSourcePattern { get; set; } = null;
+
+        [Option("get-file-target", Required = false, Default = null, HelpText = "Path to the file to store data from Get or to validate. Supports '{key}' as pattern")]
         public string GetFileTargetPattern { get; set; } = null;
+
+        [Option("progress-period", Required = false, Default = 1000, HelpText = "Progress printing period in milliseconds")]
         public int ProgressIntervalMs { get; set; } = 1000;
-        public List<string> Nodes { get; set; } = new List<string>();
     }
 
 
     public static class CommandLineParametersParser
     {
+        private static readonly Parser _commandLineParser = new Parser(s =>
+        {
+            s.AutoHelp = true;
+            s.AutoVersion = true;
+            s.ParsingCulture = CultureInfo.InvariantCulture;
+            s.GetoptMode = false;
+            s.CaseInsensitiveEnumValues = true;
+            s.HelpWriter = System.IO.TextWriter.Synchronized(Console.Out);
+        });
+
+        public static ExecutionConfig ParseConfigFromArgsCmdParser(string[] args)
+        {
+            var result = _commandLineParser.ParseArguments<ExecutionConfig>(args).Value;
+            if (result == null)
+                return result;
+
+            result.Nodes = result.Nodes.Select(o => o.Trim()).ToArray();
+            return result;
+        }
+
         public static void PrintHelp()
         {
             Console.WriteLine($"Bob client tests (version: v{System.Reflection.Assembly.GetExecutingAssembly().GetName().Version})");
