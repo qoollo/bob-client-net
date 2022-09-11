@@ -80,7 +80,7 @@ namespace Qoollo.BobClient.App
 
 
 
-        [Option("random", Required = false, Default = null, HelpText = "Turns on random read/write mode. Parameterized with keys count", MetaValue = "<int>")]
+        [Option("random", Required = false, Default = null, HelpText = "(Default: keys count) Turns on random read/write mode. Optionally parameterized with keys count")]
         public uint? RandomCount { get; set; } = null;
 
         [Option("verbosity", Required = false, Default = VerbosityLevel.Normal, HelpText = "Enable verbose output for errors (Min, Normal, Max)", MetaValue = "<verbosity>")]
@@ -179,8 +179,32 @@ namespace Qoollo.BobClient.App
             s.HelpWriter = System.IO.TextWriter.Synchronized(Console.Out);
         });
 
+        private static string[] RandomModeProcess(string[] args)
+        {
+            int randomIndex = Array.IndexOf(args, "--random");
+            if (randomIndex < 0)
+                return args;
+
+            if (randomIndex + 1 >= args.Length || 
+                args[randomIndex + 1].StartsWith("--") ||
+                (args[randomIndex + 1].Length > 1 && args[randomIndex + 1][0] == '-' && char.IsLetter(args[randomIndex + 1][1])))
+            {
+                string[] newArgs = new string[args.Length + 1];
+                Array.Copy(args, 0, newArgs, 0, randomIndex + 1);
+                newArgs[randomIndex + 1] = "0";
+                if (randomIndex + 1 < args.Length)
+                    Array.Copy(args, randomIndex + 1, newArgs, randomIndex + 2, args.Length - randomIndex - 1);
+
+                return newArgs;
+            }
+
+            return args;
+        }
+
         public static ExecutionConfig ParseConfigFromArgs(string[] args)
         {
+            args = RandomModeProcess(args);
+
             var result = _commandLineParser.ParseArguments<ExecutionConfig>(args).Value;
             if (result == null)
                 return result;

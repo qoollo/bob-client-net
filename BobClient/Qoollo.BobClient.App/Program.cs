@@ -297,7 +297,11 @@ namespace Qoollo.BobClient.App
             IKeySource keySource = config.Keys;
             if (config.RandomCount != null)
             {
-                keySource = new RandomizedKeySource(config.Keys, (int)config.RandomCount.Value);
+                int randomCount = (int)config.RandomCount.Value;
+                if (randomCount == 0)
+                    randomCount = config.Keys.Count;
+
+                keySource = new RandomizedKeySource(config.Keys, randomCount);
             }
 
 
