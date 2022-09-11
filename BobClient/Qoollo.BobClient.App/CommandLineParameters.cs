@@ -83,22 +83,6 @@ namespace Qoollo.BobClient.App
         [Option("random", Required = false, Default = null, HelpText = "(Default: keys count) Turns on random read/write mode. Optionally parameterized with keys count")]
         public uint? RandomCount { get; set; } = null;
 
-        [Option("verbosity", Required = false, Default = VerbosityLevel.Normal, HelpText = "Enable verbose output for errors (Min, Normal, Max)", MetaValue = "<verbosity>")]
-        public VerbosityLevel Verbosisty { get; set; } = VerbosityLevel.Normal;
-
-        [Option("timeout", Required = false, Default = (int)60, HelpText = "Operation and connection timeout in seconds", MetaValue = "<int>")]
-        public int Timeout
-        {
-            get { return _timeout; }
-            set
-            {
-                if (value < 0) 
-                    throw new ArgumentOutOfRangeException(nameof(Timeout), "Timeout cannot be negative");
-                _timeout = value;
-            }
-        }
-        private int _timeout = 60;
-
         [Option("threads", Required = false, Default = (uint)1, HelpText = "Number of threads", MetaValue = "<int>")]
         public uint ThreadCount
         {
@@ -125,30 +109,46 @@ namespace Qoollo.BobClient.App
         }
         private uint _existsPackageSize = 100;
 
-        [Option("key-size", Required = false, Default = (uint)sizeof(ulong), HelpText = "Target key size in bytes", MetaValue = "<int>")]
-        public uint KeySize
-        {
-            get { return _keySize; }
-            set
-            {
-                if (value < 1) 
-                    throw new ArgumentOutOfRangeException(nameof(KeySize), "Key size cannot be less than 1");
-                _keySize = value;
-            }
-        }
-        private uint _keySize  = sizeof(ulong);
+        [Option("validate-get", Required = false, Default = false, HelpText = "Validates data received by Get")]
+        public bool ValidateGet { get; set; } = false;
 
         [Option("hex-data-pattern", Required = false, Default = null, HelpText = "Data pattern as hex string", MetaValue = "<hex_string>")]
         public string DataPatternHex { get; set; } = null;
-
-        [Option("validate-get", Required = false, Default = false, HelpText = "Validates data received by Get")]
-        public bool ValidateGet { get; set; } = false;
 
         [Option("put-file-source", Required = false, Default = null, HelpText = "Path to the file with source data. Supports '{key}' as pattern", MetaValue = "<path>")]
         public string PutFileSourcePattern { get; set; } = null;
 
         [Option("get-file-target", Required = false, Default = null, HelpText = "Path to the file to store data from Get or to validate. Supports '{key}' as pattern", MetaValue = "<path>")]
         public string GetFileTargetPattern { get; set; } = null;
+
+        [Option("key-size", Required = false, Default = (uint)sizeof(ulong), HelpText = "Target key size in bytes", MetaValue = "<int>")]
+        public uint KeySize
+        {
+            get { return _keySize; }
+            set
+            {
+                if (value < 1)
+                    throw new ArgumentOutOfRangeException(nameof(KeySize), "Key size cannot be less than 1");
+                _keySize = value;
+            }
+        }
+        private uint _keySize = sizeof(ulong);
+
+        [Option("verbosity", Required = false, Default = VerbosityLevel.Normal, HelpText = "Enable verbose output for errors (Min, Normal, Max)", MetaValue = "<verbosity>")]
+        public VerbosityLevel Verbosisty { get; set; } = VerbosityLevel.Normal;
+
+        [Option("timeout", Required = false, Default = (int)60, HelpText = "Operation and connection timeout in seconds", MetaValue = "<int>")]
+        public int Timeout
+        {
+            get { return _timeout; }
+            set
+            {
+                if (value < 0)
+                    throw new ArgumentOutOfRangeException(nameof(Timeout), "Timeout cannot be negative");
+                _timeout = value;
+            }
+        }
+        private int _timeout = 60;
 
         [Option("progress-period", Required = false, Default = 1000, HelpText = "Progress printing period in milliseconds", MetaValue = "<int>")]
         public int ProgressPeriodMs 
