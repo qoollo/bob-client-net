@@ -27,22 +27,21 @@ namespace Qoollo.BobClient.App
 
     public class ExecutionConfig
     {
-        [Option('m', "mode", Required = true, HelpText = "Work mode combined by comma. Possible values: 'Get,Put,Exists'")]
+        [Option('m', "mode", Required = true, HelpText = "Work mode combined by comma. Possible values: 'Get,Put,Exists'", MetaValue = "<mode>")]
         public RunMode RunMode { get; set; } = RunMode.Get | RunMode.Exists;
 
-        [Option('n', "nodes", Required = true, Default = null, HelpText = "Comma separated node addresses. Example: '127.0.0.1:20000, 127.0.0.2:20000'", Separator = ',')]
+        [Option('n', "nodes", Required = true, Separator = ',', Default = null, HelpText = "Comma separated node addresses. Example: '127.0.0.1:20000, 127.0.0.2:20000'", MetaValue = "<nodes>")]
         public IEnumerable<string> Nodes { get; set; } = Array.Empty<string>();
 
-        [Option('s', "start", Required = true, HelpText = "Start Id")]
-        public ulong StartId { get; set; } = 0;
+        [Option('k', "keys", Required = true, HelpText = "Comma separated keys or key ranges. Key range syntax: Min-Max[:Step], Min+Count[:Step]. Negative step reverses the order", MetaValue = "<keys>")]
+        public string KeysString
+        {
+            get { return Keys.ToString(); }
+            set { Keys = KeyList.Parse(value); }
+        }
+        public KeyList Keys { get; set; } = new KeyList(new IIndexedKeySource[0]);
 
-        [Option('e', "end", Required = false, Default = null, HelpText = "End Id")]
-        public ulong? EndId { get; set; } = null;
-
-        [Option('c', "count", Required = false, Default = (uint)1, HelpText = "Count of ids to process")]
-        public uint Count { get; set; } = 1;
-
-        [Option('l', "length", Required = false, Default = null, HelpText = "(Default: 1024) Size of the single record (support size specifiers: kb, mb, gb)")]
+        [Option('l', "length", Required = false, Default = null, HelpText = "(Default: 1024) Size of the single record (support size specifiers: kb, mb, gb)", MetaValue = "<length>")]
         public string DataLengthString
         {
             get { return DataLength?.ToString(); }
@@ -80,13 +79,14 @@ namespace Qoollo.BobClient.App
         public ByteSize? DataLength { get; set; } = null;
 
 
-        [Option("random", Required = false, Default = false, HelpText = "Random read/write mode")]
-        public bool RandomMode { get; set; } = false;
 
-        [Option("verbosity", Required = false, Default = VerbosityLevel.Normal, HelpText = "Enable verbose output for errors (Min, Normal, Max)")]
+        [Option("random", Required = false, Default = null, HelpText = "Turns on random read/write mode. Parameterized with keys count", MetaValue = "<int>")]
+        public uint? RandomCount { get; set; } = null;
+
+        [Option("verbosity", Required = false, Default = VerbosityLevel.Normal, HelpText = "Enable verbose output for errors (Min, Normal, Max)", MetaValue = "<verbosity>")]
         public VerbosityLevel Verbosisty { get; set; } = VerbosityLevel.Normal;
 
-        [Option("timeout", Required = false, Default = (int)60, HelpText = "Operation and connection timeout in seconds")]
+        [Option("timeout", Required = false, Default = (int)60, HelpText = "Operation and connection timeout in seconds", MetaValue = "<int>")]
         public int Timeout
         {
             get { return _timeout; }
@@ -99,7 +99,7 @@ namespace Qoollo.BobClient.App
         }
         private int _timeout = 60;
 
-        [Option("threads", Required = false, Default = (uint)1, HelpText = "Number of threads")]
+        [Option("threads", Required = false, Default = (uint)1, HelpText = "Number of threads", MetaValue = "<int>")]
         public uint ThreadCount
         {
             get { return _threadCount; }
@@ -112,7 +112,7 @@ namespace Qoollo.BobClient.App
         }
         private uint _threadCount = 1;
 
-        [Option("package-size", Required = false, Default = (uint)100, HelpText = "Exists package size")]
+        [Option("exists-package-size", Required = false, Default = (uint)100, HelpText = "Exists package size", MetaValue = "<int>")]
         public uint ExistsPackageSize
         {
             get { return _existsPackageSize; }
@@ -125,7 +125,7 @@ namespace Qoollo.BobClient.App
         }
         private uint _existsPackageSize = 100;
 
-        [Option("key-size", Required = false, Default = (uint)8, HelpText = "Target key size in bytes")]
+        [Option("key-size", Required = false, Default = (uint)sizeof(ulong), HelpText = "Target key size in bytes", MetaValue = "<int>")]
         public uint KeySize
         {
             get { return _keySize; }
@@ -138,19 +138,19 @@ namespace Qoollo.BobClient.App
         }
         private uint _keySize  = sizeof(ulong);
 
-        [Option("hex-data-pattern", Required = false, Default = null, HelpText = "Data pattern as hex string")]
+        [Option("hex-data-pattern", Required = false, Default = null, HelpText = "Data pattern as hex string", MetaValue = "<hex_string>")]
         public string DataPatternHex { get; set; } = null;
 
         [Option("validate-get", Required = false, Default = false, HelpText = "Validates data received by Get")]
         public bool ValidateGet { get; set; } = false;
 
-        [Option("put-file-source", Required = false, Default = null, HelpText = "Path to the file with source data. Supports '{key}' as pattern")]
+        [Option("put-file-source", Required = false, Default = null, HelpText = "Path to the file with source data. Supports '{key}' as pattern", MetaValue = "<path>")]
         public string PutFileSourcePattern { get; set; } = null;
 
-        [Option("get-file-target", Required = false, Default = null, HelpText = "Path to the file to store data from Get or to validate. Supports '{key}' as pattern")]
+        [Option("get-file-target", Required = false, Default = null, HelpText = "Path to the file to store data from Get or to validate. Supports '{key}' as pattern", MetaValue = "<path>")]
         public string GetFileTargetPattern { get; set; } = null;
 
-        [Option("progress-period", Required = false, Default = 1000, HelpText = "Progress printing period in milliseconds")]
+        [Option("progress-period", Required = false, Default = 1000, HelpText = "Progress printing period in milliseconds", MetaValue = "<int>")]
         public int ProgressPeriodMs 
         { 
             get { return _progressPeriodMs; }
@@ -173,6 +173,8 @@ namespace Qoollo.BobClient.App
             s.AutoVersion = true;
             s.ParsingCulture = CultureInfo.InvariantCulture;
             s.GetoptMode = false;
+            s.EnableDashDash = false;
+            s.AllowMultiInstance = false;
             s.CaseInsensitiveEnumValues = true;
             s.HelpWriter = System.IO.TextWriter.Synchronized(Console.Out);
         });
@@ -186,6 +188,12 @@ namespace Qoollo.BobClient.App
             if (result.Nodes == null || !result.Nodes.Any())
             {
                 Console.WriteLine("Nodes list cannot be empty");
+                return null;
+            }
+
+            if (result.Keys == null)
+            {
+                Console.WriteLine("Keys should be specified");
                 return null;
             }
 

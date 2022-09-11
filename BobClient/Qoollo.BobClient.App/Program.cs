@@ -24,23 +24,18 @@ namespace Qoollo.BobClient.App
             return Math.Round(val, 2).ToString(CultureInfo.InvariantCulture);
         }
 
-        static ErrorStatus PutTest(IBobApi<ulong> client, ulong startId, ulong endId, uint count, uint threadCount, bool randomWrite, VerbosityLevel verbosity, int progressIntervalMs, RecordBytesSource recordBytesSource)
+        static ErrorStatus PutTest(IBobApi<ulong> client, IKeySource keySource, RecordBytesSource recordBytesSource, uint threadCount, VerbosityLevel verbosity, int progressIntervalMs)
         {
-            if (endId < startId || count > endId - startId)
-                endId = startId + count;
-
-            if (threadCount > count)
-                threadCount = count;
-
-            ParallelRandom random = new ParallelRandom((int)threadCount);
+            if (threadCount > keySource.Count)
+                threadCount = (uint)keySource.Count;
 
             bool isInitialRun = true;
             Barrier bar = new Barrier((int)threadCount);
 
-            using (var progress = new ProgressTracker(progressIntervalMs, "Put", (int)count, autoPrintMsg: verbosity != VerbosityLevel.Min))
+            using (var progress = new ProgressTracker(progressIntervalMs, "Put", keySource.Count, autoPrintMsg: verbosity != VerbosityLevel.Min))
             {
-                Parallel.For(0, (int)count, new ParallelOptions() { MaxDegreeOfParallelism = (int)threadCount },
-                (int i) =>
+                Parallel.ForEach(keySource, new ParallelOptions() { MaxDegreeOfParallelism = (int)threadCount },
+                (ulong currentId) =>
                 {
                     if (isInitialRun)
                     {
@@ -48,10 +43,6 @@ namespace Qoollo.BobClient.App
                         progress.Start();
                         isInitialRun = false;
                     }
-
-                    ulong currentId = startId + (ulong)i;
-                    if (randomWrite)
-                        currentId = startId + (ulong)random.Next(i, maxValue: (int)(endId - startId));
 
                     try
                     {
@@ -94,17 +85,14 @@ namespace Qoollo.BobClient.App
             }
         }
 
-        static ErrorStatus GetTest(IBobApi<ulong> client, ulong startId, ulong endId, uint count, uint threadCount, bool randomRead, bool validationMode, VerbosityLevel verbosity, int progressIntervalMs, RecordBytesSource recordBytesSource)
+        static ErrorStatus GetTest(IBobApi<ulong> client, IKeySource keySource, RecordBytesSource recordBytesSource, uint threadCount, bool validationMode, VerbosityLevel verbosity, int progressIntervalMs)
         {
-            if (endId < startId || count > endId - startId)
-                endId = startId + count;
-
-            if (threadCount > count)
-                threadCount = count;
+            if (threadCount > keySource.Count)
+                threadCount = (uint)keySource.Count;
 
             ParallelRandom random = new ParallelRandom((int)threadCount);
 
-            using (var progress = new ProgressTracker(progressIntervalMs, "Get", (int)count, autoPrintMsg: verbosity != VerbosityLevel.Min))
+            using (var progress = new ProgressTracker(progressIntervalMs, "Get", keySource.Count, autoPrintMsg: verbosity != VerbosityLevel.Min))
             {
                 int keyNotFoundErrors = 0;
                 int lengthMismatchErrors = 0;
@@ -113,8 +101,8 @@ namespace Qoollo.BobClient.App
                 bool isInitialRun = true;
                 Barrier bar = new Barrier((int)threadCount);
 
-                Parallel.For(0, (int)count, new ParallelOptions() { MaxDegreeOfParallelism = (int)threadCount },
-                (int i) =>
+                Parallel.ForEach(keySource, new ParallelOptions() { MaxDegreeOfParallelism = (int)threadCount },
+                (ulong currentId) =>
                 {
                     if (isInitialRun)
                     {
@@ -122,10 +110,6 @@ namespace Qoollo.BobClient.App
                         progress.Start();
                         isInitialRun = false;
                     }
-
-                    ulong currentId = startId + (ulong)i;
-                    if (randomRead)
-                        currentId = startId + (ulong)random.Next(i, maxValue: (int)(endId - startId));
 
                     try
                     {
@@ -176,24 +160,22 @@ namespace Qoollo.BobClient.App
             }
         }
 
-        static ErrorStatus ExistsTest(IBobApi<ulong> client, ulong startId, ulong endId, uint count, uint threadCount, uint packageSize, VerbosityLevel verbosity, int progressIntervalMs)
+        static ErrorStatus ExistsTest(IBobApi<ulong> client, IKeySource keySource, uint packageSize, uint threadCount, VerbosityLevel verbosity, int progressIntervalMs)
         {
-            if (endId < startId || count > endId - startId)
-                endId = startId + count;
+            var packageSource = new KeyPackageAggregator(keySource, (int)packageSize);
 
-            int expectedRequestsCount = (int)((count - 1) / packageSize) + 1;
-            int totalExistedCount = 0;
-
-            if (threadCount > expectedRequestsCount)
-                threadCount = (uint)expectedRequestsCount;
+            if (threadCount > packageSource.PackageCount)
+                threadCount = (uint)packageSource.PackageCount;
 
             bool isInitialRun = true;
             Barrier bar = new Barrier((int)threadCount);
 
-            using (var progress = new ProgressTracker(progressIntervalMs, "Exists", (int)count, autoPrintMsg: verbosity != VerbosityLevel.Min, customMessageBuilder: () => $"Result: {Volatile.Read(ref totalExistedCount),8}/{count}"))
+            int totalExistedCount = 0;
+
+            using (var progress = new ProgressTracker(progressIntervalMs, "Exists", packageSource.KeyCount, autoPrintMsg: verbosity != VerbosityLevel.Min, customMessageBuilder: () => $"Result: {Volatile.Read(ref totalExistedCount),8}/{packageSource.KeyCount}"))
             {
-                Parallel.For(0, expectedRequestsCount, new ParallelOptions() { MaxDegreeOfParallelism = (int)threadCount },
-                (int pckgNum) =>
+                Parallel.ForEach(packageSource, new ParallelOptions() { MaxDegreeOfParallelism = (int)threadCount },
+                (ulong[] ids) =>
                 {
                     if (isInitialRun)
                     {
@@ -201,11 +183,6 @@ namespace Qoollo.BobClient.App
                         progress.Start();
                         isInitialRun = false;
                     }
-
-                    int i = (int)(pckgNum * packageSize);
-                    ulong[] ids = new ulong[Math.Min(packageSize, count - i)];
-                    for (int j = 0; j < ids.Length; j++)
-                        ids[j] = startId + (ulong)i + (ulong)j;
 
                     try
                     {
@@ -230,8 +207,8 @@ namespace Qoollo.BobClient.App
                     progress.Print();
 
                 var stat = progress.GetProgressStats();
-                Console.WriteLine($"Exists finished in {stat.ElapsedMilliseconds}ms. RpsAvg: {RoundToStr(stat.RpsAvg)}, RpsDev: {RoundToStr(stat.RpsDev)}, RpsMedian: {RoundToStr(stat.RpsMedian)}, Rps10P: {RoundToStr(stat.Rps10P)}, Rps90P: {RoundToStr(stat.Rps90P)}, RpsMin: {RoundToStr(stat.RpsMin)}, RpsMax: {RoundToStr(stat.RpsMax)}, Packages Per Second: {RoundToStr((double)(1000 * expectedRequestsCount) / stat.ElapsedMilliseconds)}");
-                Console.WriteLine($"Exists result: {totalExistedCount}/{count}");
+                Console.WriteLine($"Exists finished in {stat.ElapsedMilliseconds}ms. RpsAvg: {RoundToStr(stat.RpsAvg)}, RpsDev: {RoundToStr(stat.RpsDev)}, RpsMedian: {RoundToStr(stat.RpsMedian)}, Rps10P: {RoundToStr(stat.Rps10P)}, Rps90P: {RoundToStr(stat.Rps90P)}, RpsMin: {RoundToStr(stat.RpsMin)}, RpsMax: {RoundToStr(stat.RpsMax)}, Packages Per Second: {RoundToStr((double)(1000 * packageSource.PackageCount) / stat.ElapsedMilliseconds)}");
+                Console.WriteLine($"Exists result: {totalExistedCount}/{packageSource.KeyCount}");
                 if (stat.ErrorCount > 0)
                     Console.WriteLine($"Errors: {stat.ErrorCount}");
                 Console.WriteLine();
@@ -254,12 +231,10 @@ namespace Qoollo.BobClient.App
                     ValidateGet = false,
                     GetFileTargetPattern = null,
                     PutFileSourcePattern = null,
-                    StartId = 62000,
-                    EndId = null,
-                    Count = 20000,
+                    Keys = new KeyList(KeyRange.CreateWithCount(start: 10000, count: 20000)),
                     ExistsPackageSize = 100,
                     KeySize = sizeof(ulong),
-                    RandomMode = true,
+                    RandomCount = null,
                     Verbosisty = VerbosityLevel.Normal,
                     Timeout = 60,
                     ThreadCount = 4,
@@ -319,6 +294,13 @@ namespace Qoollo.BobClient.App
                 return -1;
             }
 
+            IKeySource keySource = config.Keys;
+            if (config.RandomCount != null)
+            {
+                keySource = new RandomizedKeySource(config.Keys, (int)config.RandomCount.Value);
+            }
+
+
             ThreadPool.GetMinThreads(out int workerThreadsMin, out int completionPortThreadsMin);
             ThreadPool.GetMaxThreads(out int workerThreadsMax, out _);
             ThreadPool.SetMinThreads(Math.Min(Math.Max(workerThreadsMin, (int)config.ThreadCount + 4), workerThreadsMax), completionPortThreadsMin);
@@ -332,14 +314,22 @@ namespace Qoollo.BobClient.App
                 .WithSequentialNodeSelectionPolicy()
                 .Build())
             {
-                client.Open(BobClusterOpenCloseMode.ThrowOnFirstError);
+                try
+                {
+                    client.Open(BobClusterOpenCloseMode.ThrowOnFirstError);
+                }
+                catch (BobOperationException ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                    return -2;
+                }
 
                 if ((config.RunMode & RunMode.Put) != 0)
-                    errorStatus |= PutTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.RandomMode, config.Verbosisty, config.ProgressPeriodMs, putRecordBytesSource);
+                    errorStatus |= PutTest(client, keySource, putRecordBytesSource, config.ThreadCount, config.Verbosisty, config.ProgressPeriodMs);
                 if ((config.RunMode & RunMode.Get) != 0)
-                    errorStatus |= GetTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.RandomMode, config.ValidateGet, config.Verbosisty, config.ProgressPeriodMs, getRecordBytesSource);
+                    errorStatus |= GetTest(client, keySource, getRecordBytesSource, config.ThreadCount, config.ValidateGet, config.Verbosisty, config.ProgressPeriodMs);
                 if ((config.RunMode & RunMode.Exists) != 0)
-                    errorStatus |= ExistsTest(client, config.StartId, config.EndId ?? (config.StartId + config.Count), config.Count, config.ThreadCount, config.ExistsPackageSize, config.Verbosisty, config.ProgressPeriodMs);
+                    errorStatus |= ExistsTest(client, keySource, config.ThreadCount, config.ExistsPackageSize, config.Verbosisty, config.ProgressPeriodMs);
 
                 client.Close();
             }
