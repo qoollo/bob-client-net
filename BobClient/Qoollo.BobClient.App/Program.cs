@@ -324,7 +324,7 @@ namespace Qoollo.BobClient.App
                 }
                 catch (BobOperationException ex)
                 {
-                    Console.WriteLine($"Error: {ex.Message}");
+                    Console.WriteLine($"Error opening connection: {ex.Message}");
                     return -2;
                 }
 
