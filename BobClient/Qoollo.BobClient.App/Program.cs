@@ -333,7 +333,7 @@ namespace Qoollo.BobClient.App
                 if ((config.RunMode & RunMode.Get) != 0)
                     errorStatus |= GetTest(client, keySource, getRecordBytesSource, config.ThreadCount, config.ValidateGet, config.Verbosisty, config.ProgressPeriodMs);
                 if ((config.RunMode & RunMode.Exists) != 0)
-                    errorStatus |= ExistsTest(client, keySource, config.ThreadCount, config.ExistsPackageSize, config.Verbosisty, config.ProgressPeriodMs);
+                    errorStatus |= ExistsTest(client, keySource, config.ExistsPackageSize, config.ThreadCount, config.Verbosisty, config.ProgressPeriodMs);
 
                 client.Close();
             }
