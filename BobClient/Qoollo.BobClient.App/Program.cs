@@ -234,7 +234,7 @@ namespace Qoollo.BobClient.App
                     Keys = new KeyList(KeyRange.CreateWithCount(start: 10000, count: 20000)),
                     ExistsPackageSize = 100,
                     KeySize = sizeof(ulong),
-                    RandomCount = null,
+                    RandomMode = RandomMode.Shuffle,
                     Verbosisty = VerbosityLevel.Normal,
                     Timeout = 60,
                     ThreadCount = 4,
@@ -295,14 +295,10 @@ namespace Qoollo.BobClient.App
             }
 
             IKeySource keySource = config.Keys;
-            if (config.RandomCount != null)
-            {
-                int randomCount = (int)config.RandomCount.Value;
-                if (randomCount == 0)
-                    randomCount = config.Keys.Count;
-
-                keySource = new RandomizedKeySource(config.Keys, randomCount);
-            }
+            if (config.RandomMode == RandomMode.Shuffle)
+                keySource = new RandomizedShuffleKeySource(config.Keys);
+            else if (config.RandomMode == RandomMode.Sample)
+                keySource = new RandomizedKeySource(config.Keys, config.SampleRandomModeCount ?? config.Keys.Count);
 
 
             ThreadPool.GetMinThreads(out int workerThreadsMin, out int completionPortThreadsMin);

@@ -24,6 +24,13 @@ namespace Qoollo.BobClient.App
         Max = 2
     }
 
+    public enum RandomMode
+    {
+        None = 0,
+        Shuffle = 1,
+        Sample = 2
+    }
+
 
     public class ExecutionConfig
     {
@@ -80,8 +87,61 @@ namespace Qoollo.BobClient.App
 
 
 
-        [Option("random", Required = false, Default = null, HelpText = "(Default: keys count) Turns on random read/write mode. Optionally parameterized with keys count")]
-        public uint? RandomCount { get; set; } = null;
+        [Option("random", Required = false, Default = null, HelpText = "(Default: shuffle) Randomized keys. Possbile values: none/shuffle/sample/sample(count)")]
+        public string RandomModeString
+        {
+            get
+            {
+                switch (this.RandomMode)
+                {
+                    case RandomMode.None:
+                        return "none";
+                    case RandomMode.Shuffle:
+                        return "shuffle";
+                    case RandomMode.Sample:
+                        if (SampleRandomModeCount == null)
+                            return "sample";
+                        else
+                            return $"sample({SampleRandomModeCount.Value})";
+                    default:
+                        return null;
+                }
+            }
+            set
+            {
+                value = value?.Trim();
+                if (value == null || string.Equals(value, "none", StringComparison.OrdinalIgnoreCase))
+                {
+                    this.RandomMode = RandomMode.None;
+                    SampleRandomModeCount = null;
+                }
+                else if (string.Equals(value, "shuffle", StringComparison.OrdinalIgnoreCase))
+                {
+                    this.RandomMode = RandomMode.Shuffle;
+                    SampleRandomModeCount = null;
+                }
+                else if (string.Equals(value, "sample", StringComparison.OrdinalIgnoreCase))
+                {
+                    this.RandomMode = RandomMode.Sample;
+                    SampleRandomModeCount = null;
+                }
+                else if (value.StartsWith("sample(", StringComparison.OrdinalIgnoreCase) && 
+                         value.EndsWith(")") && 
+                         uint.TryParse(value.Substring("sample(".Length, value.Length - "sample(".Length - 1), out uint sampleCount) &&
+                         sampleCount <= int.MaxValue)
+                {
+                    this.RandomMode = RandomMode.Sample;
+                    SampleRandomModeCount = (int)sampleCount;
+                }
+                else
+                {
+                    throw new ArgumentException("Incorrect random mode format. Supported formats: none/shuffle/sample/sample(count)");
+                }
+            }
+        }
+        public RandomMode RandomMode { get; set; } = RandomMode.None;
+        public int? SampleRandomModeCount { get; set; } = null;
+
 
         [Option("threads", Required = false, Default = (uint)1, HelpText = "Number of threads", MetaValue = "<int>")]
         public uint ThreadCount
@@ -191,7 +251,7 @@ namespace Qoollo.BobClient.App
             {
                 string[] newArgs = new string[args.Length + 1];
                 Array.Copy(args, 0, newArgs, 0, randomIndex + 1);
-                newArgs[randomIndex + 1] = "0";
+                newArgs[randomIndex + 1] = "shuffle";
                 if (randomIndex + 1 < args.Length)
                     Array.Copy(args, randomIndex + 1, newArgs, randomIndex + 2, args.Length - randomIndex - 1);
 

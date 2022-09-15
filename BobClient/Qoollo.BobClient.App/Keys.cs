@@ -390,6 +390,14 @@ namespace Qoollo.BobClient.App
     public class RandomizedKeySource : IKeySource
     {
         private static readonly Random _rndInit = new Random();
+        private static Random CreateRandom()
+        {
+            int seed = 0;
+            lock (_rndInit)
+                seed = _rndInit.Next();
+
+            return new Random(seed);
+        }
 
         public RandomizedKeySource(IIndexedKeySource keySource, int count)
         {
@@ -405,14 +413,119 @@ namespace Qoollo.BobClient.App
 
         public IEnumerator<ulong> GetEnumerator()
         {
+            Random rnd = CreateRandom();
+
+            for (int i = 0; i < Count; i++)
+                yield return KeySource[rnd.Next(KeySource.Count)];
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+    }
+
+    public class RandomizedShuffleKeySource : IKeySource
+    {
+        private const int MaxShuffleBlockSize = 65536;
+
+        private static readonly Random _rndInit = new Random();
+        private static Random CreateRandom()
+        {
             int seed = 0;
             lock (_rndInit)
                 seed = _rndInit.Next();
 
-            Random rnd = new Random(seed);
+            return new Random(seed);
+        }
 
+        private class ShuffleBlockProgress
+        {
+            private readonly int[] _block;
+            private int _curPorgress;
+
+            public ShuffleBlockProgress(int[] block)
+            {
+                _block = block;
+                _curPorgress = 0;
+            }
+
+            public bool CanMove { get { return _curPorgress < _block.Length; } }
+            public int Next() { return _block[_curPorgress++]; }
+        }
+
+
+        public RandomizedShuffleKeySource(IIndexedKeySource keySource)
+        {
+            KeySource = keySource ?? throw new ArgumentNullException(nameof(keySource));
+        }
+
+        public IIndexedKeySource KeySource { get; }
+        public int Count { get { return KeySource.Count; } }
+
+
+
+        private static int[] GenerateShuffleBlock(int size, Random rnd)
+        {
+            int[] result = new int[size];
+            for (int i = 0; i < result.Length; i++)
+                result[i] = i;
+
+            for (int i = 0; i < result.Length - 1; i++)
+            {
+                int r = rnd.Next(i, result.Length);
+                (result[i], result[r]) = (result[r], result[i]);
+            }
+
+            return result;
+        }
+
+        private static ShuffleBlockProgress[] CreateShuffleBlockProgresses(int keyCount, Random rnd)
+        {
+            if (keyCount <= MaxShuffleBlockSize)
+                return new ShuffleBlockProgress[1] { new ShuffleBlockProgress(GenerateShuffleBlock(keyCount, rnd)) };
+
+            int[] mainBlock = GenerateShuffleBlock(Math.Min(keyCount, MaxShuffleBlockSize), rnd);
+            int[] lastBlock = keyCount % MaxShuffleBlockSize == 0 ? mainBlock : GenerateShuffleBlock(keyCount % MaxShuffleBlockSize, rnd);
+
+            ShuffleBlockProgress[] result = new ShuffleBlockProgress[((keyCount - 1) / MaxShuffleBlockSize) + 1];
+            for (int i = 0; i < result.Length - 1; i++)
+                result[i] = new ShuffleBlockProgress(mainBlock);
+            result[result.Length - 1] = new ShuffleBlockProgress(lastBlock);
+            return result;
+        }
+
+        private static int ChooseBlock(ShuffleBlockProgress[] shuffleBlockProgress, int blockIndex)
+        {
+            if (!shuffleBlockProgress[blockIndex].CanMove)
+            {
+                for (int b = 0; b < shuffleBlockProgress.Length; b++)
+                {
+                    blockIndex = (blockIndex + 1) % shuffleBlockProgress.Length;
+                    if (shuffleBlockProgress[blockIndex].CanMove)
+                        break;
+                }
+            }
+
+            return blockIndex;
+        }
+
+        public IEnumerator<ulong> GetEnumerator()
+        {
+            if (Count == 0)
+                yield break;
+
+            Random rnd = CreateRandom();
+
+            var shuffleBlockProgress = CreateShuffleBlockProgresses(Count, rnd);
             for (int i = 0; i < Count; i++)
-                yield return KeySource[rnd.Next(KeySource.Count)];
+            {
+                int curBlock = ChooseBlock(shuffleBlockProgress, rnd.Next(shuffleBlockProgress.Length));
+                int inBlockKeyIndex = shuffleBlockProgress[curBlock].Next();
+                int keyIndex = curBlock * MaxShuffleBlockSize + inBlockKeyIndex;
+
+                yield return KeySource[keyIndex];
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator()
