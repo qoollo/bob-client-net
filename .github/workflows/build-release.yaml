@@ -48,13 +48,13 @@ jobs:
     env:
       CONFIGURATION: "release"
       RUNTIME: "linux-x64"
-      FRAMEWORK: "net5.0"
+      FRAMEWORK: "net6.0"
     steps:
       - name: Checks-out repository 
         uses: actions/checkout@v2
       - name: Build client
         run: |
-          dotnet publish -c $CONFIGURATION -r $RUNTIME -f $FRAMEWORK -o publish BobClient/Qoollo.BobClient.App/Qoollo.BobClient.App.csproj
+          dotnet publish -c $CONFIGURATION -r $RUNTIME -f $FRAMEWORK -p:PublishTrimmed=true -o publish BobClient/Qoollo.BobClient.App/Qoollo.BobClient.App.csproj
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
@@ -90,13 +90,13 @@ jobs:
     env:
       CONFIGURATION: "release"
       RUNTIME: "win-x64"
-      FRAMEWORK: "net5.0"
+      FRAMEWORK: "net6.0"
     steps:
       - name: Checks-out repository 
         uses: actions/checkout@v2
       - name: Build client
         run: |
-          dotnet publish -c $CONFIGURATION -r $RUNTIME -f $FRAMEWORK -o publish BobClient/Qoollo.BobClient.App/Qoollo.BobClient.App.csproj
+          dotnet publish -c $CONFIGURATION -r $RUNTIME -f $FRAMEWORK -p:PublishTrimmed=true -o publish BobClient/Qoollo.BobClient.App/Qoollo.BobClient.App.csproj
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
