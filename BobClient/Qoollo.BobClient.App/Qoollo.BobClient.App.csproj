@@ -4,12 +4,12 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net462;netcoreapp3.1;net6.0</TargetFrameworks>
 
-    <AssemblyVersion>3.0.2</AssemblyVersion>
-    <FileVersion>3.0.2</FileVersion>
-    <InformationalVersion>3.0.2</InformationalVersion>
+    <AssemblyVersion>3.0.3</AssemblyVersion>
+    <FileVersion>3.0.3</FileVersion>
+    <InformationalVersion>3.0.3</InformationalVersion>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net5.0' And '$(RuntimeIdentifier)' != ''">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net6.0' And '$(RuntimeIdentifier)' != ''">
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <PublishTrimmed>true</PublishTrimmed>

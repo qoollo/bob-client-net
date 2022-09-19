@@ -90,7 +90,7 @@ namespace Qoollo.BobClient.Helpers
             if (memoryProperty == null || memoryProperty.PropertyType != typeof(ReadOnlyMemory<byte>) || !memoryProperty.CanRead)
                 return false;
 
-            var memoryType = memoryProperty.PropertyType;
+            var memoryType = typeof(ReadOnlyMemory<byte>); // memoryProperty.PropertyType
 
             var objectField = memoryType.GetField("_object", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
             if (objectField == null || objectField.FieldType != typeof(object))
