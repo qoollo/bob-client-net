@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <Title>Qoollo.BobClient</Title>
@@ -73,7 +73,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(gRpcLib)' == 'gRPC_NET'">
-    <PackageReference Include="Grpc.Net.Client" Version="2.37.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.52.0" />
   </ItemGroup>
 
 </Project>
