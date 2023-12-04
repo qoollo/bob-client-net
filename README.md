@@ -1,5 +1,5 @@
 # .NET client library for Bob
-[![NuGet](https://img.shields.io/nuget/v/Qoollo.BobClient.svg)](https://www.nuget.org/packages/Qoollo.BobClient/) [![build](https://github.com/qoollo/bob-client-net/actions/workflows/build.yaml/badge.svg)](https://github.com/qoollo/bob-client-net/actions/workflows/build.yaml) [![test](https://github.com/qoollo/bob-client-net/actions/workflows/test.yaml/badge.svg)](https://github.com/qoollo/bob-client-net/actions/workflows/test.yaml)
+[![NuGet](https://img.shields.io/nuget/v/Qoollo.BobClient.svg)](https://www.nuget.org/packages/Qoollo.BobClient/) [![build](https://github.com/qoollo/bob-client-net/actions/workflows/build.yaml/badge.svg?branch=master)](https://github.com/qoollo/bob-client-net/actions/workflows/build.yaml) [![test](https://github.com/qoollo/bob-client-net/actions/workflows/test.yaml/badge.svg?branch=master)](https://github.com/qoollo/bob-client-net/actions/workflows/test.yaml)
 
 Bob is a distributed BLOB storage: https://github.com/qoollo/bob
 
