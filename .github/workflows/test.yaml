@@ -16,9 +16,9 @@ jobs:
       - name: Build
         run: |
           dotnet build ./BobClient/
-      - name: Test net50
+      - name: Test net60
         run: |
-          dotnet test ./BobClient/ --no-build -f "net5.0" --blame-hang --blame-hang-timeout 15m -l "console;verbosity=detailed"
+          dotnet test ./BobClient/ --no-build -f "net6.0" --blame-hang --blame-hang-timeout 15m -l "console;verbosity=detailed"
 
 
   test-on-windows:
